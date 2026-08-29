@@ -18,3 +18,6 @@ label { display: block; margin: .75rem 0; }
 .news { white-space: pre-wrap; background: #fff; padding: 1rem; border-radius: .5rem; }
 .cover { position: fixed; inset: 0; background: #1b1b1b; color: #f6f5f2;
   display: flex; align-items: center; justify-content: center; font-size: 1.5rem; z-index: 10; }
+/* Без этого правила display: flex перебивает браузерное [hidden] { display: none },
+   и заглушка висит поверх экрана всегда, а клик по ней ничего не меняет. */
+.cover[hidden] { display: none; }

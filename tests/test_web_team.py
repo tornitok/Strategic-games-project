@@ -103,3 +103,14 @@ def test_screen_has_hide_control(client):
     page = client.get("/team/a")
     assert 'id="cover"' in page.text
     assert "/static/hide.js" in page.text
+
+
+def test_cover_is_hidden_by_default(client):
+    """display: flex перебивает браузерное [hidden], если не погасить его явно.
+
+    Без этого правила заглушка закрывает экран команды сразу при открытии и
+    не убирается кликом.
+    """
+    css = client.get("/static/style.css").text
+    assert ".cover[hidden]" in css
+    assert "display: none" in css.split(".cover[hidden]")[1][:40]
