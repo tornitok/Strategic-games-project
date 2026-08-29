@@ -21,6 +21,7 @@ from .core.state import StateBuilder, initial_state
 DOMINANCE = 0.6      # доля побед, после которой перекос считается поломкой
 STUCK_SHARE = 0.5    # доля раундов у границы, после которой трек считается залипшим
 EARLY_SHARE = 0.6    # партия короче этой доли раундов считается оборванной
+ENOUGH_GAMES = 20    # ниже этого «ни разу» — повод присмотреться, а не приговор
 
 
 @dataclass(frozen=True)
@@ -157,12 +158,14 @@ def check(spec: ScenarioSpec, games: int = 12) -> list[Finding]:
         for goal in faction.goals:
             hits = goal_hits[(faction.id, goal.title)]
             if hits == 0:
+                enough = played >= ENOUGH_GAMES
+                note = "" if enough else " — но прогонов мало, проверьте на большем числе"
                 findings.append(
                     Finding(
                         "unreachable_goal",
-                        "ошибка",
+                        "ошибка" if enough else "предупреждение",
                         f"цель «{goal.title}» ({faction.title}) не выполнена ни разу "
-                        f"за {played} партий",
+                        f"за {played} партий{note}",
                     )
                 )
             elif hits == played:

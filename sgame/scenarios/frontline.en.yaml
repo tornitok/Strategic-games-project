@@ -1,0 +1,705 @@
+# Английская копия frontline.yaml. Числа и выражения обязаны совпадать —
+# это проверяет tests/test_scenario_languages.py.
+schema_version: 1
+meta:
+  id: frontline
+  title: 'The Hollow: a regional conflict'
+  rounds: 8
+  action_points: 3
+  max_random_events: 2
+  intro: 'The Hollow is a belt of foothills a hundred kilometres wide between Karria
+
+    and Osset. For thirty years it counted as Karria''s under a treaty Osset signed
+
+    in a year when it was too weak to argue.
+
+
+    Six months ago fighting began in the Hollow. Regular units of both sides now
+
+    stand there, the line of contact runs along the river bed, and both armies have
+
+    dug in. Several hundred people have died; thirty thousand have left the valley.
+
+
+    Behind the belligerents stand their neighbours. Tarnia backs Osset with weapons
+
+    and money but does not want to be drawn in: its own economy rests on the transit
+
+    that this war is tearing apart. The Coastal League trades with everyone, loses
+
+    on every flare-up, and tries to bring the sides to the table — less out of
+
+    humanity than because closed roads ruin the League first.
+
+
+    This is not a global crisis: the world will not collapse however it ends. But
+
+    the war can drag on for years, or it can end within eight rounds — and how
+
+    exactly it ends decides who will live here, and on whose terms.'
+power: self.legitimacy * 0.4 + self.army * 0.7 + self.budget * 0.3
+tracks:
+  budget:
+    title: Treasury
+    meaning: 'What can pay for war or for peace, in notional units. An offensive costs
+
+      25–30, supplies to an ally about 20. A calm economy brings in roughly 10 per
+
+      round; war eats it.'
+    min: 0
+    max: 200
+    visibility: public
+  army:
+    title: Army
+    meaning: 'Combat-ready units in notional units. An offensive spends them whether it
+
+      succeeds or not; defence preserves them. Below 30 there is nothing to attack
+
+      with.'
+    min: 0
+    max: 100
+    visibility: public
+  legitimacy:
+    title: Public support
+    meaning: 'How society regards the war and the government waging it. Casualties and
+
+      refugees wear it down, victories lift it. Below 25 the government struggles to
+
+      hold on, and concessions become impossible to explain.'
+    min: 0
+    max: 100
+    visibility: public
+  intel:
+    title: Intelligence
+    meaning: 'What you know about the enemy and how well you can work unseen. Spent on
+
+      covert operations and planted stories. Visible only to its owner.'
+    min: 0
+    max: 100
+    visibility: private
+world:
+  frontline:
+    title: The front line
+    meaning: 'Where the line of contact runs in the Hollow. 100 means the valley is fully
+
+      controlled by Karria, 0 by Osset, 50 means the front stands along the river, as
+
+      it does now. Only offensives move it, and each one costs lives.'
+    min: 0
+    max: 100
+    start: 55
+  refugees:
+    title: Refugees
+    meaning: 'The scale of the humanitarian crisis. It grows with fighting and shelling
+
+      and subsides in a lull. High values hurt everyone''s support and draw outside
+
+      attention.'
+    min: 0
+    max: 100
+    start: 30
+  attention:
+    title: Outside attention
+    meaning: 'How closely neighbours, the press and international bodies are watching the
+
+      conflict. It rises with loud episodes and leaks.'
+    min: 0
+    max: 100
+    start: 35
+factions:
+- id: karria
+  title: Karria
+  start:
+    budget: 110
+    army: 65
+    legitimacy: 55
+    intel: 45
+  briefing: 'The Hollow is yours by treaty and you are holding it. Your task sounds
+
+    simple — do not give it up. The trouble is that not giving it up costs money
+
+    every round, and there is essentially nowhere for you to advance: taking someone
+
+    else''s territory would turn a border dispute into a full war.
+
+
+    Society backs you as long as the news is about a defence that held and not about
+
+    funerals. Your strength is that you need change nothing. Your weakness is the
+
+    same: time works for whoever can endure longer.'
+  goals:
+  - id: hold
+    title: The Hollow held
+    when: world.frontline >= 52
+    score: 40
+  - id: quiet
+    title: No humanitarian catastrophe
+    when: world.refugees < 55
+    score: 20
+  - id: army
+    title: Army preserved
+    when: self.army >= 45
+    score: 15
+- id: osset
+  title: Osset
+  start:
+    budget: 85
+    army: 70
+    legitimacy: 45
+    intel: 55
+  briefing: 'The treaty on the Hollow was signed not by you but by a country that no
+
+    longer exists. Inside your society the return of the valley is a matter of
+
+    justice, and the present government rests on that.
+
+
+    Your army is slightly stronger than your neighbour''s, your treasury poorer.
+
+    Tarnia helps, but its help always comes with conditions and always falls short
+
+    of what was promised. A long war will ruin you faster than Karria — so if you
+
+    act, act decisively and soon.'
+  goals:
+  - id: take
+    title: The Hollow retaken
+    when: world.frontline <= 45
+    score: 40
+  - id: support
+    title: Society has not turned away
+    when: self.legitimacy >= 40
+    score: 20
+  - id: solvent
+    title: Treasury not empty
+    when: self.budget >= 55
+    score: 15
+- id: tarnia
+  title: Tarnia
+  start:
+    budget: 140
+    army: 55
+    legitimacy: 60
+    intel: 60
+  briefing: 'You back Osset: that gives you influence in the south and leverage against
+
+    Karria. But your economy lives on transit through this very region, and every
+
+    month of war costs you more than the weapons you send.
+
+
+    Your ideal outcome is a quick victory for your client, after which the roads
+
+    reopen and you stand behind the winner. The worst is a long war that pulls you
+
+    in directly. Direct involvement is not something you can afford: at home it
+
+    would not be understood.'
+  goals:
+  - id: client
+    title: The client got what it wanted
+    when: world.frontline <= 48
+    score: 30
+  - id: transit
+    title: Roads open, transit running
+    when: world.refugees < 50
+    score: 25
+  - id: clean
+    title: You did not get stuck yourself
+    when: self.army >= 50
+    score: 15
+- id: league
+  title: The Coastal League
+  start:
+    budget: 150
+    army: 30
+    legitimacy: 70
+    intel: 40
+  briefing: 'You are a union of trading cities on the coast. You have almost no army of
+
+    your own, but you have money, a reputation, and the fact that both sides listen
+
+    to you.
+
+
+    The war ruins you first: the closed roads are your roads. You hardly care where
+
+    exactly the border runs, as long as people stop shooting along it. Your tools
+
+    are money and mediation; your risk is being taken for a party to the war, after
+
+    which neither side will listen to you again.'
+  goals:
+  - id: peace
+    title: The shooting has stopped
+    when: world.refugees < 40
+    score: 40
+  - id: neutral
+    title: You remained the broker
+    when: rel('karria', 'league') > -15 and rel('osset', 'league') > -15
+    score: 25
+  - id: rich
+    title: Trade was not hurt
+    when: self.budget >= 145
+    score: 15
+relations:
+  default: 0
+  pairs:
+  - a: karria
+    b: osset
+    value: -55
+  - a: osset
+    b: tarnia
+    value: 40
+  - a: karria
+    b: tarnia
+    value: -25
+  - a: karria
+    b: league
+    value: 15
+  - a: osset
+    b: league
+    value: 5
+  - a: tarnia
+    b: league
+    value: -5
+actions:
+- id: consult
+  title: A pause for consultations
+  description: 'A day without decisions: meetings, taking stock.'
+  news: '{actor} takes a pause'
+  stance: neutral
+  effects:
+  - self: intel
+    delta: '4'
+  - world: refugees
+    delta: '-2'
+- id: push_north
+  title: Offensive southward
+  description: An attempt to push the front line deeper into the Hollow.
+  news: Karria launches an offensive in the Hollow
+  stance: hostile
+  target: faction
+  available_to:
+  - karria
+  cost:
+    budget: 28
+    army: 12
+  requires: self.army >= 30 and in_status('ceasefire') == 0
+  risk:
+  - p: 0.4
+    title: a breakthrough
+    effects:
+    - world: frontline
+      delta: '14'
+    - world: refugees
+      delta: '10'
+    - self: legitimacy
+      delta: '6'
+  - p: 0.35
+    title: an advance at little cost
+    effects:
+    - world: frontline
+      delta: '6'
+    - world: refugees
+      delta: '5'
+  - p: 0.25
+    title: the attack stalled
+    effects:
+    - self: army
+      delta: '-8'
+    - self: legitimacy
+      delta: '-10'
+    - world: refugees
+      delta: '6'
+- id: push_south
+  title: Offensive northward
+  description: An attempt to take the valley back by force.
+  news: Osset launches an offensive in the Hollow
+  stance: hostile
+  target: faction
+  available_to:
+  - osset
+  cost:
+    budget: 28
+    army: 12
+  requires: self.army >= 30 and in_status('ceasefire') == 0
+  risk:
+  - p: 0.4
+    title: a breakthrough
+    effects:
+    - world: frontline
+      delta: '-14'
+    - world: refugees
+      delta: '10'
+    - self: legitimacy
+      delta: '6'
+  - p: 0.35
+    title: an advance at little cost
+    effects:
+    - world: frontline
+      delta: '-6'
+    - world: refugees
+      delta: '5'
+  - p: 0.25
+    title: the attack stalled
+    effects:
+    - self: army
+      delta: '-8'
+    - self: legitimacy
+      delta: '-10'
+    - world: refugees
+      delta: '6'
+- id: entrench
+  title: Strengthening the defence
+  description: Trenches, mines, reserves in the second echelon.
+  news: '{actor} strengthens its positions'
+  stance: neutral
+  cost:
+    budget: 15
+  effects:
+  - self: army
+    delta: '6'
+  - world: frontline
+    delta: '0'
+- id: shelling
+  title: Artillery bombardment
+  description: Pressure by fire without an attempt to advance.
+  news: '{actor} shells the positions. Under fire — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 12
+  requires: in_status('ceasefire') == 0
+  effects:
+  - target: army
+    delta: '-5'
+  - world: refugees
+    delta: '7'
+  - world: attention
+    delta: '4'
+  - relation:
+    - self
+    - target
+    delta: '-8'
+- id: mobilize
+  title: Calling up reservists
+  description: Filling out units by mobilisation.
+  news: '{actor} announces a call-up'
+  stance: neutral
+  cost:
+    budget: 20
+  requires: self.army < 90
+  effects:
+  - self: army
+    delta: '12'
+  - self: legitimacy
+    delta: '-6'
+- id: supply
+  title: Military supplies
+  description: Weapons and equipment for the side you back.
+  news: '{actor} sends military supplies. Recipient — {target}'
+  stance: friendly
+  target: faction
+  available_to:
+  - tarnia
+  - league
+  cost:
+    budget: 22
+  effects:
+  - target: army
+    delta: '10'
+  - self: budget
+    delta: '5'
+  - relation:
+    - self
+    - target
+    delta: '12'
+  - world: attention
+    delta: '5'
+- id: humanitarian
+  title: Humanitarian aid
+  description: Camps, food, corridors for civilians.
+  news: '{actor} launches a humanitarian operation'
+  stance: friendly
+  cost:
+    budget: 18
+  effects:
+  - world: refugees
+    delta: '-14'
+  - self: legitimacy
+    delta: '5'
+- id: mediate
+  title: Mediation
+  description: Shuttle diplomacy between the capitals.
+  news: '{actor} offers to mediate'
+  stance: friendly
+  available_to:
+  - tarnia
+  - league
+  cost:
+    budget: 14
+  effects:
+  - world: refugees
+    delta: '-6'
+  - world: attention
+    delta: '6'
+  - self: legitimacy
+    delta: '3'
+- id: pressure
+  title: Economic pressure
+  description: Tariffs, closed transit, frozen accounts.
+  news: '{actor} closes the transit. Hit — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 14
+  effects:
+  - target: budget
+    delta: -(8 + target.budget * 0.06)
+  - self: budget
+    delta: '3'
+  - relation:
+    - self
+    - target
+    delta: '-14'
+- id: address
+  title: Address to society
+  description: A speech explaining what all this is for.
+  news: '{actor} addresses its society'
+  stance: neutral
+  cost:
+    budget: 8
+  effects:
+  - self: legitimacy
+    delta: '9'
+  - world: attention
+    delta: '3'
+- id: intel_work
+  title: Intelligence work
+  description: Agents, intercepts, aerial reconnaissance.
+  news: '{actor} steps up reconnaissance'
+  stance: neutral
+  cost:
+    budget: 10
+  effects:
+  - self: intel
+    delta: '16'
+- id: sabotage
+  title: Sabotage in the rear
+  description: A blow against depots and bridges by other people's hands.
+  news: '{actor} carries out sabotage. Target — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 14
+    intel: 14
+  requires: self.intel >= 14
+  visibility: secret
+  reveal_chance: 0.4
+  countered_by:
+  - counterintel
+  risk:
+  - p: 0.5
+    title: success
+    effects:
+    - target: army
+      delta: '-8'
+    - target: budget
+      delta: '-10'
+  - p: 0.3
+    title: partial
+    effects:
+    - target: budget
+      delta: '-5'
+  - p: 0.2
+    title: failure and losses
+    effects:
+    - self: intel
+      delta: '-12'
+- id: counterintel
+  title: Counter-intelligence
+  description: Guarding the rear, checking depots and supply routes.
+  news: '{actor} tightens security in the rear'
+  stance: neutral
+  cost:
+    budget: 10
+  counter_multiplier: 0.2
+  effects:
+  - self: intel
+    delta: '6'
+- id: disinform
+  title: A campaign in the press
+  description: Planted evidence blaming the other side for the shelling.
+  news: '{actor} launches a campaign in the press. Target — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 10
+    intel: 12
+  requires: self.intel >= 12
+  visibility: secret
+  reveal_chance: 0.35
+  plants_rumour: true
+  effects:
+  - self: intel
+    delta: '-4'
+  - world: attention
+    delta: '6'
+- id: align
+  title: Standing behind the strong
+  description: Public backing for another's position for a share of its fruits.
+  news: '{actor} openly backs the position of: {target}'
+  stance: friendly
+  target: faction
+  cost:
+    legitimacy: 4
+  effects:
+  - self: budget
+    delta: target.budget * 0.07
+  - relation:
+    - self
+    - target
+    delta: '14'
+deals:
+- id: ceasefire
+  title: Ceasefire
+  kind: status
+  duration: 2
+- id: transfer
+  title: Financial aid
+  kind: resource
+  track: budget
+- id: patronage
+  title: Treaty of protection
+  kind: status
+  duration: 4
+world_dynamics:
+- world: refugees
+  delta: (25 - world.refugees) * 0.18
+- world: attention
+  delta: (35 - world.attention) * 0.15
+- all: budget
+  delta: 9 - world.refugees * 0.06
+- all: legitimacy
+  delta: 2 - world.refugees * 0.05
+- all: budget
+  delta: in_status('patronage') * 6
+events:
+- id: winter
+  when: round == 4
+  title: Winter in the foothills
+  news: 'The passes are snowed in: fighting has almost stopped'
+  text: The snow did what diplomacy could not.
+  effects:
+  - world: refugees
+    delta: '8'
+  - all: budget
+    delta: '-8'
+- id: outcry
+  when: world.refugees > 65
+  once: true
+  title: Humanitarian catastrophe
+  news: 'The camps are overflowing: neighbours demand an immediate ceasefire'
+  effects:
+  - all: legitimacy
+    delta: '-8'
+  - world: attention
+    delta: '18'
+- id: conference
+  when: round == 6
+  title: Conference on the Hollow
+  news: A settlement conference has opened on the coast
+  effects:
+  - world: refugees
+    delta: '-10'
+  - all: legitimacy
+    delta: '3'
+- id: stalemate
+  when: world.frontline > 45 and world.frontline < 55
+  once: true
+  title: Positional deadlock
+  news: 'The front has not moved for a third week: both armies dig deeper'
+  effects:
+  - all: army
+    delta: '4'
+  - all: budget
+    delta: '-6'
+- id: market_strike
+  chance: 0.2
+  title: A shell on the market
+  news: 'A shell hit a market: dozens dead, both sides deny everything'
+  effects:
+  - world: refugees
+    delta: '12'
+  - world: attention
+    delta: '14'
+  - all: legitimacy
+    delta: '-5'
+- id: desertion
+  chance: 0.18
+  title: Desertion
+  news: Men are leaving the units on the front line
+  effects:
+  - all: army
+    delta: '-6'
+  - all: legitimacy
+    delta: '-3'
+- id: arms_cache
+  chance: 0.15
+  once: true
+  title: A depot is found
+  news: 'An old army depot has been found: the equipment is back in service'
+  effects:
+  - all: army
+    delta: '7'
+- id: journalist
+  chance: 0.15
+  title: A journalist is killed
+  news: A foreign journalist has been killed at the front
+  effects:
+  - world: attention
+    delta: '16'
+  - all: legitimacy
+    delta: '-4'
+- id: harvest_lost
+  chance: 0.16
+  title: The sowing season lost
+  news: 'The sowing season in the valley is lost: food is getting dearer'
+  effects:
+  - all: budget
+    delta: '-9'
+  - world: refugees
+    delta: '6'
+- id: prisoner_swap
+  chance: 0.18
+  title: Prisoner exchange
+  news: 'The sides have exchanged prisoners: the first conversation in months'
+  effects:
+  - all: legitimacy
+    delta: '5'
+  - world: refugees
+    delta: '-6'
+- id: mudslide
+  chance: 0.14
+  title: A landslide
+  news: A landslide has cut the supply road
+  effects:
+  - all: budget
+    delta: '-7'
+  - all: army
+    delta: '-3'
+rumours:
+  chance: 0.45
+  noise_chance: 0.18
+  accuracy: 0.6
+  templates:
+  - Unconfirmed reports point to {subject}
+  - 'A name is being mentioned in the staffs: {subject}'
+  - 'A source in the border area points to the side: {subject}'
+  - 'Prisoners keep saying the same thing: it was {subject}'
+end:
+  when: round > meta.rounds
+  scoring: 40 + self.legitimacy * 0.5 + (self.army - avg('army')) * 0.5 + (self.budget - avg('budget'))
+    * 0.3

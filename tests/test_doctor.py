@@ -105,3 +105,17 @@ def test_no_warning_when_a_free_action_exists():
              '      effects: [ { self: intel, delta: "2" } ] }')
     found = check(scenario(extra_actions=extra), games=2)
     assert not any(f.code == "no_free_action" for f in found)
+
+
+def test_small_sample_downgrades_the_verdict():
+    """На малой выборке «ни разу» — повод присмотреться, а не приговор.
+
+    Диагноз, который переворачивается от числа прогонов, перестают читать.
+    """
+    few = [f for f in check(scenario(goal_a="self.budget > 5000"), games=4)
+           if f.code == "unreachable_goal"]
+    many = [f for f in check(scenario(goal_a="self.budget > 5000"), games=20)
+            if f.code == "unreachable_goal"]
+    assert few and few[0].severity == "предупреждение"
+    assert "прогонов мало" in few[0].message
+    assert many and many[0].severity == "ошибка"
