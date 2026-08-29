@@ -114,6 +114,17 @@ class StateBuilder:
             amount=after - before, clamped=_clamped(after - before, amount),
         )
 
+    def track_of(self, faction: str, name: str) -> float:
+        """Показатель конкретной стороны — для условий событий.
+
+        Без него событие не может спросить «а много ли разведки у Кальдеры»:
+        обычный `self` в условии события не определён, актора там нет.
+        """
+        try:
+            return self._tracks[faction][name]
+        except KeyError as exc:
+            raise KeyError(f"неизвестная сторона или показатель: {faction}.{name}") from exc
+
     def context(self, actor: str | None = None, target: str | None = None) -> dict[str, Any]:
         """Контекст для вычисления выражений сценария."""
         return {
@@ -123,6 +134,7 @@ class StateBuilder:
             "round": self.round,
             "meta": {"rounds": self.spec.meta.rounds},
             "rel": self.relation,
+            "track": self.track_of,
         }
 
     def build(self, *, round_no: int, finished: bool = False) -> GameState:

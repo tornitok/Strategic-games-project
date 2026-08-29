@@ -348,14 +348,36 @@ def phase_world(spec: ScenarioSpec, builder: StateBuilder) -> list[Event]:
     ]
 
 
-def phase_events(spec: ScenarioSpec, builder: StateBuilder) -> list[Event]:
-    """Фаза 7. Плановые и триггерные события сценария."""
+def phase_events(spec: ScenarioSpec, builder: StateBuilder, seed: int) -> list[Event]:
+    """Фаза 7. Плановые, триггерные и случайные события сценария.
+
+    Событие срабатывает, когда выполнено его условие (пустое условие годится
+    всегда) и прошёл бросок `chance`. Потолок `max_random_events` ограничивает
+    только случайные события: плановые он не трогает, иначе расписание
+    сценария зависело бы от везения.
+    """
     events: list[Event] = []
+    random_fired = 0
+    cap = spec.meta.max_random_events
+
     for scenario_event in spec.events:
         if scenario_event.once and scenario_event.id in builder.fired_events:
             continue
-        if not evaluate(scenario_event.when, builder.context()):
+        if scenario_event.when and not evaluate(scenario_event.when, builder.context()):
             continue
+
+        # Случайное — то, где автор сценария явно написал chance, даже если
+        # написал единицу. Иначе потолок нельзя ни задать осмысленно, ни
+        # проверить: «chance: 1» тоже часть случайного пула.
+        is_random = "chance" in scenario_event.model_fields_set
+        if is_random:
+            if cap is not None and random_fired >= cap:
+                continue
+            rng = stream(seed, builder.round, f"event:{scenario_event.id}")
+            if not happens(rng, scenario_event.chance):
+                continue
+            random_fired += 1
+
         deltas: list[Delta] = []
         for effect in scenario_event.effects:
             deltas.extend(apply_effect(spec, builder, effect, actor=None, target=None))
@@ -380,3 +402,62 @@ def phase_end(spec: ScenarioSpec, builder: StateBuilder) -> tuple[bool, list[Eve
     if not finished:
         return False, []
     return True, [Event(kind="end", title="Игра окончена", audience="public")]
+
+
+def _rumour_event(spec: ScenarioSpec, rng, subject: str, truth: bool, source: str | None) -> Event:
+    templates = spec.rumours.templates
+    template = templates[choose(rng, [1.0] * len(templates))]
+    faction = spec.faction(subject)
+    return Event(
+        kind="rumour",
+        title=template.format(subject=faction.title if faction else subject),
+        audience="public",
+        subject=subject,
+        truth=truth,
+        source=source,
+    )
+
+
+def phase_rumours(
+    spec: ScenarioSpec,
+    builder: StateBuilder,
+    accepted: Sequence[Accepted],
+    seed: int,
+) -> list[Event]:
+    """Фаза 7б. Слухи — модельные и запущенные командами.
+
+    Слух публичен и подан как слух. Кто его запустил и правда ли это,
+    хранится в событии, но показывается только ведущему: игроки должны
+    решать, верить ли, а не читать ответ.
+    """
+    config = spec.rumours
+    if not config.templates:
+        return []
+
+    events: list[Event] = []
+
+    for item in accepted:
+        if item.action.plants_rumour and item.order.target:
+            rng = stream(seed, builder.round, item.roll_id + ":rumour")
+            events.append(
+                _rumour_event(spec, rng, item.order.target, truth=False, source=item.faction)
+            )
+
+    secret_actors = sorted({i.faction for i in accepted if i.action.visibility == "secret"})
+    rng = stream(seed, builder.round, "rumour")
+    everyone = [f.id for f in spec.factions]
+
+    if secret_actors:
+        if happens(rng, config.chance):
+            truthful = happens(rng, config.accuracy)
+            if truthful:
+                subject = secret_actors[choose(rng, [1.0] * len(secret_actors))]
+            else:
+                others = [f for f in everyone if f not in secret_actors] or everyone
+                subject = others[choose(rng, [1.0] * len(others))]
+            events.append(_rumour_event(spec, rng, subject, truth=truthful, source=None))
+    elif happens(rng, config.noise_chance):
+        subject = everyone[choose(rng, [1.0] * len(everyone))]
+        events.append(_rumour_event(spec, rng, subject, truth=False, source=None))
+
+    return events

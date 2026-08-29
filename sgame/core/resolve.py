@@ -7,7 +7,7 @@ from .events import Event
 from .orders import DealOffer, Order
 from .phases import (
     phase_counters, phase_deals, phase_effects, phase_end,
-    phase_events, phase_pay, phase_validate, phase_world,
+    phase_events, phase_pay, phase_rumours, phase_validate, phase_world,
 )
 from .spec import ScenarioSpec
 from .state import GameState, StateBuilder
@@ -38,7 +38,8 @@ def resolve(
     multipliers = phase_counters(spec, accepted)
     events.extend(phase_effects(spec, builder, accepted, multipliers, seed))
     events.extend(phase_world(spec, builder))
-    events.extend(phase_events(spec, builder))
+    events.extend(phase_events(spec, builder, seed))
+    events.extend(phase_rumours(spec, builder, accepted, seed))
     finished, end_events = phase_end(spec, builder)
     events.extend(end_events)
 

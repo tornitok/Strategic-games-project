@@ -50,8 +50,18 @@ def _headline(spec: ScenarioSpec, event: Event) -> str:
     return event.title
 
 
-def _detail(spec: ScenarioSpec, event: Event) -> str:
+def _detail(spec: ScenarioSpec, event: Event, role: Role) -> str:
     from .templates import deltas_text
+
+    if event.kind == "rumour":
+        # Игроки должны решать, верить ли слуху. Правду и автора видит только
+        # ведущий — иначе на разборе нечего будет обсуждать.
+        if role != "host":
+            return ""
+        parts = ["правда" if event.truth else "ложь"]
+        if event.source:
+            parts.append(f"запустила {_title_of(spec, event.source)}")
+        return ", ".join(parts)
 
     parts = []
     if event.roll:
@@ -77,14 +87,17 @@ def news_items(
     """
     visible = events_for(events, viewer, role)
     items = [
-        NewsItem(headline=_headline(spec, event), detail=_detail(spec, event), kind=event.kind)
+        NewsItem(headline=_headline(spec, event), detail=_detail(spec, event, role), kind=event.kind)
         for event in visible
-        if event.kind in {"action", "scenario_event", "deal_done", "status_expired", "world", "end"}
+        if event.kind in {"action", "scenario_event", "deal_done", "status_expired",
+                          "world", "end", "rumour"}
     ]
 
+    # Слух уже говорит о тайной активности — общий намёк рядом с ним лишний.
+    spoke_of_secrets = any(item.kind == "rumour" for item in items)
     hidden_secret = any(
         event.kind == "action" and not visible_to(event, viewer, role) for event in events
     )
-    if hidden_secret:
+    if hidden_secret and not spoke_of_secrets:
         items.append(NewsItem(headline=COVERT_HINT, kind="hint"))
     return items

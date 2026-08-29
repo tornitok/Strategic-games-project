@@ -21,6 +21,7 @@ class MetaSpec(Base):
     rounds: int = Field(ge=1)
     action_points: int = Field(ge=1)
     intro: str = ""
+    max_random_events: int | None = Field(default=None, ge=0)
 
 
 class TrackSpec(Base):
@@ -81,6 +82,7 @@ class ActionSpec(Base):
     visibility: Literal["open", "secret"] = "open"
     reveal_chance: float = Field(default=0.0, ge=0, le=1)
     countered_by: list[str] = []
+    plants_rumour: bool = False  # действие запускает слух о выбранной стороне
     counter_multiplier: float = Field(default=0.0, ge=0, le=1)
     effects: list[EffectSpec] = []
     risk: list[RiskOutcome] = []
@@ -96,7 +98,8 @@ class DealSpec(Base):
 
 class EventSpec(Base):
     id: str
-    when: str
+    when: str = ""  # пусто — событие возможно в любом раунде
+    chance: float = Field(default=1.0, ge=0, le=1)
     title: str
     text: str = ""
     news: str = ""  # заголовок для сводки
@@ -115,6 +118,15 @@ class RelationsSpec(Base):
     pairs: list[RelationPair] = []
 
 
+class RumoursSpec(Base):
+    """Насколько болтлив и лжив мир вокруг команд."""
+
+    chance: float = Field(default=0.0, ge=0, le=1)       # слух при тайной активности
+    noise_chance: float = Field(default=0.0, ge=0, le=1)  # слух на пустом месте
+    accuracy: float = Field(default=0.6, ge=0, le=1)      # доля правдивых
+    templates: list[str] = []
+
+
 class EndSpec(Base):
     when: str
     scoring: str
@@ -131,6 +143,7 @@ class ScenarioSpec(Base):
     deals: list[DealSpec] = []
     world_dynamics: list[EffectSpec] = []
     events: list[EventSpec] = []
+    rumours: RumoursSpec = RumoursSpec()
     end: EndSpec
 
     def action(self, action_id: str) -> ActionSpec | None:

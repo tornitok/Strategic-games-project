@@ -5,6 +5,7 @@ meta:
   title: "Кризис в Меридианском заливе"
   rounds: 8
   action_points: 3
+  max_random_events: 2
   intro: |
     Меридианский залив — узкое горло, через которое проходит треть морской
     торговли региона. Кто держит пролив, тот держит и цены, и чужие обещания.
@@ -228,6 +229,19 @@ actions:
       - { p: 0.20, title: "скандал", effects: [ { self: legitimacy, delta: "-10" },
                                                 { world: attention, delta: "10" } ] }
 
+  - id: disinform
+    title: "Вброс через прессу"
+    description: "Подброшенные журналистам «доказательства» чужой вины."
+    news: "{actor} запускает вброс в прессу. Цель — {target}"
+    target: faction
+    cost: { budget: 12, intel: 12 }
+    requires: "self.intel >= 12"
+    visibility: secret
+    reveal_chance: 0.3
+    plants_rumour: true
+    effects:
+      - { self: intel, delta: "-5" }
+
   - id: deescalate
     title: "Шаг к разрядке"
     news: "{actor} публично отказывается от эскалации"
@@ -301,6 +315,69 @@ events:
     news: "Пресса публикует переписку разведок"
     text: "Пресса публикует переписку разведок."
     effects: [ { all: intel, delta: "-10" }, { all: legitimacy, delta: "-3" } ]
+
+  - id: terminal_fire
+    chance: 0.18
+    once: true
+    title: "Пожар на нефтяном терминале"
+    news: "Горит крупнейший нефтяной терминал залива"
+    text: "Причины выясняются, поставки сорваны."
+    effects: [ { all: budget, delta: "-10" }, { world: attention, delta: "8" } ]
+
+  - id: strait_storm
+    chance: 0.2
+    title: "Шторм закрыл пролив"
+    news: "Шторм на неделю закрыл судоходство в проливе"
+    effects: [ { all: budget, delta: "-6" }, { world: tension, delta: "-4" } ]
+
+  - id: dockers_strike
+    chance: 0.15
+    title: "Забастовка докеров"
+    news: "Порты встали: докеры требуют повышения платы"
+    effects: [ { all: budget, delta: "-8" }, { all: legitimacy, delta: "-3" } ]
+
+  - id: gas_find
+    chance: 0.12
+    once: true
+    title: "Найдено месторождение"
+    news: "На шельфе обнаружены запасы газа"
+    effects: [ { all: budget, delta: "12" }, { world: tension, delta: "6" } ]
+
+  - id: corruption
+    chance: 0.15
+    title: "Коррупционный скандал"
+    news: "Журналисты публикуют схему хищений на госзакупках"
+    effects: [ { all: legitimacy, delta: "-6" }, { world: attention, delta: "5" } ]
+
+  - id: epidemic
+    chance: 0.12
+    when: "world.tension > 45"
+    once: true
+    title: "Вспышка болезни в лагерях"
+    news: "В приграничных лагерях вспышка инфекции"
+    effects: [ { all: budget, delta: "-9" }, { all: legitimacy, delta: "-4" } ]
+
+  - id: pirates
+    chance: 0.15
+    title: "Нападение на торговое судно"
+    news: "Захвачен сухогруз: в заливе снова говорят о пиратах"
+    effects: [ { all: budget, delta: "-5" }, { world: tension, delta: "5" } ]
+
+  - id: freight_crash
+    chance: 0.12
+    title: "Обвал фрахтовых ставок"
+    news: "Ставки на морские перевозки рухнули за месяц"
+    effects: [ { all: budget, delta: "-7" }, { world: attention, delta: "-4" } ]
+
+rumours:
+  chance: 0.45        # слух, когда в раунде была тайная активность
+  noise_chance: 0.15  # слух на пустом месте
+  accuracy: 0.6       # доля правдивых
+  templates:
+    - "По неподтверждённым данным, за этим стоит {subject}"
+    - "В кулуарах называют имя: {subject}"
+    - "Источники в разведке указывают направление: {subject}"
+    - "Неназванный дипломат обронил фразу: «это {subject}»"
 
 end:
   when: "round > meta.rounds or world.tension >= 100"

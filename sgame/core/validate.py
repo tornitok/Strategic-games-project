@@ -122,12 +122,29 @@ def validate_scenario(spec: ScenarioSpec, lines: dict[str, int]) -> list[Problem
 
     for i, event in enumerate(spec.events):
         line = at("events", i)
-        check_expression(event.when, f"событие {event.id!r}: when", line)
+        if event.when:  # пустое условие означает «возможно в любом раунде»
+            check_expression(event.when, f"событие {event.id!r}: when", line)
         check_effects(event.effects, ("events", i, "effects"), f"событие {event.id!r}")
 
     check_effects(spec.world_dynamics, ("world_dynamics",), "world_dynamics")
     check_expression(spec.end.when, "end.when", at("end"))
     check_expression(spec.end.scoring, "end.scoring", at("end"))
+
+    for i, template in enumerate(spec.rumours.templates):
+        if "{subject}" not in template:
+            problems.append(
+                Problem(
+                    f"слух {i + 1}: в шаблоне нет подстановки {{subject}}, "
+                    "слух не назовёт сторону",
+                    at("rumours"),
+                )
+            )
+    if spec.rumours.templates and not any(a.plants_rumour for a in spec.actions):
+        if spec.rumours.chance == 0 and spec.rumours.noise_chance == 0:
+            problems.append(
+                Problem("слухи описаны, но не могут появиться: обе вероятности равны нулю",
+                        at("rumours"))
+            )
 
     mentioned = {p.a for p in spec.relations.pairs} | {p.b for p in spec.relations.pairs}
     for name in sorted(mentioned - factions):

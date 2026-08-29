@@ -32,3 +32,6 @@ class Event:
     deltas: tuple[Delta, ...] = field(default=())
     audience: Audience = "public"
     roll: str | None = None
+    subject: str | None = None  # о ком слух
+    truth: bool | None = None   # правдив ли слух — только для ведущего
+    source: str | None = None   # кто его запустил, если это была команда
