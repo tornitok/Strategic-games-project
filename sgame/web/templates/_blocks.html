@@ -1,0 +1,39 @@
+{% macro news_feed(items) %}
+  {% if items %}
+  <ul class="feed">
+    {% for item in items %}
+    <li class="feed-item {{ item.kind }}">
+      <span class="headline">{{ item.headline }}</span>
+      {% if item.detail %}<span class="detail">{{ item.detail }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="round">Игра начинается.</p>
+  {% endif %}
+{% endmacro %}
+
+{% macro change_table(rows) %}
+  <div class="sides">
+    {% for row in rows %}
+    <div class="side">
+      <div class="title">{{ row.title }}{% if row.own %} — вы{% endif %}</div>
+      <ul class="tracks">
+        {% for track in row.tracks %}
+        <li class="track {% if row.own %}own{% endif %}">
+          <span class="value">{{ track.after | num }}</span>
+          <span class="name">{{ track.name }}</span>
+          {% if track.delta %}
+          <span class="delta {% if row.neutral %}flat{% elif track.delta > 0 %}up{% else %}down{% endif %}">
+            {{ track.before | num }} → {{ track.after | num }}
+          </span>
+          {% else %}
+          <span class="delta flat">без изменений</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+{% endmacro %}

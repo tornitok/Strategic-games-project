@@ -1,23 +1,20 @@
 {% extends "base.html" %}
+{% import "_blocks.html" as blocks %}
 {% block bodyclass %}projector{% endblock %}
 {% block body %}
 <h1>{{ spec.meta.title }}</h1>
-<p class="round">Раунд {{ shown_round }} из {{ spec.meta.rounds }}</p>
+<p class="round">{% if started %}Итоги раунда {{ shown_round }}{% else %}Раунд {{ shown_round }} из {{ spec.meta.rounds }}{% endif %}</p>
 
 <section class="card">
-  <h2>Обстановка в мире</h2>
-  <ul class="tracks">
-    {% for name, track in spec.world.items() %}
-    <li class="track">
-      <span class="value">{{ state.world[name] | num }}</span>
-      <span class="name">{{ track.title }}</span>
-    </li>
-    {% endfor %}
-  </ul>
+  <h2>Сводка новостей</h2>
+  {{ blocks.news_feed(items) }}
 </section>
 
 <section class="card">
-  <h2>Стороны</h2>
+  <h2>{% if started %}Как изменилось положение{% else %}Положение сторон{% endif %}</h2>
+  {% if changes %}
+    {{ blocks.change_table(changes) }}
+  {% else %}
   <div class="sides">
     {% for faction in spec.factions %}
     <div class="side">
@@ -32,11 +29,18 @@
       </ul>
     </div>
     {% endfor %}
+    <div class="side">
+      <div class="title">Мир</div>
+      <ul class="tracks">
+        {% for name, track in spec.world.items() %}
+        <li class="track">
+          <span class="value">{{ state.world[name] | num }}</span>
+          <span class="name">{{ track.title }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-</section>
-
-<section class="card">
-  <h2>Сводка</h2>
-  <div class="news">{{ news }}</div>
+  {% endif %}
 </section>
 {% endblock %}

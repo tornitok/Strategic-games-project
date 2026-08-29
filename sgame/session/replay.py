@@ -31,6 +31,22 @@ def replay(journal: Journal) -> tuple[GameState, list[tuple[Event, ...]]]:
     return state, history
 
 
+def states(journal: Journal) -> list[GameState]:
+    """Срезы состояния: начальный и после каждого раунда.
+
+    Нужны, чтобы показать «было → стало»: разница берётся между соседними.
+    """
+    spec = spec_of(journal)
+    state = initial_state(spec)
+    result = [state]
+    for record in journal.rounds:
+        state = resolve(
+            spec, state, record.orders, record.offers, record.responses, journal.seed
+        ).state
+        result.append(state)
+    return result
+
+
 def current_state(journal: Journal) -> GameState:
     return replay(journal)[0]
 

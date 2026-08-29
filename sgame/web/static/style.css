@@ -259,3 +259,26 @@ body.projector h1 { font-size: clamp(2rem, 4.5vw, 3rem); }
 body.projector .track .value { font-size: 2.4rem; }
 body.projector .news { font-size: 1.15rem; line-height: 1.75; }
 body.projector table { font-size: 1.1rem; }
+
+/* Лента новостей раунда */
+.feed { list-style: none; margin: 0; padding: 0; }
+.feed-item {
+  padding: .7rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.feed-item:last-child { border-bottom: 0; }
+.feed-item .headline { font-weight: 600; letter-spacing: -0.01em; }
+.feed-item .detail { color: var(--muted); font-size: .9rem; }
+.feed-item.hint .headline { font-weight: 500; font-style: italic; color: var(--muted); }
+.feed-item.world .headline, .feed-item.scenario_event .headline { color: var(--warn); }
+
+.track .delta { display: block; font-size: .8rem; margin-top: .15rem; }
+.track .delta.up { color: var(--up); }
+.track .delta.down { color: var(--down); }
+.track .delta.flat { color: var(--muted); opacity: .7; }
+body.projector .feed-item .headline { font-size: 1.2rem; }
+body.projector .feed-item .detail { font-size: 1rem; }
+.track .delta.flat { opacity: 1; }

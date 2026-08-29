@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_blocks.html" as blocks %}
 {% block body %}
 <div id="cover" hidden class="cover"><p>Экран скрыт. Нажмите, чтобы вернуться.</p></div>
 <script src="/static/hide.js" defer></script>
@@ -27,11 +28,14 @@
 
 <section class="card">
   <h2>Новости</h2>
-  <div class="news">{{ news }}</div>
+  {{ blocks.news_feed(items) }}
 </section>
 
 <section class="card">
-  <h2>Обстановка</h2>
+  <h2>Обстановка{% if changes %} и что изменилось за раунд{% endif %}</h2>
+  {% if changes %}
+  {{ blocks.change_table(changes) }}
+  {% else %}
   <div class="sides">
     {% for id, values in tracks.items() %}
     <div class="side">
@@ -58,6 +62,7 @@
       </ul>
     </div>
   </div>
+  {% endif %}
 </section>
 
 <section class="card">

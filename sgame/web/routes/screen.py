@@ -3,6 +3,9 @@
 from fastapi import APIRouter, Request
 
 from ...core.scoring import score
+from ...narrate.changes import changes_between
+from ...narrate.news import news_items
+from ...session.replay import states
 from .. import live, present
 from ..app import templates
 
@@ -14,14 +17,26 @@ def projector(request: Request):
     session = live.require()
     state = live.state()
     rounds = session.journal.rounds
+
+    items: list = []
+    changes: list = []
+    if rounds:
+        snapshots = states(session.journal)
+        items = news_items(session.spec, live.last_events(), viewer=None, role="public")
+        changes = changes_between(
+            session.spec, snapshots[-2], snapshots[-1], viewer=None
+        )
+
     return templates.TemplateResponse(
         request,
         "screen.html",
         {
             "spec": session.spec,
             "state": state,
-            "news": rounds[-1].narration["public"] if rounds else "Игра начинается.",
+            "items": items,
+            "changes": changes,
             "shown_round": rounds[-1].n if rounds else state.round,
+            "started": bool(rounds),
         },
     )
 

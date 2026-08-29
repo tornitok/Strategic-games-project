@@ -85,6 +85,7 @@ relations:
 actions:
   - id: mobilize
     title: "Мобилизация"
+    news: "{actor} стягивает войска к проливу"
     description: "Наращивание группировки у границы."
     cost: { budget: 20 }
     requires: "self.army < 95"
@@ -95,6 +96,7 @@ actions:
 
   - id: demobilize
     title: "Отвод войск"
+    news: "{actor} демонстративно отводит части от границы"
     description: "Демонстративное сокращение группировки."
     requires: "self.army > 15"
     effects:
@@ -104,6 +106,7 @@ actions:
 
   - id: invest
     title: "Вложения в экономику"
+    news: "{actor} вкладывается в порты, дороги и верфи"
     description: "Инфраструктура и налоговая база."
     cost: { budget: 25 }
     effects:
@@ -112,6 +115,7 @@ actions:
 
   - id: propaganda
     title: "Информационная кампания"
+    news: "{actor} разворачивает кампанию в государственных медиа"
     description: "Работа с общественным мнением внутри страны."
     cost: { budget: 15 }
     effects:
@@ -120,6 +124,7 @@ actions:
 
   - id: intel_work
     title: "Работа разведки"
+    news: "{actor} усиливает работу спецслужб"
     description: "Вербовка и техническая разведка."
     cost: { budget: 12 }
     effects:
@@ -127,6 +132,7 @@ actions:
 
   - id: cyber_op
     title: "Кибероперация"
+    news: "{actor} проводит кибероперацию. Цель — {target}"
     description: "Удар по финансовой инфраструктуре противника."
     target: faction
     cost: { budget: 15, intel: 10 }
@@ -142,6 +148,7 @@ actions:
 
   - id: cyber_defense
     title: "Киберзащита"
+    news: "{actor} укрепляет защиту финансовых сетей"
     description: "Укрепление сетей и финансовых узлов."
     cost: { budget: 10 }
     counter_multiplier: 0.25
@@ -150,6 +157,7 @@ actions:
 
   - id: blockade
     title: "Морская блокада"
+    news: "{actor} перекрывает судоходство в проливе. Под досмотром — {target}"
     description: "Досмотр судов противника в проливе."
     target: faction
     cost: { budget: 20 }
@@ -163,6 +171,7 @@ actions:
 
   - id: show_force
     title: "Демонстрация силы"
+    news: "{actor} выводит флот на учения у чужих берегов. Адресат — {target}"
     description: "Учения у чужих берегов."
     target: faction
     cost: { budget: 12 }
@@ -173,6 +182,7 @@ actions:
 
   - id: diplomacy
     title: "Дипломатическая инициатива"
+    news: "{actor} садится за стол переговоров. Партнёр — {target}"
     description: "Переговоры и взаимные гарантии."
     target: faction
     cost: { budget: 10 }
@@ -182,6 +192,7 @@ actions:
 
   - id: sanctions
     title: "Экономические санкции"
+    news: "{actor} вводит торговые ограничения. Под ударом — {target}"
     description: "Ограничение торговли с противником."
     target: faction
     cost: { budget: 15 }
@@ -193,6 +204,7 @@ actions:
 
   - id: aid
     title: "Помощь соседу"
+    news: "{actor} направляет кредиты и поставки. Получатель — {target}"
     description: "Кредиты и поставки на льготных условиях."
     target: faction
     cost: { budget: 25 }
@@ -203,6 +215,7 @@ actions:
 
   - id: covert_support
     title: "Тайная поддержка оппозиции"
+    news: "{actor} работает с оппозицией за рубежом. Цель — {target}"
     description: "Работа с недовольными в чужой стране."
     target: faction
     cost: { budget: 18, intel: 15 }
@@ -217,6 +230,7 @@ actions:
 
   - id: deescalate
     title: "Шаг к разрядке"
+    news: "{actor} публично отказывается от эскалации"
     description: "Публичный отказ от эскалации."
     cost: { budget: 8 }
     effects:
@@ -238,6 +252,7 @@ events:
   - id: oil_shock
     when: "round == 3"
     title: "Скачок цен на энергоносители"
+    news: "Энергетический рынок штормит: цены взлетели за неделю"
     text: "Мировые цены резко пошли вверх, издержки выросли у всех."
     effects: [ { all: budget, delta: "-12" } ]
 
@@ -245,6 +260,7 @@ events:
     when: "world.tension > 70"
     once: true
     title: "Давление международного сообщества"
+    news: "Совет безопасности требует немедленной деэскалации"
     text: "Совет безопасности требует деэскалации."
     effects: [ { all: legitimacy, delta: "-6" }, { world: attention, delta: "15" } ]
 
@@ -252,18 +268,21 @@ events:
     when: "world.tension > 60"
     once: true
     title: "Поток беженцев"
+    news: "Приграничные лагеря переполнены: поток беженцев растёт"
     text: "Приграничные районы не справляются."
     effects: [ { all: budget, delta: "-8" }, { all: legitimacy, delta: "-4" } ]
 
   - id: summit
     when: "round == 5"
     title: "Международная конференция"
+    news: "В нейтральной столице открылась конференция по заливу"
     text: "Посредники собирают стороны за одним столом."
     effects: [ { world: tension, delta: "-8" }, { all: legitimacy, delta: "3" } ]
 
   - id: arms_market
     when: "round == 6"
     title: "Оружейная ярмарка"
+    news: "Оружейная ярмарка: техника уходит со скидкой"
     text: "Поставщики предлагают технику со скидкой."
     effects: [ { all: army, delta: "5" }, { all: budget, delta: "-6" } ]
 
@@ -271,6 +290,7 @@ events:
     when: "world.tension < 20"
     once: true
     title: "Разрядка"
+    news: "Впервые за годы в заливе тихо"
     text: "Регион впервые за годы выглядит спокойным."
     effects: [ { all: budget, delta: "15" }, { all: legitimacy, delta: "5" } ]
 
@@ -278,6 +298,7 @@ events:
     when: "world.attention > 60"
     once: true
     title: "Утечка документов"
+    news: "Пресса публикует переписку разведок"
     text: "Пресса публикует переписку разведок."
     effects: [ { all: intel, delta: "-10" }, { all: legitimacy, delta: "-3" } ]
 

@@ -1,10 +1,14 @@
-"""Шаблонный нарратив: работает всегда, в том числе без интернета."""
+"""Текстовое представление сводки.
+
+Экраны показывают ленту новостей из `news.py`; здесь та же лента
+разворачивается в плоский текст — он уходит в журнал партии, в отчёт
+ведущему и в разбор после игры.
+"""
 
 from collections.abc import Sequence
 
 from ..core.events import Event
 from ..core.spec import ScenarioSpec
-from .view import events_for
 
 
 def _title_of(spec: ScenarioSpec, faction_id: str | None) -> str:
@@ -12,7 +16,7 @@ def _title_of(spec: ScenarioSpec, faction_id: str | None) -> str:
     return faction.title if faction else "—"
 
 
-def _deltas_text(spec: ScenarioSpec, event: Event) -> str:
+def deltas_text(spec: ScenarioSpec, event: Event) -> str:
     """Изменения одной строкой, сгруппированные по сторонам.
 
     Без имён и группировки сводка мировой динамики превращается в «Бюджет
@@ -34,36 +38,28 @@ def _deltas_text(spec: ScenarioSpec, event: Event) -> str:
     return "; ".join(([", ".join(own)] if own else []) + groups)
 
 
-def _line(spec: ScenarioSpec, event: Event) -> str:
-    parts = []
-    if event.actor:
-        parts.append(f"{_title_of(spec, event.actor)}:")
-    parts.append(event.title)
-    if event.target:
-        parts.append(f"→ {_title_of(spec, event.target)}")
-    if event.roll:
-        parts.append(f"({event.roll})")
-    line = " ".join(parts)
-    if event.deltas:
-        line += " — " + _deltas_text(spec, event)
-    if event.detail:
-        line += f". {event.detail}"
-    return line
-
-
-def _render(spec: ScenarioSpec, events: Sequence[Event]) -> str:
-    if not events:
+def _render(items) -> str:
+    if not items:
         return "За этот раунд ничего заметного не произошло."
-    return "\n".join(f"• {_line(spec, event)}" for event in events)
+    lines = []
+    for item in items:
+        lines.append(f"• {item.headline}" + (f" — {item.detail}" if item.detail else ""))
+    return "\n".join(lines)
 
 
 def narrate_public(spec: ScenarioSpec, events: Sequence[Event]) -> str:
-    return _render(spec, events_for(events, None, role="public"))
+    from .news import news_items
+
+    return _render(news_items(spec, events, viewer=None, role="public"))
 
 
 def narrate_team(spec: ScenarioSpec, events: Sequence[Event], faction: str) -> str:
-    return _render(spec, events_for(events, faction, role="team"))
+    from .news import news_items
+
+    return _render(news_items(spec, events, viewer=faction, role="team"))
 
 
 def narrate_host(spec: ScenarioSpec, events: Sequence[Event]) -> str:
-    return _render(spec, events_for(events, None, role="host"))
+    from .news import news_items
+
+    return _render(news_items(spec, events, viewer=None, role="host"))

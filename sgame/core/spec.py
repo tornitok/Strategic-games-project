@@ -73,6 +73,7 @@ class ActionSpec(Base):
     id: str
     title: str
     description: str = ""
+    news: str = ""  # заголовок для сводки, подстановки {actor} и {target}
     ap: int = Field(default=1, ge=1)
     cost: dict[str, float] = {}
     requires: str | None = None
@@ -98,6 +99,7 @@ class EventSpec(Base):
     when: str
     title: str
     text: str = ""
+    news: str = ""  # заголовок для сводки
     once: bool = False
     effects: list[EffectSpec] = []
 

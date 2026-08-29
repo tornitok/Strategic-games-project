@@ -4,7 +4,10 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import RedirectResponse
 
 from ...core.orders import DealOffer, Order
+from ...narrate.changes import changes_between
+from ...narrate.news import news_items
 from ...narrate.view import tracks_for
+from ...session.replay import states
 from .. import live, present
 from ..app import templates
 
@@ -46,9 +49,14 @@ def screen(request: Request, faction: str):
             "draft": draft,
             "points_left": present.points_left(session.spec, draft),
             "others": [f for f in session.spec.factions if f.id != faction],
-            "news": session.journal.rounds[-1].narration["private"].get(faction, "")
+            "items": news_items(session.spec, live.last_events(), viewer=faction, role="team")
             if session.journal.rounds
-            else "Игра начинается.",
+            else [],
+            "changes": changes_between(
+                session.spec, *states(session.journal)[-2:], viewer=faction
+            )
+            if session.journal.rounds
+            else [],
             "incoming": [o for o in state.pending_offers if o.receiver == faction],
             "deals": session.spec.deals,
         },
