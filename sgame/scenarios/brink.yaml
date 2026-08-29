@@ -1,0 +1,407 @@
+schema_version: 1
+
+meta:
+  id: brink
+  title: "У края: глобальный кризис"
+  rounds: 6
+  action_points: 4
+  max_random_events: 2
+  intro: |
+    Четыре державы держат в руках мировую экономику и почти все стратегические
+    арсеналы планеты. Тридцать лет они соперничали, не переходя черты.
+
+    Одиннадцать дней назад над нейтральными водами столкнулись два военных
+    самолёта. Обе стороны утверждают, что не открывали огня первыми. Записи
+    переговоров противоречат друг другу, а обломки лежат на глубине четырёх
+    километров, и поднять их раньше чем за месяц невозможно.
+
+    С тех пор события идут быстрее, чем дипломатия. Резервисты вызваны в
+    трёх странах из четырёх, биржи падают вторую неделю, а военные всех
+    сторон докладывают своим правительствам, что окно для упреждающих
+    действий закрывается.
+
+    Здесь нет победы, которая переживёт глобальную войну: если эскалация
+    дойдёт до предела, проигрывают все и сразу, независимо от накопленных
+    очков. Ваша задача — защитить интересы своей страны и не довести до
+    этого. Шесть раундов, по четыре решения в каждом.
+
+tracks:
+  economy:    { title: "Экономика",   min: 0, max: 200, visibility: public }
+  forces:     { title: "Силы",        min: 0, max: 100, visibility: public }
+  legitimacy: { title: "Поддержка",   min: 0, max: 100, visibility: public }
+  intel:      { title: "Разведка",    min: 0, max: 100, visibility: private }
+  readiness:  { title: "Готовность",  min: 0, max: 100, visibility: private }
+
+world:
+  escalation: { title: "Эскалация",       min: 0, max: 100, start: 45 }
+  markets:    { title: "Мировые рынки",   min: 0, max: 100, start: 60 }
+  attention:  { title: "Внимание мира",   min: 0, max: 100, start: 55 }
+
+factions:
+  - id: arcadia
+    title: "Аркадия"
+    start: { economy: 150, forces: 70, legitimacy: 60, intel: 55, readiness: 40 }
+    briefing: |
+      Вы крупнейшая экономика мира и привыкли, что порядок в международных
+      делах устанавливаете вы. Ваш самолёт был сбит — так считает ваше
+      общество, и оно требует ответа.
+
+      Военные докладывают: превосходство сохраняется, но с каждым раундом
+      мобилизации соперника оно тает. Ваши союзники по торговле смотрят,
+      хватит ли у вас выдержки, а ваши избиратели — хватит ли твёрдости.
+
+      Ваше настоящее преимущество — деньги, а не оружие. Проигранная война
+      обнулит и то и другое.
+    goals:
+      - { id: order, title: "Кризис пройден без войны", when: "world.escalation < 80", score: 40 }
+      - { id: economy, title: "Экономика не подорвана", when: "self.economy >= 130", score: 20 }
+      - { id: standing, title: "Поддержка сохранена", when: "self.legitimacy >= 55", score: 15 }
+
+  - id: vellan
+    title: "Веллан"
+    start: { economy: 110, forces: 85, legitimacy: 45, intel: 70, readiness: 60 }
+    briefing: |
+      Ваша армия сильнее, а казна беднее. Долгое противостояние вы не
+      выдержите — экономика не потянет, и в правительстве это понимают все,
+      кроме генералов.
+
+      Внутри страны вас держит образ силы. Отступить публично — значит
+      потерять власть быстрее, чем от любых санкций. Но у вас лучшая
+      разведка в мире, и вы знаете о соперниках больше, чем они думают.
+
+      Ваш выигрыш — договорённость, которую можно предъявить дома как
+      победу. Ваш проигрыш — затяжной кризис.
+    goals:
+      - { id: deal, title: "Кризис завершён, страна не разорена", when: "world.escalation < 80 and self.economy >= 85", score: 40 }
+      - { id: face, title: "Власть устояла", when: "self.legitimacy >= 45", score: 25 }
+      - { id: strength, title: "Армия не ослаблена", when: "self.forces >= 75", score: 10 }
+
+  - id: surat
+    title: "Сурат"
+    start: { economy: 130, forces: 55, legitimacy: 70, intel: 45, readiness: 30 }
+    briefing: |
+      Вы держитесь в стороне от чужого спора и зарабатываете на том, что
+      через вас идут и товары, и переговоры. Глобальная война разорит вас
+      первой: ваше благополучие целиком построено на открытых морях.
+
+      У вас лучшая репутация посредника и слабейшая армия из четырёх. Ваша
+      сила — в том, что вам верят обе стороны. Ровно до того момента, пока
+      вы не начнёте играть за одну из них.
+
+      Ваша задача — сбить эскалацию и не дать втянуть себя в блок.
+    goals:
+      - { id: peace, title: "Мир сохранён", when: "world.escalation < 65", score: 45 }
+      - { id: trade, title: "Торговля не рухнула", when: "world.markets >= 55", score: 25 }
+      - { id: rich, title: "Экономика выросла", when: "self.economy >= 140", score: 10 }
+
+  - id: norland
+    title: "Норланд"
+    start: { economy: 95, forces: 60, legitimacy: 40, intel: 80, readiness: 55 }
+    briefing: |
+      Вы младший из четырёх и знаете это. Ваш шанс появляется тогда, когда
+      большие заняты друг другом: пока они меряются силой, вы получаете
+      уступки, которых в спокойные годы не добились бы никогда.
+
+      Ваша разведка лучшая, экономика слабейшая, а поддержка внутри страны
+      держится на страхе перед соседями, а не на любви к правительству.
+
+      Полная война убьёт и вас тоже. Идеальный для вас исход — долгий
+      напряжённый кризис, в котором вы нужны всем.
+    goals:
+      - { id: leverage, title: "Кризис не утих, но и не взорвался", when: "world.escalation > 50 and world.escalation < 85", score: 35 }
+      - { id: support, title: "Власть укрепилась", when: "self.legitimacy >= 50", score: 25 }
+      - { id: knowledge, title: "Разведка на высоте", when: "self.intel >= 70", score: 15 }
+
+relations:
+  default: 0
+  pairs:
+    - { a: arcadia, b: vellan, value: -45 }
+    - { a: arcadia, b: surat, value: 25 }
+    - { a: vellan, b: norland, value: 20 }
+    - { a: surat, b: norland, value: -15 }
+    - { a: arcadia, b: norland, value: -10 }
+    - { a: vellan, b: surat, value: 5 }
+
+actions:
+  - id: ultimatum
+    title: "Ультиматум"
+    description: "Публичное требование с указанным сроком."
+    news: "{actor} выдвигает ультиматум. Адресат — {target}"
+    target: faction
+    cost: { legitimacy: 3 }
+    effects:
+      - { world: escalation, delta: "10" }
+      - { relation: [self, target], delta: "-18" }
+      - { self: legitimacy, delta: "3" }
+      - { world: markets, delta: "-6" }
+
+  - id: mobilize
+    title: "Мобилизация резервов"
+    description: "Призыв резервистов и развёртывание частей."
+    news: "{actor} объявляет призыв резервистов"
+    cost: { economy: 25 }
+    requires: "self.forces < 95"
+    effects:
+      - { self: forces, delta: "12" }
+      - { self: readiness, delta: "15" }
+      - { world: escalation, delta: "6" }
+      - { self: legitimacy, delta: "-4" }
+
+  - id: alert
+    title: "Стратегическая тревога"
+    description: "Повышение боевой готовности стратегических сил."
+    news: "{actor} повышает уровень боевой готовности"
+    cost: { economy: 15 }
+    requires: "self.readiness >= 20"
+    effects:
+      - { self: readiness, delta: "20" }
+      - { world: escalation, delta: "13" }
+      - { world: markets, delta: "-10" }
+
+  - id: standdown
+    title: "Отвод и разрядка"
+    description: "Демонстративное снижение готовности."
+    news: "{actor} отводит части и снижает готовность"
+    requires: "self.readiness > 10"
+    effects:
+      - { self: readiness, delta: "-20" }
+      - { world: escalation, delta: "-12" }
+      - { self: legitimacy, delta: "-7" }
+      - { world: markets, delta: "5" }
+
+  - id: talks
+    title: "Прямые переговоры"
+    description: "Канал связи между столицами."
+    news: "{actor} выходит на прямой контакт. Собеседник — {target}"
+    target: faction
+    cost: { economy: 10 }
+    effects:
+      - { relation: [self, target], delta: "20" }
+      - { world: escalation, delta: "-7" }
+
+  - id: mediate
+    title: "Посредничество"
+    description: "Попытка усадить стороны за общий стол."
+    news: "{actor} предлагает площадку для переговоров"
+    cost: { economy: 18 }
+    effects:
+      - { world: escalation, delta: "-9" }
+      - { self: legitimacy, delta: "4" }
+      - { world: attention, delta: "6" }
+
+  - id: sanctions
+    title: "Экономическое давление"
+    description: "Ограничения на торговлю и финансы."
+    news: "{actor} закрывает рынки. Под ударом — {target}"
+    target: faction
+    cost: { economy: 12 }
+    effects:
+      - { target: economy, delta: "-22" }
+      - { self: economy, delta: "-8" }
+      - { relation: [self, target], delta: "-15" }
+      - { world: markets, delta: "-8" }
+
+  - id: support_trade
+    title: "Поддержка рынков"
+    description: "Согласованные меры и гарантии поставок."
+    news: "{actor} гарантирует поставки и успокаивает рынки"
+    cost: { economy: 20 }
+    effects:
+      - { world: markets, delta: "12" }
+      - { self: legitimacy, delta: "3" }
+
+  - id: intel_work
+    title: "Работа разведки"
+    description: "Агентура и техническая разведка."
+    news: "{actor} усиливает разведывательную работу"
+    cost: { economy: 12 }
+    effects:
+      - { self: intel, delta: "18" }
+
+  - id: cyber_strike
+    title: "Удар по инфраструктуре"
+    description: "Скрытая атака на управление и логистику."
+    news: "{actor} наносит скрытый удар по инфраструктуре. Цель — {target}"
+    target: faction
+    cost: { economy: 18, intel: 15 }
+    requires: "self.intel >= 15"
+    visibility: secret
+    reveal_chance: 0.4
+    countered_by: [ hardening ]
+    risk:
+      - { p: 0.45, title: "успех", effects: [ { target: economy, delta: "-25" },
+                                              { target: readiness, delta: "-10" },
+                                              { world: escalation, delta: "6" } ] }
+      - { p: 0.35, title: "частично", effects: [ { target: economy, delta: "-10" } ] }
+      - { p: 0.20, title: "провал и след", effects: [ { self: intel, delta: "-15" },
+                                                      { world: escalation, delta: "10" } ] }
+
+  - id: hardening
+    title: "Защита сетей"
+    description: "Укрепление критической инфраструктуры."
+    news: "{actor} закрывает бреши в критической инфраструктуре"
+    cost: { economy: 14 }
+    counter_multiplier: 0.2
+    effects:
+      - { self: intel, delta: "5" }
+      - { self: readiness, delta: "5" }
+
+  - id: disinform
+    title: "Информационная операция"
+    description: "Подброшенные доказательства чужой вины."
+    news: "{actor} запускает информационную операцию. Цель — {target}"
+    target: faction
+    cost: { economy: 12, intel: 14 }
+    requires: "self.intel >= 14"
+    visibility: secret
+    reveal_chance: 0.35
+    plants_rumour: true
+    effects:
+      - { self: intel, delta: "-6" }
+      - { world: attention, delta: "5" }
+
+  - id: proxy
+    title: "Поддержка мятежа"
+    description: "Оружие и деньги противникам чужого правительства."
+    news: "{actor} поддерживает вооружённую оппозицию. Цель — {target}"
+    target: faction
+    cost: { economy: 20, intel: 12 }
+    requires: "self.intel >= 12"
+    visibility: secret
+    reveal_chance: 0.45
+    risk:
+      - { p: 0.4, title: "успех", effects: [ { target: legitimacy, delta: "-16" },
+                                             { world: escalation, delta: "8" } ] }
+      - { p: 0.35, title: "без результата", effects: [] }
+      - { p: 0.25, title: "скандал", effects: [ { self: legitimacy, delta: "-12" },
+                                                { world: attention, delta: "12" } ] }
+
+  - id: address
+    title: "Обращение к нации"
+    description: "Речь, объясняющая курс правительства."
+    news: "{actor} обращается к нации"
+    cost: { economy: 8 }
+    effects:
+      - { self: legitimacy, delta: "10" }
+      - { world: attention, delta: "3" }
+
+  - id: gesture
+    title: "Жест доброй воли"
+    description: "Освобождение задержанных, гуманитарный коридор, отвод корабля."
+    news: "{actor} делает шаг навстречу. Адресат — {target}"
+    target: faction
+    cost: { economy: 10 }
+    effects:
+      - { relation: [self, target], delta: "14" }
+      - { world: escalation, delta: "-5" }
+      - { self: legitimacy, delta: "-3" }
+
+deals:
+  - { id: transfer, title: "Финансовая помощь", kind: resource, track: economy }
+  - { id: nonaggression, title: "Взаимные гарантии", kind: status, duration: 3 }
+  - { id: bloc, title: "Военный блок", kind: status, duration: 4 }
+
+world_dynamics:
+  # Кризис не рассасывается сам: напряжение возвращается к базовому уровню
+  # и сверху, и снизу. Без этого трое умеренных обнуляют эскалацию за два
+  # раунда, а двое жёстких доводят до войны за один.
+  - { world: escalation, delta: "(45 - world.escalation) * 0.15" }
+  - { world: attention, delta: "-3" }
+  - { world: markets, delta: "3" }
+  - { all: economy, delta: "8 + world.markets * 0.06" }
+  - { all: readiness, delta: "-4" }
+
+events:
+  - id: black_box
+    when: "round == 2"
+    title: "Найден самописец"
+    news: "Со дна поднят самописец сбитого самолёта"
+    text: "Расшифровка займёт недели, но обе стороны уже трактуют находку в свою пользу."
+    effects: [ { world: attention, delta: "12" }, { world: escalation, delta: "5" } ]
+
+  - id: markets_panic
+    when: "world.markets < 35"
+    once: true
+    title: "Паника на биржах"
+    news: "Биржи обвалились: инвесторы уходят в наличные"
+    effects: [ { all: economy, delta: "-18" }, { all: legitimacy, delta: "-5" } ]
+
+  - id: un_session
+    when: "round == 4"
+    title: "Чрезвычайная сессия"
+    news: "Созвана чрезвычайная сессия Совета безопасности"
+    effects: [ { world: escalation, delta: "-9" }, { world: attention, delta: "10" } ]
+
+  - id: nuclear_warning
+    when: "world.escalation > 85"
+    once: true
+    title: "Предупреждение военных"
+    news: "Военные всех сторон предупреждают: время на решение исчерпано"
+    text: "Столицы отшатнулись от края — но второй раз так не повезёт."
+    # Единственный откат за партию: даёт командам шанс осознать, куда всё идёт,
+    # и не даёт паре закончиться на втором раунде. Цена высокая и общая.
+    effects: [ { world: escalation, delta: "-18" },
+               { all: legitimacy, delta: "-8" },
+               { world: markets, delta: "-20" } ]
+
+  - id: hotline
+    when: "world.escalation < 30"
+    once: true
+    title: "Восстановлена горячая линия"
+    news: "Между столицами вновь работает прямая связь"
+    effects: [ { all: economy, delta: "12" }, { world: markets, delta: "10" } ]
+
+  - id: border_incident
+    chance: 0.22
+    title: "Инцидент на границе"
+    news: "Перестрелка на границе: стороны обвиняют друг друга"
+    effects: [ { world: escalation, delta: "12" }, { all: legitimacy, delta: "-3" } ]
+
+  - id: defection
+    chance: 0.15
+    once: true
+    title: "Бегство офицера"
+    news: "Офицер штаба просит убежища и обещает раскрыть планы"
+    effects: [ { all: intel, delta: "8" }, { world: attention, delta: "8" } ]
+
+  - id: energy_cut
+    chance: 0.18
+    title: "Перебои с энергией"
+    news: "Поставки энергоносителей сорваны, цены выросли"
+    effects: [ { all: economy, delta: "-12" }, { world: markets, delta: "-8" } ]
+
+  - id: protests
+    chance: 0.2
+    when: "world.escalation > 55"
+    title: "Массовые протесты"
+    news: "Площади столиц заполнены: люди требуют не допустить войны"
+    effects: [ { all: legitimacy, delta: "-7" }, { world: escalation, delta: "-5" } ]
+
+  - id: false_alarm
+    chance: 0.12
+    once: true
+    when: "world.escalation > 70"
+    title: "Ложная тревога"
+    news: "Системы предупреждения дали сбой: минуты, которых никто не забудет"
+    text: "Тревога оказалась ложной. В следующий раз может не повезти."
+    effects: [ { world: escalation, delta: "10" }, { world: markets, delta: "-15" } ]
+
+  - id: harvest
+    chance: 0.14
+    title: "Хороший урожай"
+    news: "Рекордный урожай сбил цены на продовольствие"
+    effects: [ { all: economy, delta: "10" }, { all: legitimacy, delta: "3" } ]
+
+rumours:
+  chance: 0.5
+  noise_chance: 0.2
+  accuracy: 0.55
+  templates:
+    - "По неподтверждённым данным, за этим стоит {subject}"
+    - "Источники в разведке указывают направление: {subject}"
+    - "В кулуарах сессии называют имя: {subject}"
+    - "Утечка из закрытого доклада: виновной названа сторона {subject}"
+
+end:
+  when: "round > meta.rounds or world.escalation >= 100"
+  scoring: "self.legitimacy + self.forces * 0.4 + self.economy * 0.2 - (70 if world.escalation >= 100 else 0)"
