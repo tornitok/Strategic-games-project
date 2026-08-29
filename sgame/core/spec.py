@@ -80,6 +80,7 @@ class ActionSpec(Base):
     requires: str | None = None
     target: Literal["none", "faction"] = "none"
     visibility: Literal["open", "secret"] = "open"
+    stance: Literal["hostile", "friendly", "neutral"] = "neutral"
     reveal_chance: float = Field(default=0.0, ge=0, le=1)
     countered_by: list[str] = []
     plants_rumour: bool = False  # действие запускает слух о выбранной стороне
@@ -145,6 +146,7 @@ class ScenarioSpec(Base):
     events: list[EventSpec] = []
     rumours: RumoursSpec = RumoursSpec()
     end: EndSpec
+    power: str = ""  # чем измеряется сила стороны; пусто — сумма публичных треков
 
     def action(self, action_id: str) -> ActionSpec | None:
         return next((a for a in self.actions if a.id == action_id), None)

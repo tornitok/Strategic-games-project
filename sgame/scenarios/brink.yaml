@@ -25,6 +25,8 @@ meta:
     очков. Ваша задача — защитить интересы своей страны и не довести до
     этого. Шесть раундов, по четыре решения в каждом.
 
+power: "self.forces * 0.5 + self.economy * 0.25 + self.legitimacy * 0.25"
+
 tracks:
   economy:    { title: "Экономика",   min: 0, max: 200, visibility: public }
   forces:     { title: "Силы",        min: 0, max: 100, visibility: public }
@@ -125,6 +127,7 @@ relations:
 actions:
   - id: ultimatum
     title: "Ультиматум"
+    stance: hostile
     description: "Публичное требование с указанным сроком."
     news: "{actor} выдвигает ультиматум. Адресат — {target}"
     target: faction
@@ -171,6 +174,7 @@ actions:
 
   - id: talks
     title: "Прямые переговоры"
+    stance: friendly
     description: "Канал связи между столицами."
     news: "{actor} выходит на прямой контакт. Собеседник — {target}"
     target: faction
@@ -191,6 +195,7 @@ actions:
 
   - id: sanctions
     title: "Экономическое давление"
+    stance: hostile
     description: "Ограничения на торговлю и финансы."
     news: "{actor} закрывает рынки. Под ударом — {target}"
     target: faction
@@ -220,6 +225,7 @@ actions:
 
   - id: cyber_strike
     title: "Удар по инфраструктуре"
+    stance: hostile
     description: "Скрытая атака на управление и логистику."
     news: "{actor} наносит скрытый удар по инфраструктуре. Цель — {target}"
     target: faction
@@ -248,6 +254,7 @@ actions:
 
   - id: disinform
     title: "Информационная операция"
+    stance: hostile
     description: "Подброшенные доказательства чужой вины."
     news: "{actor} запускает информационную операцию. Цель — {target}"
     target: faction
@@ -262,6 +269,7 @@ actions:
 
   - id: proxy
     title: "Поддержка мятежа"
+    stance: hostile
     description: "Оружие и деньги противникам чужого правительства."
     news: "{actor} поддерживает вооружённую оппозицию. Цель — {target}"
     target: faction
@@ -287,6 +295,7 @@ actions:
 
   - id: gesture
     title: "Жест доброй воли"
+    stance: friendly
     description: "Освобождение задержанных, гуманитарный коридор, отвод корабля."
     news: "{actor} делает шаг навстречу. Адресат — {target}"
     target: faction

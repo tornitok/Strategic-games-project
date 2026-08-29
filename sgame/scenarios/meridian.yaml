@@ -23,6 +23,8 @@ meta:
     Вам предстоит восемь раундов. Решения принимаются одновременно, последствия
     считает модель, а разбирать их вы будете вместе после игры.
 
+power: "self.army * 0.6 + self.budget * 0.2 + self.legitimacy * 0.2"
+
 tracks:
   budget:     { title: "Бюджет",        min: 0, max: 200, visibility: public }
   army:       { title: "Вооружённые силы", min: 0, max: 100, visibility: public }
@@ -133,6 +135,7 @@ actions:
 
   - id: cyber_op
     title: "Кибероперация"
+    stance: hostile
     news: "{actor} проводит кибероперацию. Цель — {target}"
     description: "Удар по финансовой инфраструктуре противника."
     target: faction
@@ -158,6 +161,7 @@ actions:
 
   - id: blockade
     title: "Морская блокада"
+    stance: hostile
     news: "{actor} перекрывает судоходство в проливе. Под досмотром — {target}"
     description: "Досмотр судов противника в проливе."
     target: faction
@@ -172,6 +176,7 @@ actions:
 
   - id: show_force
     title: "Демонстрация силы"
+    stance: hostile
     news: "{actor} выводит флот на учения у чужих берегов. Адресат — {target}"
     description: "Учения у чужих берегов."
     target: faction
@@ -183,6 +188,7 @@ actions:
 
   - id: diplomacy
     title: "Дипломатическая инициатива"
+    stance: friendly
     news: "{actor} садится за стол переговоров. Партнёр — {target}"
     description: "Переговоры и взаимные гарантии."
     target: faction
@@ -193,6 +199,7 @@ actions:
 
   - id: sanctions
     title: "Экономические санкции"
+    stance: hostile
     news: "{actor} вводит торговые ограничения. Под ударом — {target}"
     description: "Ограничение торговли с противником."
     target: faction
@@ -205,6 +212,7 @@ actions:
 
   - id: aid
     title: "Помощь соседу"
+    stance: friendly
     news: "{actor} направляет кредиты и поставки. Получатель — {target}"
     description: "Кредиты и поставки на льготных условиях."
     target: faction
@@ -216,6 +224,7 @@ actions:
 
   - id: covert_support
     title: "Тайная поддержка оппозиции"
+    stance: hostile
     news: "{actor} работает с оппозицией за рубежом. Цель — {target}"
     description: "Работа с недовольными в чужой стране."
     target: faction
@@ -231,6 +240,7 @@ actions:
 
   - id: disinform
     title: "Вброс через прессу"
+    stance: hostile
     description: "Подброшенные журналистам «доказательства» чужой вины."
     news: "{actor} запускает вброс в прессу. Цель — {target}"
     target: faction
