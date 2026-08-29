@@ -334,3 +334,49 @@ def phase_effects(
             )
 
     return events
+
+
+def phase_world(spec: ScenarioSpec, builder: StateBuilder) -> list[Event]:
+    """Фаза 6. Динамика мира: то, что происходит независимо от команд."""
+    deltas: list[Delta] = []
+    for effect in spec.world_dynamics:
+        deltas.extend(apply_effect(spec, builder, effect, actor=None, target=None))
+    if not deltas:
+        return []
+    return [
+        Event(kind="world", title="Обстановка", deltas=tuple(deltas), audience="public")
+    ]
+
+
+def phase_events(spec: ScenarioSpec, builder: StateBuilder) -> list[Event]:
+    """Фаза 7. Плановые и триггерные события сценария."""
+    events: list[Event] = []
+    for scenario_event in spec.events:
+        if scenario_event.once and scenario_event.id in builder.fired_events:
+            continue
+        if not evaluate(scenario_event.when, builder.context()):
+            continue
+        deltas: list[Delta] = []
+        for effect in scenario_event.effects:
+            deltas.extend(apply_effect(spec, builder, effect, actor=None, target=None))
+        builder.fired_events.add(scenario_event.id)
+        events.append(
+            Event(
+                kind="scenario_event",
+                title=scenario_event.title,
+                detail=scenario_event.text,
+                deltas=tuple(deltas),
+                audience="public",
+            )
+        )
+    return events
+
+
+def phase_end(spec: ScenarioSpec, builder: StateBuilder) -> tuple[bool, list[Event]]:
+    """Фаза 8. Проверка условия окончания. Раунд уже прожит, поэтому проверяем следующий."""
+    context = builder.context()
+    context["round"] = builder.round + 1
+    finished = bool(evaluate(spec.end.when, context))
+    if not finished:
+        return False, []
+    return True, [Event(kind="end", title="Игра окончена", audience="public")]
