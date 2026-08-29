@@ -6,6 +6,7 @@
 """
 
 from copy import deepcopy
+from math import isclose
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -17,6 +18,15 @@ from .spec import ScenarioSpec
 def pair_key(a: str, b: str) -> tuple[str, str]:
     """Ключ отношения не зависит от порядка сторон."""
     return (a, b) if a <= b else (b, a)
+
+
+def _clamped(applied: float, requested: float) -> bool:
+    """Дельта упёрлась в границу?
+
+    Сравнивать точно нельзя: 155.5 + 8.85 даёт разность 8.849999999999994, и
+    честно применённая дельта помечалась бы как обрезанная.
+    """
+    return not isclose(applied, requested, rel_tol=0, abs_tol=1e-9)
 
 
 @dataclass(frozen=True)
@@ -81,7 +91,7 @@ class StateBuilder:
         self._tracks[faction][name] = after
         return Delta(
             scope="faction", who=faction, track=track.title,
-            amount=after - before, clamped=(after - before) != amount,
+            amount=after - before, clamped=_clamped(after - before, amount),
         )
 
     def add_world(self, name: str, amount: float) -> Delta:
@@ -91,7 +101,7 @@ class StateBuilder:
         self._world[name] = after
         return Delta(
             scope="world", who="", track=track.title,
-            amount=after - before, clamped=(after - before) != amount,
+            amount=after - before, clamped=_clamped(after - before, amount),
         )
 
     def add_relation(self, a: str, b: str, amount: float) -> Delta:
@@ -101,7 +111,7 @@ class StateBuilder:
         self._relations[key] = after
         return Delta(
             scope="relation", who=f"{key[0]}↔{key[1]}", track="Отношения",
-            amount=after - before, clamped=(after - before) != amount,
+            amount=after - before, clamped=_clamped(after - before, amount),
         )
 
     def context(self, actor: str | None = None, target: str | None = None) -> dict[str, Any]:

@@ -12,6 +12,28 @@ def _title_of(spec: ScenarioSpec, faction_id: str | None) -> str:
     return faction.title if faction else "—"
 
 
+def _deltas_text(spec: ScenarioSpec, event: Event) -> str:
+    """Изменения одной строкой, сгруппированные по сторонам.
+
+    Без имён и группировки сводка мировой динамики превращается в «Бюджет
+    +8.75, Бюджет +8.25, Бюджет +9.25, … , Легитимность +1, Легитимность +1» —
+    список одинаковых чисел неизвестно про кого.
+    """
+    own: list[str] = []
+    others: dict[str, list[str]] = {}
+    for delta in event.deltas:
+        if delta.scope == "faction" and delta.who != event.actor:
+            others.setdefault(delta.who, []).append(delta.describe())
+        else:
+            own.append(delta.describe())
+
+    if not others:
+        return ", ".join(own)
+
+    groups = [f"{_title_of(spec, who)}: {', '.join(items)}" for who, items in others.items()]
+    return "; ".join(([", ".join(own)] if own else []) + groups)
+
+
 def _line(spec: ScenarioSpec, event: Event) -> str:
     parts = []
     if event.actor:
@@ -23,7 +45,7 @@ def _line(spec: ScenarioSpec, event: Event) -> str:
         parts.append(f"({event.roll})")
     line = " ".join(parts)
     if event.deltas:
-        line += " — " + ", ".join(delta.describe() for delta in event.deltas)
+        line += " — " + _deltas_text(spec, event)
     if event.detail:
         line += f". {event.detail}"
     return line

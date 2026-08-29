@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ spec.meta.title }}</h1>
+
+{% if intro %}
+<section class="card">
+  <h2>Вводная</h2>
+  {% for block in intro %}<p>{{ block }}</p>{% endfor %}
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Как устроена игра</h2>
+  <ul class="rules">
+    <li><strong>Раундов:</strong> {{ spec.meta.rounds }}.</li>
+    <li><strong>Очки действий:</strong> {{ spec.meta.action_points }} за раунд на команду.
+        Действий в каталоге — {{ action_count }}.</li>
+    <li><strong>Ходят все одновременно.</strong> Порядок, в котором команды садятся за
+        компьютер, на результат не влияет.</li>
+    <li><strong>Часть действий тайные.</strong> Противник может не узнать, кто за ними
+        стоит — а может и узнать.</li>
+    {% if deals %}
+    <li><strong>Дипломатия:</strong> {{ deals | join(", ") }}. Предложение, сделанное в этом
+        раунде, рассматривается адресатом в следующем.</li>
+    {% endif %}
+  </ul>
+</section>
+
+<section class="card">
+  <h2>Чем вы располагаете</h2>
+  <table>
+    <tr><th>Показатель</th><th>Кто видит</th></tr>
+    {% for title, visibility in tracks %}
+    <tr><td>{{ title }}</td><td>{{ visibility }}</td></tr>
+    {% endfor %}
+  </table>
+  {% if world_tracks %}
+  <p>Общие для всех: {{ world_tracks | join(", ") }}.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Request
 
 from ...core.scoring import score
-from .. import live
+from .. import live, present
 from ..app import templates
 
 router = APIRouter()
@@ -62,4 +62,26 @@ def debrief(request: Request):
         request,
         "debrief.html",
         {"spec": session.spec, "results": results, "timeline": timeline},
+    )
+
+
+@router.get("/intro")
+def intro(request: Request):
+    """Общая вводная: мир плюс памятка правил, собранная из сценария."""
+    session = live.require()
+    spec = session.spec
+    return templates.TemplateResponse(
+        request,
+        "intro.html",
+        {
+            "spec": spec,
+            "intro": present.paragraphs(spec.meta.intro),
+            "tracks": [
+                (track.title, "виден всем" if track.visibility == "public" else "только вам")
+                for track in spec.tracks.values()
+            ],
+            "world_tracks": [track.title for track in spec.world.values()],
+            "action_count": len(spec.actions),
+            "deals": [deal.title for deal in spec.deals],
+        },
     )

@@ -20,6 +20,7 @@ class MetaSpec(Base):
     title: str
     rounds: int = Field(ge=1)
     action_points: int = Field(ge=1)
+    intro: str = ""
 
 
 class TrackSpec(Base):

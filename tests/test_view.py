@@ -69,3 +69,62 @@ def test_narration_mentions_deltas():
 def test_team_narration_omits_foreign_secrets():
     text = narrate_team(SPEC, EVENTS, "b")
     assert "Тайное" not in text
+
+
+def test_world_event_labels_each_side():
+    """Четыре «Бюджет» подряд без имён сторон читаются как бессмыслица."""
+    events = [
+        Event(
+            kind="world", title="Обстановка", audience="public",
+            deltas=(
+                Delta(scope="world", who="", track="Напряжённость", amount=-3),
+                Delta(scope="faction", who="a", track="Бюджет", amount=8.75),
+                Delta(scope="faction", who="b", track="Бюджет", amount=8.25),
+            ),
+        )
+    ]
+    text = narrate_public(SPEC, events)
+    assert "А: Бюджет +8.75" in text
+    assert "Б: Бюджет +8.25" in text
+    assert "Напряжённость −3" in text
+
+
+def test_own_deltas_are_not_labelled():
+    events = [
+        Event(
+            kind="action", title="Мобилизация", actor="a", audience="public",
+            deltas=(Delta(scope="faction", who="a", track="Бюджет", amount=-20),),
+        )
+    ]
+    text = narrate_public(SPEC, events)
+    assert "Бюджет −20" in text
+    assert "А: Бюджет" not in text
+
+
+def test_target_deltas_are_labelled():
+    events = [
+        Event(
+            kind="action", title="Санкции", actor="a", target="b", audience="public",
+            deltas=(Delta(scope="faction", who="b", track="Бюджет", amount=-15),),
+        )
+    ]
+    assert "Б: Бюджет −15" in narrate_public(SPEC, events)
+
+
+def test_world_deltas_are_grouped_by_side():
+    """Иначе получается «Бюджет +8, Бюджет +9, … , Легитимность +1, …»."""
+    events = [
+        Event(
+            kind="world", title="Обстановка", audience="public",
+            deltas=(
+                Delta(scope="world", who="", track="Напряжённость", amount=-3),
+                Delta(scope="faction", who="a", track="Бюджет", amount=8),
+                Delta(scope="faction", who="b", track="Бюджет", amount=9),
+                Delta(scope="faction", who="a", track="Легитимность", amount=1),
+                Delta(scope="faction", who="b", track="Легитимность", amount=1),
+            ),
+        )
+    ]
+    text = narrate_public(SPEC, events)
+    assert "А: Бюджет +8, Легитимность +1" in text
+    assert "Б: Бюджет +9, Легитимность +1" in text

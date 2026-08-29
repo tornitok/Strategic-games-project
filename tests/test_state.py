@@ -65,3 +65,22 @@ def test_context_exposes_namespaces():
     assert ctx["world"]["tension"] == 10
     assert ctx["meta"]["rounds"] == 3
     assert ctx["rel"]("a", "b") == -20
+
+
+def test_no_false_clamp_from_floating_point():
+    """155.5 + 8.85 в двоичной арифметике даёт 8.849999999999994.
+
+    Из-за точного сравнения дельта помечалась как упёршаяся в границу, и в
+    сводке появлялось «(предел)» там, где до потолка было далеко.
+    """
+    builder = StateBuilder(SPEC, initial_state(SPEC))
+    builder.add_track("a", "budget", 5.5)
+    delta = builder.add_track("a", "budget", 8.85)
+    assert builder.track("a", "budget") < SPEC.tracks["budget"].max
+    assert delta.clamped is False
+
+
+def test_real_clamp_is_still_reported():
+    builder = StateBuilder(SPEC, initial_state(SPEC))
+    delta = builder.add_track("a", "budget", 500)
+    assert delta.clamped is True

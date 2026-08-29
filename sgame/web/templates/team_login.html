@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>{{ title }}</h1>
-<p>Введите код команды.</p>
+<p class="round">Введите код команды — его показывает ведущий на пульте.</p>
 {% if error %}<p class="big">{{ error }}</p>{% endif %}
-<form method="post" action="/team/{{ faction }}/login">
-  <label>Код <input name="code" inputmode="numeric" autocomplete="off" autofocus></label>
-  <button type="submit">Войти</button>
-</form>
+<section class="card">
+  <form method="post" action="/team/{{ faction }}/login">
+    <label>Код команды
+      <input name="code" inputmode="numeric" autocomplete="off" autofocus>
+    </label>
+    <button type="submit">Войти</button>
+  </form>
+</section>
 {% endblock %}

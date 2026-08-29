@@ -57,3 +57,20 @@ def test_future_schema_version_rejected():
     with pytest.raises(ScenarioError) as exc:
         parse_scenario(text)
     assert "99" in str(exc.value)
+
+
+def test_intro_is_optional_and_defaults_to_empty():
+    assert parse_scenario(MINIMAL).meta.intro == ""
+
+
+def test_intro_is_read_from_meta():
+    text = MINIMAL.replace(
+        'meta: { id: t, title: "Тест", rounds: 3, action_points: 2 }',
+        'meta:\n'
+        '  id: t\n'
+        '  title: "Тест"\n'
+        '  rounds: 3\n'
+        '  action_points: 2\n'
+        '  intro: "Мир на грани."\n',
+    )
+    assert parse_scenario(text).meta.intro == "Мир на грани."

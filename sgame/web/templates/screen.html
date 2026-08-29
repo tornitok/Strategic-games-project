@@ -1,21 +1,40 @@
 {% extends "base.html" %}
+{% block bodyclass %}projector{% endblock %}
 {% block body %}
-<h1>{{ spec.meta.title }} — раунд {{ shown_round }}</h1>
+<h1>{{ spec.meta.title }}</h1>
+<p class="round">Раунд {{ shown_round }} из {{ spec.meta.rounds }}</p>
+
 <section class="card">
   <h2>Обстановка в мире</h2>
-  <p>{% for name, track in spec.world.items() %}{{ track.title }}: <strong>{{ state.world[name] }}</strong>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+  <ul class="tracks">
+    {% for name, track in spec.world.items() %}
+    <li class="track">
+      <span class="value">{{ state.world[name] | num }}</span>
+      <span class="name">{{ track.title }}</span>
+    </li>
+    {% endfor %}
+  </ul>
 </section>
+
 <section class="card">
   <h2>Стороны</h2>
-  <table>
+  <div class="sides">
     {% for faction in spec.factions %}
-    <tr>
-      <th>{{ faction.title }}</th>
-      <td>{% for name, track in spec.tracks.items() %}{% if track.visibility == "public" %}{{ track.title }}: {{ state.tracks[faction.id][name] }} {% endif %}{% endfor %}</td>
-    </tr>
+    <div class="side">
+      <div class="title">{{ faction.title }}</div>
+      <ul class="tracks">
+        {% for name, track in spec.tracks.items() %}{% if track.visibility == "public" %}
+        <li class="track">
+          <span class="value">{{ state.tracks[faction.id][name] | num }}</span>
+          <span class="name">{{ track.title }}</span>
+        </li>
+        {% endif %}{% endfor %}
+      </ul>
+    </div>
     {% endfor %}
-  </table>
+  </div>
 </section>
+
 <section class="card">
   <h2>Сводка</h2>
   <div class="news">{{ news }}</div>

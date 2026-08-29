@@ -39,6 +39,7 @@ def screen(request: Request, faction: str):
         {
             "spec": session.spec,
             "faction": session.spec.faction(faction),
+            "briefing": present.paragraphs(session.spec.faction(faction).briefing),
             "state": state,
             "tracks": tracks_for(session.spec, state, faction),
             "options": present.action_options(session.spec, state, faction, draft),

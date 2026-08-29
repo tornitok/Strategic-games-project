@@ -45,3 +45,21 @@ def action_options(
 def points_left(spec: ScenarioSpec, draft: list[Order]) -> int:
     spent = sum(spec.action(order.action).ap for order in draft if spec.action(order.action))
     return spec.meta.action_points - spent
+
+
+def paragraphs(text: str) -> list[str]:
+    """Разбить текст сценария на абзацы.
+
+    В YAML длинные тексты пишут блоком с переносами по 80 колонок. Показывать
+    их как есть — значит рвать строки посреди экрана, поэтому внутри абзаца
+    переносы схлопываются, а пустая строка начинает новый абзац.
+    """
+    return [" ".join(block.split()) for block in (text or "").split("\n\n") if block.strip()]
+
+
+def number(value: float) -> str:
+    """Число для экрана: без хвоста «.0» у целых значений."""
+    rounded = round(float(value), 2)
+    if rounded == int(rounded):
+        return str(int(rounded))
+    return f"{rounded:g}"

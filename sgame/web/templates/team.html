@@ -1,18 +1,27 @@
 {% extends "base.html" %}
 {% block body %}
 <div id="cover" hidden class="cover"><p>Экран скрыт. Нажмите, чтобы вернуться.</p></div>
-<button id="hide-button" class="secondary" type="button">Скрыть экран</button>
 <script src="/static/hide.js" defer></script>
 
 <h1>{{ faction.title }}</h1>
 <p class="round">Раунд {{ state.round }} из {{ spec.meta.rounds }} ·
    Очки действий: {{ points_left }} из {{ spec.meta.action_points }}</p>
 
+<p class="links">
+  <a href="/intro" target="_blank">Вводная и правила игры</a> ·
+  <button id="hide-button" class="ghost" type="button">Скрыть экран</button>
+</p>
+
 <section class="card">
   <h2>Ваш брифинг</h2>
-  <p>{{ faction.briefing }}</p>
+  {% for block in briefing %}<p>{{ block }}</p>{% endfor %}
   {% if faction.goals %}
-  <ul>{% for goal in faction.goals %}<li>{{ goal.title }} — {{ goal.score }} очк.</li>{% endfor %}</ul>
+  <h4>Ваши цели</h4>
+  <table>
+    {% for goal in faction.goals %}
+    <tr><td>{{ goal.title }}</td><td style="text-align:right">{{ goal.score | num }} очк.</td></tr>
+    {% endfor %}
+  </table>
   {% endif %}
 </section>
 
@@ -23,71 +32,95 @@
 
 <section class="card">
   <h2>Обстановка</h2>
-  <table>
+  <div class="sides">
     {% for id, values in tracks.items() %}
-    <tr><th>{{ spec.faction(id).title }}</th>
-      <td>{% for name, value in values.items() %}{{ name }}: {{ value }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
-    </tr>
+    <div class="side">
+      <div class="title">{{ spec.faction(id).title }}{% if id == faction.id %} — вы{% endif %}</div>
+      <ul class="tracks">
+        {% for name, value in values.items() %}
+        <li class="track {% if id == faction.id %}own{% endif %}">
+          <span class="value">{{ value | num }}</span>
+          <span class="name">{{ name }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
     {% endfor %}
-    <tr><th>Мир</th><td>{% for name, track in spec.world.items() %}{{ track.title }}: {{ state.world[name] }} {% endfor %}</td></tr>
-  </table>
+    <div class="side">
+      <div class="title">Мир</div>
+      <ul class="tracks">
+        {% for name, track in spec.world.items() %}
+        <li class="track">
+          <span class="value">{{ state.world[name] | num }}</span>
+          <span class="name">{{ track.title }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
 </section>
 
 <section class="card">
   <h2>Ваши приказы</h2>
   {% if draft %}
-  <ol>
+  <ul class="orders">
     {% for order in draft %}
-    <li>{{ spec.action(order.action).title }}
-      {% if order.target %}→ {{ spec.faction(order.target).title }}{% endif %}
-      {% if order.intent %}<em>«{{ order.intent }}»</em>{% endif %}
+    <li>
+      <span>{{ spec.action(order.action).title }}{% if order.target %} → {{ spec.faction(order.target).title }}{% endif %}</span>
+      {% if order.intent %}<span class="intent">«{{ order.intent }}»</span>{% endif %}
       <form method="post" action="/team/{{ faction.id }}/order/remove">
         <input type="hidden" name="index" value="{{ loop.index0 }}">
-        <button class="secondary" type="submit">Убрать</button>
+        <button class="ghost" type="submit">Убрать</button>
       </form>
     </li>
     {% endfor %}
-  </ol>
-  {% else %}<p>Приказов пока нет.</p>{% endif %}
+  </ul>
+  {% else %}<p class="round">Приказов пока нет.</p>{% endif %}
   <form method="post" action="/team/{{ faction.id }}/submit">
     <button type="submit">Сдать приказы</button>
   </form>
 </section>
 
 <h2>Доступные действия</h2>
+<div class="actions-grid">
 {% for option in options %}
-<section class="card {% if not option.available %}disabled{% endif %}">
-  <h3>{{ option.action.title }}</h3>
-  <p>{{ option.action.description }}</p>
-  <p>Стоимость: {% for name, amount in option.action.cost.items() %}{{ spec.tracks[name].title }} {{ amount }} {% endfor %}
-     · Очки действий: {{ option.action.ap }}</p>
-  {% if option.available %}
-  <form method="post" action="/team/{{ faction.id }}/order">
-    <input type="hidden" name="action" value="{{ option.action.id }}">
-    {% if option.action.target == "faction" %}
-    <label>Цель
-      <select name="target">
-        {% for other in others %}<option value="{{ other.id }}">{{ other.title }}</option>{% endfor %}
-      </select>
-    </label>
+  <section class="card action {% if not option.available %}disabled{% endif %}">
+    <h3>{{ option.action.title }}</h3>
+    <p>{{ option.action.description }}</p>
+    <p class="meta">
+      {% if option.action.cost %}Стоимость:
+        {% for name, amount in option.action.cost.items() %}{{ spec.tracks[name].title }} {{ amount | num }}{% if not loop.last %}, {% endif %}{% endfor %}
+      {% else %}Без затрат{% endif %}
+      · {{ option.action.ap }} очк.
+      {% if option.action.visibility == "secret" %} · тайное{% endif %}
+    </p>
+    {% if option.available %}
+    <form method="post" action="/team/{{ faction.id }}/order">
+      <input type="hidden" name="action" value="{{ option.action.id }}">
+      {% if option.action.target == "faction" %}
+      <label>Цель
+        <select name="target">
+          {% for other in others %}<option value="{{ other.id }}">{{ other.title }}</option>{% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      <label>Замысел — для разбора после игры
+        <input name="intent" maxlength="300" placeholder="Зачем вы это делаете">
+      </label>
+      <button type="submit">Добавить приказ</button>
+    </form>
+    {% else %}
+    <p class="why">Недоступно: {{ option.reason }}</p>
     {% endif %}
-    <label>Замысел (для разбора после игры)
-      <input name="intent" maxlength="300" placeholder="Зачем вы это делаете">
-    </label>
-    <button type="submit">Добавить приказ</button>
-  </form>
-  {% else %}
-  <p><strong>Недоступно:</strong> {{ option.reason }}</p>
-  {% endif %}
-</section>
+  </section>
 {% endfor %}
+</div>
 
 <h2>Дипломатия</h2>
 {% for offer in incoming %}
 <section class="card">
-  <p>Предложение от {{ spec.faction(offer.sender).title }}: {{ spec.deal(offer.deal).title }}
-     {% if offer.amount %}({{ offer.amount }}){% endif %}</p>
-  <form method="post" action="/team/{{ faction.id }}/response">
+  <p>Предложение от {{ spec.faction(offer.sender).title }}: {{ spec.deal(offer.deal).title }}{% if offer.amount %} ({{ offer.amount | num }}){% endif %}</p>
+  <form method="post" action="/team/{{ faction.id }}/response" class="row">
     <input type="hidden" name="offer" value="{{ offer.id }}">
     <button type="submit" name="accept" value="1">Принять</button>
     <button type="submit" class="secondary">Отклонить</button>
@@ -96,15 +129,19 @@
 {% endfor %}
 <section class="card">
   <form method="post" action="/team/{{ faction.id }}/offer">
-    <label>Предложить
-      <select name="deal">{% for deal in deals %}<option value="{{ deal.id }}">{{ deal.title }}</option>{% endfor %}</select>
-    </label>
-    <label>Кому
-      <select name="receiver">{% for other in others %}<option value="{{ other.id }}">{{ other.title }}</option>{% endfor %}</select>
-    </label>
-    <label>Сколько (для передачи ресурса) <input name="amount" inputmode="numeric"></label>
+    <div class="row">
+      <label>Предложить
+        <select name="deal">{% for deal in deals %}<option value="{{ deal.id }}">{{ deal.title }}</option>{% endfor %}</select>
+      </label>
+      <label>Кому
+        <select name="receiver">{% for other in others %}<option value="{{ other.id }}">{{ other.title }}</option>{% endfor %}</select>
+      </label>
+      <label>Сколько — для передачи ресурса
+        <input name="amount" inputmode="numeric">
+      </label>
+    </div>
     <button type="submit">Отправить предложение</button>
   </form>
-  <p>Ответ придёт в следующем раунде.</p>
+  <p class="round">Ответ придёт в следующем раунде.</p>
 </section>
 {% endblock %}

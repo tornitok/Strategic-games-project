@@ -6,7 +6,7 @@
   <title>{% block title %}Стратегическая игра{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="{% block bodyclass %}{% endblock %}">
   <main>{% block body %}{% endblock %}</main>
 </body>
 </html>

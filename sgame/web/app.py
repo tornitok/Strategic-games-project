@@ -9,10 +9,14 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from . import present
+
 _TEMPLATE_DIR = resources.files("sgame") / "web" / "templates"
 _STATIC_DIR = resources.files("sgame") / "web" / "static"
 
 templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
+# Числа на экранах печатаются без хвоста «.0»: «Бюджет 120», а не «Бюджет 120.0».
+templates.env.filters["num"] = present.number
 
 
 def create_app() -> FastAPI:
