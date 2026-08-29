@@ -16,12 +16,13 @@ templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 
 
 def create_app() -> FastAPI:
-    from .routes import host, team
+    from .routes import host, screen, team
 
     app = FastAPI(title="Стратегическая игра")
     app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
     app.include_router(host.router)
     app.include_router(team.router)
+    app.include_router(screen.router)
     return app
 
 

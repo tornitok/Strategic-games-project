@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Разбор партии</h1>
+<h2>Итог</h2>
+<table>
+  <tr><th>Место</th><th>Сторона</th><th>Команда</th><th>Очки</th><th>Из чего</th></tr>
+  {% for row in results %}
+  <tr>
+    <td>{{ loop.index }}</td><td>{{ row.title }}</td><td>{{ row.team }}</td><td>{{ row.total }}</td>
+    <td>{% for name, value in row.breakdown %}{{ name }}: {{ value }}{% if not loop.last %}; {% endif %}{% endfor %}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Ход игры</h2>
+{% for round in timeline %}
+<section class="card">
+  <h3>Раунд {{ round.n }}</h3>
+  <div class="news">{{ round.host }}</div>
+  {% if round.intents %}
+  <h4>Замыслы команд</h4>
+  <ul>{% for title, action, intent in round.intents %}<li>{{ title }} ({{ action }}): «{{ intent }}»</li>{% endfor %}</ul>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

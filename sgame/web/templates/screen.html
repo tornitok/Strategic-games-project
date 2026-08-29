@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ spec.meta.title }} — раунд {{ shown_round }}</h1>
+<section class="card">
+  <h2>Обстановка в мире</h2>
+  <p>{% for name, track in spec.world.items() %}{{ track.title }}: <strong>{{ state.world[name] }}</strong>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+</section>
+<section class="card">
+  <h2>Стороны</h2>
+  <table>
+    {% for faction in spec.factions %}
+    <tr>
+      <th>{{ faction.title }}</th>
+      <td>{% for name, track in spec.tracks.items() %}{% if track.visibility == "public" %}{{ track.title }}: {{ state.tracks[faction.id][name] }} {% endif %}{% endfor %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+<section class="card">
+  <h2>Сводка</h2>
+  <div class="news">{{ news }}</div>
+</section>
+{% endblock %}
