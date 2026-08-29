@@ -56,7 +56,7 @@ factions:
       обнулит и то и другое.
     goals:
       - { id: order, title: "Кризис пройден без войны", when: "world.escalation < 80", score: 40 }
-      - { id: economy, title: "Экономика не подорвана", when: "self.economy >= 130", score: 20 }
+      - { id: economy, title: "Экономика не подорвана", when: "self.economy >= 95", score: 20 }
       - { id: standing, title: "Поддержка сохранена", when: "self.legitimacy >= 55", score: 15 }
 
   - id: vellan
@@ -74,7 +74,7 @@ factions:
       Ваш выигрыш — договорённость, которую можно предъявить дома как
       победу. Ваш проигрыш — затяжной кризис.
     goals:
-      - { id: deal, title: "Кризис завершён, страна не разорена", when: "world.escalation < 80 and self.economy >= 85", score: 40 }
+      - { id: deal, title: "Кризис завершён, страна не разорена", when: "world.escalation < 80 and self.economy >= 55", score: 40 }
       - { id: face, title: "Власть устояла", when: "self.legitimacy >= 45", score: 25 }
       - { id: strength, title: "Армия не ослаблена", when: "self.forces >= 75", score: 10 }
 
@@ -92,9 +92,9 @@ factions:
 
       Ваша задача — сбить эскалацию и не дать втянуть себя в блок.
     goals:
-      - { id: peace, title: "Мир сохранён", when: "world.escalation < 65", score: 32 }
-      - { id: trade, title: "Торговля не рухнула", when: "world.markets >= 55", score: 22 }
-      - { id: rich, title: "Экономика выросла", when: "self.economy >= 140", score: 10 }
+      - { id: peace, title: "Мир сохранён", when: "world.escalation < 72", score: 32 }
+      - { id: trade, title: "Торговля не рухнула", when: "world.markets >= 28", score: 22 }
+      - { id: rich, title: "Экономика выросла", when: "self.economy >= 75", score: 10 }
 
   - id: norland
     title: "Норланд"
@@ -125,6 +125,14 @@ relations:
     - { a: vellan, b: surat, value: 5 }
 
 actions:
+  - id: consult
+    title: "Пауза на консультации"
+    description: "Закрытые совещания без публичных шагов."
+    news: "{actor} берёт паузу на консультации"
+    stance: neutral
+    effects:
+      - { self: intel, delta: "5" }
+      - { world: escalation, delta: "-2" }
   - id: ultimatum
     title: "Ультиматум"
     stance: hostile
@@ -136,7 +144,7 @@ actions:
       - { world: escalation, delta: "10" }
       - { relation: [self, target], delta: "-18" }
       - { self: legitimacy, delta: "3" }
-      - { world: markets, delta: "-6" }
+      - { world: markets, delta: "-3" }
 
   - id: mobilize
     title: "Мобилизация резервов"
@@ -159,7 +167,7 @@ actions:
     effects:
       - { self: readiness, delta: "20" }
       - { world: escalation, delta: "13" }
-      - { world: markets, delta: "-10" }
+      - { world: markets, delta: "-5" }
 
   - id: standdown
     title: "Отвод и разрядка"
@@ -204,7 +212,7 @@ actions:
       - { target: economy, delta: "-(8 + target.economy * 0.05)" }
       - { self: economy, delta: "2" }
       - { relation: [self, target], delta: "-15" }
-      - { world: markets, delta: "-8" }
+      - { world: markets, delta: "-4" }
 
   - id: support_trade
     title: "Поддержка рынков"
@@ -212,7 +220,7 @@ actions:
     news: "{actor} гарантирует поставки и успокаивает рынки"
     cost: { economy: 20 }
     effects:
-      - { world: markets, delta: "12" }
+      - { world: markets, delta: "15" }
       - { self: legitimacy, delta: "3" }
 
   - id: intel_work
@@ -328,8 +336,8 @@ world_dynamics:
   # и сверху, и снизу. Без этого трое умеренных обнуляют эскалацию за два
   # раунда, а двое жёстких доводят до войны за один.
   - { world: escalation, delta: "(45 - world.escalation) * 0.15" }
-  - { world: attention, delta: "-3" }
-  - { world: markets, delta: "3" }
+  - { world: attention, delta: "(45 - world.attention) * 0.18" }
+  - { world: markets, delta: "(60 - world.markets) * 0.25" }
   - { all: economy, delta: "8 + world.markets * 0.06" }
   - { all: readiness, delta: "-4" }
   # Союз и гарантии дают поток, иначе примыкание к сильному ничего не стоит
@@ -348,7 +356,7 @@ events:
     once: true
     title: "Паника на биржах"
     news: "Биржи обвалились: инвесторы уходят в наличные"
-    effects: [ { all: economy, delta: "-18" }, { all: legitimacy, delta: "-5" } ]
+    effects: [ { all: economy, delta: "-14" }, { all: legitimacy, delta: "-5" } ]
 
   - id: un_session
     when: "round == 4"
@@ -366,7 +374,7 @@ events:
     # и не даёт паре закончиться на втором раунде. Цена высокая и общая.
     effects: [ { world: escalation, delta: "-18" },
                { all: legitimacy, delta: "-8" },
-               { world: markets, delta: "-20" } ]
+               { world: markets, delta: "-10" } ]
 
   - id: hotline
     when: "world.escalation < 30"
@@ -408,7 +416,7 @@ events:
     title: "Ложная тревога"
     news: "Системы предупреждения дали сбой: минуты, которых никто не забудет"
     text: "Тревога оказалась ложной. В следующий раз может не повезти."
-    effects: [ { world: escalation, delta: "10" }, { world: markets, delta: "-15" } ]
+    effects: [ { world: escalation, delta: "10" }, { world: markets, delta: "-8" } ]
 
   - id: harvest
     chance: 0.14

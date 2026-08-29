@@ -45,7 +45,7 @@ factions:
       чем любые уступки, но отдать пролив нельзя.
     goals:
       - { id: strait, title: "Пролив под контролем при мире", when: "world.tension < 60", score: 30 }
-      - { id: strong, title: "Сильная армия к финалу", when: "self.army >= 70", score: 15 }
+      - { id: strong, title: "Сильная армия к финалу", when: "self.army >= 65", score: 15 }
 
   - id: borea
     title: "Борея"
@@ -75,7 +75,7 @@ factions:
       Ваша власть держится на страхе соседей, а не на любви населения.
     goals:
       - { id: legit, title: "Легитимность выправлена", when: "self.legitimacy >= 55", score: 30 }
-      - { id: chaos, title: "Соседи заняты друг другом", when: "world.tension > 55", score: 15 }
+      - { id: chaos, title: "Соседи заняты друг другом", when: "world.tension > 48", score: 15 }
 
 relations:
   default: 0
@@ -86,6 +86,14 @@ relations:
     - { a: caldera, b: delta, value: -10 }
 
 actions:
+  - id: consult
+    title: "Пауза на консультации"
+    description: "Закрытые совещания без публичных шагов."
+    news: "{actor} берёт паузу на консультации"
+    stance: neutral
+    effects:
+      - { self: intel, delta: "4" }
+      - { self: legitimacy, delta: "1" }
   - id: mobilize
     title: "Мобилизация"
     news: "{actor} стягивает войска к проливу"
@@ -282,7 +290,7 @@ deals:
 
 world_dynamics:
   - { world: tension, delta: "-3" }
-  - { world: attention, delta: "-2" }
+  - { world: attention, delta: "(35 - world.attention) * 0.15" }
   - { all: budget, delta: "6 + self.legitimacy * 0.05" }
   - { all: legitimacy, delta: "1" }
   # Пакт и союз дают поток, иначе договорённости — просто строчка в журнале

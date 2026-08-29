@@ -67,6 +67,30 @@ def _simulate(scenario: str, seeds: int, roles: list[str] | None) -> int:
     return 0
 
 
+def _doctor(scenario: str, games: int) -> int:
+    from .core.spec import parse_scenario
+    from .doctor import check
+    from .session.paths import all_scenarios
+
+    available = all_scenarios()
+    if scenario not in available:
+        print(f"нет такого сценария: {scenario}. Есть: {', '.join(sorted(available))}")
+        return 1
+
+    spec = parse_scenario(available[scenario])
+    findings = check(spec, games=games)
+    print(f"{spec.meta.title} — {games} прогонов\n")
+    if not findings:
+        print("проблемных мест не найдено")
+        return 0
+
+    errors = [f for f in findings if f.severity == "ошибка"]
+    for finding in findings:
+        print(f"  {finding}")
+    print(f"\nвсего: {len(findings)}, из них ошибок: {len(errors)}")
+    return 1 if errors else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="sgame", description="Движок стратегических игр")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -83,9 +107,16 @@ def main(argv: list[str] | None = None) -> int:
     sim_cmd.add_argument("--seeds", type=int, default=5)
     sim_cmd.add_argument("--roles", help="через запятую: opposition, balancing, following, cautious")
 
+    doc_cmd = sub.add_parser("doctor", help="найти места, где сценарий может сломаться")
+    doc_cmd.add_argument("scenario")
+    doc_cmd.add_argument("--games", type=int, default=24)
+
     args = parser.parse_args(argv)
     if args.command == "validate":
         return _validate(args.path)
+
+    if args.command == "doctor":
+        return _doctor(args.scenario, args.games)
 
     if args.command == "simulate":
         roles = args.roles.split(",") if args.roles else None

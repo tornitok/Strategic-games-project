@@ -220,6 +220,25 @@ def simulate(spec: ScenarioSpec, roles: dict[str, str], seed: int) -> Simulation
             )
             offers.extend(faction_offers)
             responses.update(faction_responses)
+        # Отдельно от того, что бот выбрал: было ли у стороны вообще хоть одно
+        # исполнимое действие. Пустой ход бота и мёртвый ход в сценарии —
+        # разные диагнозы.
+        stuck = []
+        for faction in roles:
+            others = [f.id for f in spec.factions if f.id != faction]
+            has_any = False
+            for action in spec.actions:
+                probe = Order(
+                    action=action.id,
+                    target=others[0] if action.target == "faction" and others else None,
+                )
+                accepted, _ = phase_validate(spec, StateBuilder(spec, state), {faction: [probe]})
+                if accepted:
+                    has_any = True
+                    break
+            if not has_any:
+                stuck.append(faction)
+
         result = resolve(spec, state, orders, offers, responses, seed)
         state = result.state
         rounds.append(
@@ -229,6 +248,9 @@ def simulate(spec: ScenarioSpec, roles: dict[str, str], seed: int) -> Simulation
                 "events": [e.title for e in result.events if e.kind == "scenario_event"],
                 "rumours": [e.title for e in result.events if e.kind == "rumour"],
                 "statuses": [f"{s.deal}: {s.a}+{s.b}" for s in state.statuses],
+                "orders": {f: [o.action for o in os] for f, os in orders.items()},
+                "tracks": {f: dict(v) for f, v in state.tracks.items()},
+                "stuck": stuck,
             }
         )
         if state.finished:
