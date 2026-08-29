@@ -226,3 +226,48 @@ def test_bot_refuses_actions_that_hurt_itself():
     state = initial_state(spec)
     orders = choose_orders(spec, state, "middle", "following", seed=2, round_no=1)
     assert "help" not in [o.action for o in orders]
+
+
+GOAL_TEXT = """
+schema_version: 1
+meta: { id: t, title: "Т", rounds: 4, action_points: 1 }
+power: "self.budget * 0.1"
+tracks:
+  budget: { title: "Бюджет", min: 0, max: 300 }
+world:
+  line: { title: "Линия", min: 0, max: 100, start: 50 }
+factions:
+  - id: a
+    title: "А"
+    start: { budget: 100 }
+    briefing: "т"
+    goals: [ { id: g, title: "Линия сдвинута", when: "world.line >= 60", score: 40 } ]
+  - { id: b, title: "Б", start: { budget: 100 }, briefing: "т",
+      goals: [ { id: g2, title: "Ц", when: "self.budget > 0", score: 5 } ] }
+actions:
+  - { id: push, title: "Наступление", news: "{actor} наступает", stance: neutral,
+      cost: { budget: 30 }, effects: [ { world: line, delta: "15" } ] }
+  - { id: save, title: "Экономия", news: "{actor} копит", stance: neutral,
+      effects: [ { self: budget, delta: "5" } ] }
+rumours: { chance: 0.1, templates: [ "Говорят, {subject}" ] }
+events: [ { id: e, chance: 0.1, title: "Случай", news: "Случилось", effects: [] } ]
+end: { when: "round > meta.rounds", scoring: "self.budget" }
+"""
+
+
+def test_bot_pursues_its_own_goals_not_only_raw_power():
+    """Наступление стоит денег и не прибавляет силы — но выполняет цель брифинга.
+
+    Без учёта целей бот никогда не двинет то, ради чего идёт весь сценарий.
+    """
+    spec = parse_scenario(GOAL_TEXT)
+    state = initial_state(spec)
+    orders = choose_orders(spec, state, "a", "cautious", seed=1, round_no=1)
+    assert [o.action for o in orders] == ["push"]
+
+
+def test_side_without_that_goal_saves_instead():
+    spec = parse_scenario(GOAL_TEXT)
+    state = initial_state(spec)
+    orders = choose_orders(spec, state, "b", "cautious", seed=1, round_no=1)
+    assert [o.action for o in orders] == ["save"]

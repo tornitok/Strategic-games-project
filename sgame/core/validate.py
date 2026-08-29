@@ -99,6 +99,9 @@ def validate_scenario(spec: ScenarioSpec, lines: dict[str, int]) -> list[Problem
                 problems.append(Problem(f"{where}: неизвестный трек в стоимости {name!r}", line))
         if action.requires:
             check_expression(action.requires, f"{where}: requires", line)
+        for name in action.available_to:
+            if name not in factions:
+                problems.append(Problem(f"{where}: неизвестная сторона в available_to: {name!r}", line))
         for counter in action.countered_by:
             if counter == action.id:
                 problems.append(Problem(f"{where}: действие гасит само себя", line))

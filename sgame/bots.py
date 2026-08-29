@@ -90,13 +90,36 @@ def _gain(spec: ScenarioSpec, state: GameState, faction: str, action: ActionSpec
 
 
 def _power(spec: ScenarioSpec, builder: StateBuilder, faction: str) -> float:
+    """Сила стороны плюс выполненные цели её брифинга.
+
+    Без целей бот не станет двигать то, ради чего идёт сценарий: линия фронта
+    не входит ни в одну формулу силы, и рациональный игрок её проигнорирует,
+    хотя вся игра именно про неё.
+    """
     if spec.power:
-        return float(evaluate(spec.power, builder.context(actor=faction)))
-    return sum(
-        builder.track(faction, name)
-        for name, track in spec.tracks.items()
-        if track.visibility == "public"
-    )
+        base = float(evaluate(spec.power, builder.context(actor=faction)))
+    else:
+        base = sum(
+            builder.track(faction, name)
+            for name, track in spec.tracks.items()
+            if track.visibility == "public"
+        )
+    return base + _goal_points(spec, builder, faction)
+
+
+def _goal_points(spec: ScenarioSpec, builder: StateBuilder, faction: str) -> float:
+    spec_faction = spec.faction(faction)
+    if not spec_faction:
+        return 0.0
+    context = builder.context(actor=faction)
+    total = 0.0
+    for goal in spec_faction.goals:
+        try:
+            if evaluate(goal.when, context):
+                total += goal.score
+        except Exception:
+            continue
+    return total
 
 
 def choose_orders(

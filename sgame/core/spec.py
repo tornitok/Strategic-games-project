@@ -84,6 +84,7 @@ class ActionSpec(Base):
     visibility: Literal["open", "secret"] = "open"
     stance: Literal["hostile", "friendly", "neutral"] = "neutral"
     repeatable: bool = False  # можно ли заказать дважды за раунд
+    available_to: list[str] = []  # если задано — действие только для этих сторон
     reveal_chance: float = Field(default=0.0, ge=0, le=1)
     countered_by: list[str] = []
     plants_rumour: bool = False  # действие запускает слух о выбранной стороне

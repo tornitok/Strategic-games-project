@@ -58,6 +58,9 @@ def phase_validate(
             if action is None:
                 events.append(_reject(faction, order, f"неизвестное действие {order.action!r}"))
                 continue
+            if action.available_to and faction not in action.available_to:
+                events.append(_reject(faction, order, "это действие не для вашей стороны"))
+                continue
             if action.id in used and not action.repeatable:
                 events.append(_reject(faction, order, "это действие уже заказано в этом раунде"))
                 continue

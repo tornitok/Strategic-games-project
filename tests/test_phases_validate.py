@@ -108,3 +108,35 @@ end: { when: "round > meta.rounds", scoring: "self.budget" }
         {"a": [Order(action="patrol"), Order(action="patrol")]},
     )
     assert len(accepted) == 2
+
+
+AVAILABILITY = parse_scenario("""
+schema_version: 1
+meta: { id: t, title: "Т", rounds: 3, action_points: 2 }
+tracks:
+  budget: { title: "Бюджет", min: 0, max: 100 }
+world: {}
+factions:
+  - { id: a, title: "А", start: { budget: 60 } }
+  - { id: b, title: "Б", start: { budget: 60 } }
+actions:
+  - { id: push_a, title: "Наступление А", available_to: [ a ], effects: [] }
+  - { id: common, title: "Общее", effects: [] }
+end: { when: "round > meta.rounds", scoring: "self.budget" }
+""")
+
+
+def test_action_limited_to_a_side_is_available_to_it():
+    accepted, _ = phase_validate(
+        AVAILABILITY, StateBuilder(AVAILABILITY, initial_state(AVAILABILITY)),
+        {"a": [Order(action="push_a")]},
+    )
+    assert len(accepted) == 1
+
+
+def test_action_limited_to_a_side_is_refused_to_others():
+    _, events = phase_validate(
+        AVAILABILITY, StateBuilder(AVAILABILITY, initial_state(AVAILABILITY)),
+        {"b": [Order(action="push_a")]},
+    )
+    assert events and "не для вашей стороны" in events[0].detail
