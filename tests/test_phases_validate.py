@@ -77,3 +77,34 @@ def test_payment_subtracts_cost():
     events = phase_pay(SPEC, work, accepted)
     assert work.track("a", "budget") == 20
     assert events[0].audience == "actor"
+
+
+def test_same_action_twice_is_rejected_by_default():
+    """Мобилизоваться трижды за раунд нельзя, и копить одним действием — тоже."""
+    orders = {"a": [Order(action="cheap"), Order(action="cheap")]}
+    accepted, events = phase_validate(SPEC, builder(), orders)
+    assert len(accepted) == 1
+    assert "уже" in events[0].detail
+
+
+def test_repeatable_action_may_be_ordered_twice():
+    spec = parse_scenario(
+        SPEC.model_dump_json()  # заглушка, ниже настоящий сценарий
+    ) if False else parse_scenario("""
+schema_version: 1
+meta: { id: t, title: "Т", rounds: 3, action_points: 2 }
+tracks:
+  budget: { title: "Бюджет", min: 0, max: 100 }
+world: {}
+factions:
+  - { id: a, title: "А", start: { budget: 60 } }
+  - { id: b, title: "Б", start: { budget: 60 } }
+actions:
+  - { id: patrol, title: "Патруль", repeatable: true, cost: { budget: 5 }, effects: [] }
+end: { when: "round > meta.rounds", scoring: "self.budget" }
+""")
+    accepted, _ = phase_validate(
+        spec, StateBuilder(spec, initial_state(spec)),
+        {"a": [Order(action="patrol"), Order(action="patrol")]},
+    )
+    assert len(accepted) == 2

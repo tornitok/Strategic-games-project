@@ -13,6 +13,19 @@ def _context(spec: ScenarioSpec, state: GameState, faction: str) -> dict:
         "round": state.round,
         "meta": {"rounds": spec.meta.rounds},
         "rel": lambda a, b: state.relations.get(tuple(sorted((a, b))), spec.relations.default),
+        "track": lambda faction_id, name: state.tracks[faction_id][name],
+        "avg": lambda name: (
+            sum(tracks[name] for tracks in state.tracks.values() if name in tracks)
+            / max(1, sum(1 for tracks in state.tracks.values() if name in tracks))
+        ),
+        "status": lambda deal, a, b: float(
+            any(s.deal == deal and {s.a, s.b} == {a, b} and s.until > state.round
+                for s in state.statuses)
+        ),
+        "in_status": lambda deal: float(
+            any(s.deal == deal and faction in (s.a, s.b) and s.until > state.round
+                for s in state.statuses)
+        ),
     }
 
 

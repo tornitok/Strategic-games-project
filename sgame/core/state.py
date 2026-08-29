@@ -125,6 +125,42 @@ class StateBuilder:
         except KeyError as exc:
             raise KeyError(f"неизвестная сторона или показатель: {faction}.{name}") from exc
 
+    def status_between(self, deal: str, a: str, b: str) -> float:
+        """Действует ли статус между двумя сторонами. 1 или 0 — чтобы участвовать
+        в арифметике выражений наравне с числами."""
+        key = pair_key(a, b)
+        return float(
+            any(
+                status.deal == deal
+                and pair_key(status.a, status.b) == key
+                and status.until > self.round
+                for status in self.statuses
+            )
+        )
+
+    def status_of(self, deal: str, faction: str | None) -> float:
+        """Состоит ли сторона хоть в одном таком статусе."""
+        if faction is None:
+            return 0.0
+        return float(
+            any(
+                status.deal == deal
+                and faction in (status.a, status.b)
+                and status.until > self.round
+                for status in self.statuses
+            )
+        )
+
+    def average(self, name: str) -> float:
+        """Среднее значение показателя по всем сторонам.
+
+        Нужна для относительного счёта: если очки зависят только от своих
+        накоплений, отнимать у соседа бессмысленно, и любая стратегия
+        сводится к «копи и не высовывайся».
+        """
+        values = [tracks[name] for tracks in self._tracks.values() if name in tracks]
+        return sum(values) / len(values) if values else 0.0
+
     def context(self, actor: str | None = None, target: str | None = None) -> dict[str, Any]:
         """Контекст для вычисления выражений сценария."""
         return {
@@ -135,6 +171,9 @@ class StateBuilder:
             "meta": {"rounds": self.spec.meta.rounds},
             "rel": self.relation,
             "track": self.track_of,
+            "status": self.status_between,
+            "in_status": lambda deal: self.status_of(deal, actor),
+            "avg": self.average,
         }
 
     def build(self, *, round_no: int, finished: bool = False) -> GameState:

@@ -23,7 +23,7 @@ meta:
     Вам предстоит восемь раундов. Решения принимаются одновременно, последствия
     считает модель, а разбирать их вы будете вместе после игры.
 
-power: "self.army * 0.6 + self.budget * 0.2 + self.legitimacy * 0.2"
+power: "self.legitimacy * 0.5 + self.army * 0.6 + self.budget * 0.35"
 
 tracks:
   budget:     { title: "Бюджет",        min: 0, max: 200, visibility: public }
@@ -59,13 +59,13 @@ factions:
 
   - id: caldera
     title: "Кальдера"
-    start: { budget: 140, army: 40, legitimacy: 65, intel: 50 }
+    start: { budget: 118, army: 40, legitimacy: 65, intel: 50 }
     briefing: |
       Вы торговая держава: и то и другое побережье — ваши рынки. Война
       обрушит ваши доходы, но и полная тишина лишает вас роли посредника.
     goals:
-      - { id: calm, title: "Регион спокоен", when: "world.tension < 40", score: 30 }
-      - { id: rich, title: "Богатая казна", when: "self.budget >= 150", score: 20 }
+      - { id: calm, title: "Регион спокоен", when: "world.tension < 40", score: 24 }
+      - { id: rich, title: "Богатая казна", when: "self.budget >= 165", score: 20 }
 
   - id: delta
     title: "Дельта"
@@ -113,7 +113,7 @@ actions:
     description: "Инфраструктура и налоговая база."
     cost: { budget: 25 }
     effects:
-      - { self: budget, delta: "45 - self.budget * 0.1" }
+      - { self: budget, delta: "38 - self.budget * 0.11" }
       - { self: legitimacy, delta: "2" }
 
   - id: propaganda
@@ -122,7 +122,7 @@ actions:
     description: "Работа с общественным мнением внутри страны."
     cost: { budget: 15 }
     effects:
-      - { self: legitimacy, delta: "8" }
+      - { self: legitimacy, delta: "6" }
       - { world: attention, delta: "3" }
 
   - id: intel_work
@@ -145,7 +145,8 @@ actions:
     reveal_chance: 0.35
     countered_by: [ cyber_defense ]
     risk:
-      - { p: 0.5, title: "успех", effects: [ { target: budget, delta: "-18" },
+      - { p: 0.5, title: "успех", effects: [ { target: budget, delta: "-(5 + target.budget * 0.04)" },
+                                             { self: budget, delta: "6" },
                                              { relation: [self, target], delta: "-8" } ] }
       - { p: 0.3, title: "частичный успех", effects: [ { target: budget, delta: "-6" } ] }
       - { p: 0.2, title: "провал", effects: [ { self: intel, delta: "-12" } ] }
@@ -168,7 +169,8 @@ actions:
     cost: { budget: 20 }
     requires: "self.army >= 40"
     risk:
-      - { p: 0.6, title: "блокада держится", effects: [ { target: budget, delta: "-20" },
+      - { p: 0.6, title: "блокада держится", effects: [ { target: budget, delta: "-(6 + target.budget * 0.05)" },
+                                                        { self: budget, delta: "9" },
                                                         { world: tension, delta: "12" },
                                                         { relation: [self, target], delta: "-15" } ] }
       - { p: 0.4, title: "прорыв", effects: [ { self: legitimacy, delta: "-8" },
@@ -205,8 +207,8 @@ actions:
     target: faction
     cost: { budget: 15 }
     effects:
-      - { target: budget, delta: "-15" }
-      - { self: budget, delta: "-5" }
+      - { target: budget, delta: "-(8 + target.budget * 0.05)" }
+      - { self: budget, delta: "4" }
       - { relation: [self, target], delta: "-12" }
       - { world: attention, delta: "5" }
 
@@ -252,6 +254,18 @@ actions:
     effects:
       - { self: intel, delta: "-5" }
 
+  - id: align
+    title: "Примкнуть к сильному"
+    description: "Встроиться в чужой фарватер ради доли в его выигрыше."
+    news: "{actor} встраивается в чужой фарватер. Партнёр — {target}"
+    target: faction
+    stance: friendly
+    cost: { legitimacy: 4 }
+    effects:
+      - { self: budget, delta: "target.budget * 0.06" }
+      - { relation: [self, target], delta: "12" }
+      - { self: legitimacy, delta: "-3" }
+
   - id: deescalate
     title: "Шаг к разрядке"
     news: "{actor} публично отказывается от эскалации"
@@ -271,6 +285,8 @@ world_dynamics:
   - { world: attention, delta: "-2" }
   - { all: budget, delta: "6 + self.legitimacy * 0.05" }
   - { all: legitimacy, delta: "1" }
+  # Пакт и союз дают поток, иначе договорённости — просто строчка в журнале
+  - { all: budget, delta: "in_status('pact') * 4 + in_status('alliance') * 6" }
 
 events:
   - id: oil_shock
@@ -391,4 +407,4 @@ rumours:
 
 end:
   when: "round > meta.rounds or world.tension >= 100"
-  scoring: "self.legitimacy + self.army * 0.5 + self.budget * 0.2"
+  scoring: "45 + self.legitimacy * 0.5 + (self.army - avg('army')) * 0.6 + (self.budget - avg('budget')) * 0.35"

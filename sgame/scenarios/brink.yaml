@@ -25,7 +25,7 @@ meta:
     очков. Ваша задача — защитить интересы своей страны и не довести до
     этого. Шесть раундов, по четыре решения в каждом.
 
-power: "self.forces * 0.5 + self.economy * 0.25 + self.legitimacy * 0.25"
+power: "self.legitimacy * 0.5 + self.forces * 0.5 + self.economy * 0.3"
 
 tracks:
   economy:    { title: "Экономика",   min: 0, max: 200, visibility: public }
@@ -80,7 +80,7 @@ factions:
 
   - id: surat
     title: "Сурат"
-    start: { economy: 130, forces: 55, legitimacy: 70, intel: 45, readiness: 30 }
+    start: { economy: 112, forces: 55, legitimacy: 70, intel: 45, readiness: 30 }
     briefing: |
       Вы держитесь в стороне от чужого спора и зарабатываете на том, что
       через вас идут и товары, и переговоры. Глобальная война разорит вас
@@ -92,8 +92,8 @@ factions:
 
       Ваша задача — сбить эскалацию и не дать втянуть себя в блок.
     goals:
-      - { id: peace, title: "Мир сохранён", when: "world.escalation < 65", score: 45 }
-      - { id: trade, title: "Торговля не рухнула", when: "world.markets >= 55", score: 25 }
+      - { id: peace, title: "Мир сохранён", when: "world.escalation < 65", score: 32 }
+      - { id: trade, title: "Торговля не рухнула", when: "world.markets >= 55", score: 22 }
       - { id: rich, title: "Экономика выросла", when: "self.economy >= 140", score: 10 }
 
   - id: norland
@@ -201,8 +201,8 @@ actions:
     target: faction
     cost: { economy: 12 }
     effects:
-      - { target: economy, delta: "-22" }
-      - { self: economy, delta: "-8" }
+      - { target: economy, delta: "-(8 + target.economy * 0.05)" }
+      - { self: economy, delta: "2" }
       - { relation: [self, target], delta: "-15" }
       - { world: markets, delta: "-8" }
 
@@ -235,7 +235,8 @@ actions:
     reveal_chance: 0.4
     countered_by: [ hardening ]
     risk:
-      - { p: 0.45, title: "успех", effects: [ { target: economy, delta: "-25" },
+      - { p: 0.45, title: "успех", effects: [ { target: economy, delta: "-(6 + target.economy * 0.06)" },
+                                              { self: economy, delta: "6" },
                                               { target: readiness, delta: "-10" },
                                               { world: escalation, delta: "6" } ] }
       - { p: 0.35, title: "частично", effects: [ { target: economy, delta: "-10" } ] }
@@ -290,8 +291,20 @@ actions:
     news: "{actor} обращается к нации"
     cost: { economy: 8 }
     effects:
-      - { self: legitimacy, delta: "10" }
+      - { self: legitimacy, delta: "6" }
       - { world: attention, delta: "3" }
+
+  - id: align
+    title: "Присоединиться к курсу"
+    description: "Публичная поддержка линии сильнейшего в обмен на доступ к его рынкам."
+    news: "{actor} публично поддерживает курс: {target}"
+    target: faction
+    stance: friendly
+    cost: { legitimacy: 5 }
+    effects:
+      - { self: economy, delta: "target.economy * 0.06" }
+      - { relation: [self, target], delta: "12" }
+      - { self: legitimacy, delta: "-2" }
 
   - id: gesture
     title: "Жест доброй воли"
@@ -319,6 +332,8 @@ world_dynamics:
   - { world: markets, delta: "3" }
   - { all: economy, delta: "8 + world.markets * 0.06" }
   - { all: readiness, delta: "-4" }
+  # Союз и гарантии дают поток, иначе примыкание к сильному ничего не стоит
+  - { all: economy, delta: "in_status('bloc') * 7 + in_status('nonaggression') * 3" }
 
 events:
   - id: black_box
@@ -413,4 +428,4 @@ rumours:
 
 end:
   when: "round > meta.rounds or world.escalation >= 100"
-  scoring: "self.legitimacy + self.forces * 0.4 + self.economy * 0.2 - (70 if world.escalation >= 100 else 0)"
+  scoring: "55 + self.legitimacy * 0.5 + (self.forces - avg('forces')) * 0.5 + (self.economy - avg('economy')) * 0.3 - (70 if world.escalation >= 100 else 0)"

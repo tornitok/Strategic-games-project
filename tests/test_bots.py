@@ -67,18 +67,31 @@ def test_opposition_strikes_the_strongest_rival():
     assert ("strike", "big") in actions_of(orders)
 
 
-def test_following_helps_the_strongest():
-    state = initial_state(SPEC)
-    orders = choose_orders(SPEC, state, "middle", "following", seed=1, round_no=1)
-    assert ("help", "big") in actions_of(orders)
+def test_following_turns_towards_the_strongest():
+    """Примыкание — это движение к лидеру, но не подарки ему.
+
+    Бот оценивает действия по разнице «мне против цели», поэтому чистое
+    дарение он отвергает. В сценарии для примыкания должно быть действие,
+    дающее долю, — иначе линия сводится к осторожной игре.
+    """
+    spec = parse_scenario(GREEDY_TEXT)
+    state = initial_state(spec)
+    orders = choose_orders(spec, state, "middle", "following", seed=1, round_no=1)
+    targets = [o.target for o in orders if o.target]
+    assert targets and set(targets) == {"big"}
+    assert "help" not in [o.action for o in orders]
 
 
-def test_balancing_hits_the_leader_and_helps_the_weakest():
+def test_balancing_hits_the_leader():
+    """Балансирование бьёт по сильнейшему.
+
+    Помощь слабому бот сам по себе не выберет: в модели она ничего не
+    возвращает. Балансирование работает через союз со слабым — это
+    отдельный канал, дипломатия, а не действие.
+    """
     state = initial_state(SPEC)
     orders = choose_orders(SPEC, state, "middle", "balancing", seed=1, round_no=1)
-    pairs = actions_of(orders)
-    assert ("strike", "big") in pairs
-    assert ("help", "small") in pairs
+    assert ("strike", "big") in actions_of(orders)
 
 
 def test_cautious_bot_avoids_hostility():
@@ -119,3 +132,97 @@ def test_different_seeds_give_different_games():
         tuple(sorted(simulate(spec, roles, seed=seed).scores.items())) for seed in range(6)
     }
     assert len(outcomes) > 1
+
+
+GREEDY_TEXT = TEXT.replace(
+    '''  - { id: help, title: "Помощь", news: "{actor} помогает", target: faction, stance: friendly,
+      cost: { budget: 15 }, effects: [ { target: budget, delta: "12" } ] }''',
+    '''  - { id: help, title: "Помощь", news: "{actor} помогает", target: faction, stance: friendly,
+      cost: { budget: 15 }, effects: [ { target: budget, delta: "12" } ] }
+  - { id: align, title: "Доля", news: "{actor} примыкает", target: faction, stance: friendly,
+      cost: { budget: 5 }, effects: [ { self: budget, delta: "target.budget * 0.1" } ] }''',
+)
+
+
+def test_bot_prefers_the_friendly_action_that_helps_itself():
+    """Примыкание — это доля в чужом выигрыше, а не подарок лидеру.
+
+    Проверяем на нескольких ключах: при одном перемешивание и так может
+    поставить нужное действие первым, и тест ничего не докажет.
+    """
+    spec = parse_scenario(GREEDY_TEXT)
+    state = initial_state(spec)
+    for seed in range(1, 8):
+        orders = choose_orders(spec, state, "middle", "following", seed=seed, round_no=1)
+        assert [o.action for o in orders][0] == "align", seed
+
+
+def test_bot_still_keeps_to_its_line():
+    spec = parse_scenario(GREEDY_TEXT)
+    state = initial_state(spec)
+    orders = choose_orders(spec, state, "middle", "opposition", seed=1, round_no=1)
+    assert ("strike", "big") in [(o.action, o.target) for o in orders]
+
+
+DEAL_TEXT = TEXT.replace('''deals:''', '''deals:''') if "deals:" in TEXT else TEXT.replace(
+    '''rumours:''', '''deals:
+  - { id: bloc, title: "Блок", kind: status, duration: 3 }
+rumours:''')
+
+
+def test_following_bot_offers_an_alliance_to_the_leader():
+    from sgame.bots import choose_deals
+
+    spec = parse_scenario(DEAL_TEXT)
+    state = initial_state(spec)
+    offers, _ = choose_deals(spec, state, "middle", "following", seed=1, round_no=1)
+    assert offers and offers[0].receiver == "big"
+
+
+def test_opposition_bot_offers_to_the_weakest_not_the_leader():
+    from sgame.bots import choose_deals
+
+    spec = parse_scenario(DEAL_TEXT)
+    state = initial_state(spec)
+    offers, _ = choose_deals(spec, state, "middle", "balancing", seed=1, round_no=1)
+    assert offers and offers[0].receiver == "small"
+
+
+def test_following_bot_accepts_an_offer_from_the_leader():
+    from sgame.core.orders import DealOffer
+    from sgame.bots import choose_deals
+
+    spec = parse_scenario(DEAL_TEXT)
+    state = initial_state(spec)
+    pending = (DealOffer(id="o1", deal="bloc", sender="big", receiver="middle"),)
+    state = type(state)(round=state.round, tracks=state.tracks, world=state.world,
+                        relations=state.relations, pending_offers=pending)
+    _, responses = choose_deals(spec, state, "middle", "following", seed=1, round_no=2)
+    assert responses["o1"] is True
+
+
+def test_opposition_bot_refuses_the_leader():
+    from sgame.core.orders import DealOffer
+    from sgame.bots import choose_deals
+
+    spec = parse_scenario(DEAL_TEXT)
+    state = initial_state(spec)
+    pending = (DealOffer(id="o1", deal="bloc", sender="big", receiver="middle"),)
+    state = type(state)(round=state.round, tracks=state.tracks, world=state.world,
+                        relations=state.relations, pending_offers=pending)
+    _, responses = choose_deals(spec, state, "middle", "opposition", seed=1, round_no=2)
+    assert responses["o1"] is False
+
+
+def test_simulation_forms_alliances():
+    spec = parse_scenario(DEAL_TEXT)
+    result = simulate(spec, {"big": "cautious", "middle": "following", "small": "balancing"}, seed=2)
+    assert any(record["statuses"] for record in result.rounds)
+
+
+def test_bot_refuses_actions_that_hurt_itself():
+    """«Помощь соседу» отдаёт ресурс цели — примыкание не должно быть разорением."""
+    spec = parse_scenario(GREEDY_TEXT)
+    state = initial_state(spec)
+    orders = choose_orders(spec, state, "middle", "following", seed=2, round_no=1)
+    assert "help" not in [o.action for o in orders]

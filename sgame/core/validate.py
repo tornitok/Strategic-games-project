@@ -9,7 +9,8 @@ from .expr import ExprError, used_names
 from .spec import EffectSpec, ScenarioSpec
 from .yamlsrc import line_for
 
-_FUNC_NAMES = {"min", "max", "abs", "round", "floor", "ceil", "clamp", "rel"}
+_FUNC_NAMES = {"min", "max", "abs", "round", "floor", "ceil", "clamp", "rel",
+               "track", "status", "in_status", "avg"}
 
 
 def validate_scenario(spec: ScenarioSpec, lines: dict[str, int]) -> list[Problem]:

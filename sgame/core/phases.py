@@ -51,11 +51,15 @@ def phase_validate(
     for faction in sorted(orders):
         points_left = spec.meta.action_points
         reserved: dict[str, float] = {}
+        used: set[str] = set()
 
         for index, order in enumerate(orders[faction]):
             action = spec.action(order.action)
             if action is None:
                 events.append(_reject(faction, order, f"неизвестное действие {order.action!r}"))
+                continue
+            if action.id in used and not action.repeatable:
+                events.append(_reject(faction, order, "это действие уже заказано в этом раунде"))
                 continue
             if action.ap > points_left:
                 events.append(_reject(faction, order, "не хватает очков действий"))
@@ -93,6 +97,7 @@ def phase_validate(
             for name, amount in action.cost.items():
                 reserved[name] = reserved.get(name, 0.0) + amount
             points_left -= action.ap
+            used.add(action.id)
             accepted.append(Accepted(faction=faction, index=index, order=order, action=action))
 
     return accepted, events
