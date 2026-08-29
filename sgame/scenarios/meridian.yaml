@@ -1,12 +1,270 @@
 schema_version: 1
-meta: { id: meridian, title: "Кризис в Меридианском заливе", rounds: 8, action_points: 3 }
+
+meta:
+  id: meridian
+  title: "Кризис в Меридианском заливе"
+  rounds: 8
+  action_points: 3
+
 tracks:
-  budget: { title: "Бюджет", min: 0, max: 200 }
+  budget:     { title: "Бюджет",        min: 0, max: 200, visibility: public }
+  army:       { title: "Вооружённые силы", min: 0, max: 100, visibility: public }
+  legitimacy: { title: "Легитимность",  min: 0, max: 100, visibility: public }
+  intel:      { title: "Разведка",      min: 0, max: 100, visibility: private }
+
 world:
-  tension: { title: "Напряжённость", min: 0, max: 100, start: 30 }
+  tension:   { title: "Напряжённость", min: 0, max: 100, start: 30 }
+  attention: { title: "Внимание мира", min: 0, max: 100, start: 20 }
+
 factions:
-  - { id: astoria, title: "Астория", start: { budget: 120 } }
-  - { id: borea, title: "Борея", start: { budget: 100 } }
+  - id: astoria
+    title: "Астория"
+    start: { budget: 120, army: 60, legitimacy: 55, intel: 40 }
+    briefing: |
+      Вы контролируете северный берег пролива и половину его судоходства.
+      Внутри страны вас упрекают в мягкости. Открытая война обойдётся дороже,
+      чем любые уступки, но отдать пролив нельзя.
+    goals:
+      - { id: strait, title: "Пролив под контролем при мире", when: "world.tension < 60", score: 30 }
+      - { id: strong, title: "Сильная армия к финалу", when: "self.army >= 70", score: 15 }
+
+  - id: borea
+    title: "Борея"
+    start: { budget: 100, army: 75, legitimacy: 45, intel: 60 }
+    briefing: |
+      Ваша армия сильнее соседской, но казна беднее. Внутренняя поддержка
+      держится на образе защитника соотечественников за проливом.
+    goals:
+      - { id: pressure, title: "Астория ослаблена", when: "rel('astoria', 'borea') < -30", score: 25 }
+      - { id: solvent, title: "Казна не пуста", when: "self.budget >= 80", score: 20 }
+
+  - id: caldera
+    title: "Кальдера"
+    start: { budget: 140, army: 40, legitimacy: 65, intel: 50 }
+    briefing: |
+      Вы торговая держава: и то и другое побережье — ваши рынки. Война
+      обрушит ваши доходы, но и полная тишина лишает вас роли посредника.
+    goals:
+      - { id: calm, title: "Регион спокоен", when: "world.tension < 40", score: 30 }
+      - { id: rich, title: "Богатая казна", when: "self.budget >= 150", score: 20 }
+
+  - id: delta
+    title: "Дельта"
+    start: { budget: 80, army: 50, legitimacy: 35, intel: 70 }
+    briefing: |
+      Вы слабее всех по экономике, но ваша разведка лучшая в регионе.
+      Ваша власть держится на страхе соседей, а не на любви населения.
+    goals:
+      - { id: legit, title: "Легитимность выправлена", when: "self.legitimacy >= 55", score: 30 }
+      - { id: chaos, title: "Соседи заняты друг другом", when: "world.tension > 55", score: 15 }
+
+relations:
+  default: 0
+  pairs:
+    - { a: astoria, b: borea, value: -25 }
+    - { a: astoria, b: caldera, value: 15 }
+    - { a: borea, b: delta, value: 10 }
+    - { a: caldera, b: delta, value: -10 }
+
 actions:
-  - { id: invest, title: "Вложения", cost: { budget: 20 }, effects: [ { self: budget, delta: "30" } ] }
-end: { when: "round > meta.rounds", scoring: "self.budget" }
+  - id: mobilize
+    title: "Мобилизация"
+    description: "Наращивание группировки у границы."
+    cost: { budget: 20 }
+    requires: "self.army < 95"
+    effects:
+      - { self: army, delta: "10" }
+      - { self: legitimacy, delta: "-3" }
+      - { world: tension, delta: "5" }
+
+  - id: demobilize
+    title: "Отвод войск"
+    description: "Демонстративное сокращение группировки."
+    requires: "self.army > 15"
+    effects:
+      - { self: army, delta: "-10" }
+      - { self: budget, delta: "8" }
+      - { world: tension, delta: "-6" }
+
+  - id: invest
+    title: "Вложения в экономику"
+    description: "Инфраструктура и налоговая база."
+    cost: { budget: 25 }
+    effects:
+      - { self: budget, delta: "45 - self.budget * 0.1" }
+      - { self: legitimacy, delta: "2" }
+
+  - id: propaganda
+    title: "Информационная кампания"
+    description: "Работа с общественным мнением внутри страны."
+    cost: { budget: 15 }
+    effects:
+      - { self: legitimacy, delta: "8" }
+      - { world: attention, delta: "3" }
+
+  - id: intel_work
+    title: "Работа разведки"
+    description: "Вербовка и техническая разведка."
+    cost: { budget: 12 }
+    effects:
+      - { self: intel, delta: "15" }
+
+  - id: cyber_op
+    title: "Кибероперация"
+    description: "Удар по финансовой инфраструктуре противника."
+    target: faction
+    cost: { budget: 15, intel: 10 }
+    requires: "self.intel >= 10"
+    visibility: secret
+    reveal_chance: 0.35
+    countered_by: [ cyber_defense ]
+    risk:
+      - { p: 0.5, title: "успех", effects: [ { target: budget, delta: "-18" },
+                                             { relation: [self, target], delta: "-8" } ] }
+      - { p: 0.3, title: "частичный успех", effects: [ { target: budget, delta: "-6" } ] }
+      - { p: 0.2, title: "провал", effects: [ { self: intel, delta: "-12" } ] }
+
+  - id: cyber_defense
+    title: "Киберзащита"
+    description: "Укрепление сетей и финансовых узлов."
+    cost: { budget: 10 }
+    counter_multiplier: 0.25
+    effects:
+      - { self: intel, delta: "5" }
+
+  - id: blockade
+    title: "Морская блокада"
+    description: "Досмотр судов противника в проливе."
+    target: faction
+    cost: { budget: 20 }
+    requires: "self.army >= 40"
+    risk:
+      - { p: 0.6, title: "блокада держится", effects: [ { target: budget, delta: "-20" },
+                                                        { world: tension, delta: "12" },
+                                                        { relation: [self, target], delta: "-15" } ] }
+      - { p: 0.4, title: "прорыв", effects: [ { self: legitimacy, delta: "-8" },
+                                              { world: tension, delta: "8" } ] }
+
+  - id: show_force
+    title: "Демонстрация силы"
+    description: "Учения у чужих берегов."
+    target: faction
+    cost: { budget: 12 }
+    effects:
+      - { self: legitimacy, delta: "4" }
+      - { relation: [self, target], delta: "-10" }
+      - { world: tension, delta: "7" }
+
+  - id: diplomacy
+    title: "Дипломатическая инициатива"
+    description: "Переговоры и взаимные гарантии."
+    target: faction
+    cost: { budget: 10 }
+    effects:
+      - { relation: [self, target], delta: "12" }
+      - { world: tension, delta: "-4" }
+
+  - id: sanctions
+    title: "Экономические санкции"
+    description: "Ограничение торговли с противником."
+    target: faction
+    cost: { budget: 15 }
+    effects:
+      - { target: budget, delta: "-15" }
+      - { self: budget, delta: "-5" }
+      - { relation: [self, target], delta: "-12" }
+      - { world: attention, delta: "5" }
+
+  - id: aid
+    title: "Помощь соседу"
+    description: "Кредиты и поставки на льготных условиях."
+    target: faction
+    cost: { budget: 25 }
+    effects:
+      - { target: budget, delta: "20" }
+      - { relation: [self, target], delta: "18" }
+      - { self: legitimacy, delta: "-2" }
+
+  - id: covert_support
+    title: "Тайная поддержка оппозиции"
+    description: "Работа с недовольными в чужой стране."
+    target: faction
+    cost: { budget: 18, intel: 15 }
+    requires: "self.intel >= 15"
+    visibility: secret
+    reveal_chance: 0.45
+    risk:
+      - { p: 0.45, title: "успех", effects: [ { target: legitimacy, delta: "-14" } ] }
+      - { p: 0.35, title: "без результата", effects: [] }
+      - { p: 0.20, title: "скандал", effects: [ { self: legitimacy, delta: "-10" },
+                                                { world: attention, delta: "10" } ] }
+
+  - id: deescalate
+    title: "Шаг к разрядке"
+    description: "Публичный отказ от эскалации."
+    cost: { budget: 8 }
+    effects:
+      - { world: tension, delta: "-10" }
+      - { self: legitimacy, delta: "-4" }
+
+deals:
+  - { id: transfer, title: "Передача средств", kind: resource, track: budget }
+  - { id: pact, title: "Пакт о ненападении", kind: status, duration: 3 }
+  - { id: alliance, title: "Оборонительный союз", kind: status, duration: 4 }
+
+world_dynamics:
+  - { world: tension, delta: "-3" }
+  - { world: attention, delta: "-2" }
+  - { all: budget, delta: "6 + self.legitimacy * 0.05" }
+  - { all: legitimacy, delta: "1" }
+
+events:
+  - id: oil_shock
+    when: "round == 3"
+    title: "Скачок цен на энергоносители"
+    text: "Мировые цены резко пошли вверх, издержки выросли у всех."
+    effects: [ { all: budget, delta: "-12" } ]
+
+  - id: un_pressure
+    when: "world.tension > 70"
+    once: true
+    title: "Давление международного сообщества"
+    text: "Совет безопасности требует деэскалации."
+    effects: [ { all: legitimacy, delta: "-6" }, { world: attention, delta: "15" } ]
+
+  - id: refugees
+    when: "world.tension > 60"
+    once: true
+    title: "Поток беженцев"
+    text: "Приграничные районы не справляются."
+    effects: [ { all: budget, delta: "-8" }, { all: legitimacy, delta: "-4" } ]
+
+  - id: summit
+    when: "round == 5"
+    title: "Международная конференция"
+    text: "Посредники собирают стороны за одним столом."
+    effects: [ { world: tension, delta: "-8" }, { all: legitimacy, delta: "3" } ]
+
+  - id: arms_market
+    when: "round == 6"
+    title: "Оружейная ярмарка"
+    text: "Поставщики предлагают технику со скидкой."
+    effects: [ { all: army, delta: "5" }, { all: budget, delta: "-6" } ]
+
+  - id: mediation
+    when: "world.tension < 20"
+    once: true
+    title: "Разрядка"
+    text: "Регион впервые за годы выглядит спокойным."
+    effects: [ { all: budget, delta: "15" }, { all: legitimacy, delta: "5" } ]
+
+  - id: leak
+    when: "world.attention > 60"
+    once: true
+    title: "Утечка документов"
+    text: "Пресса публикует переписку разведок."
+    effects: [ { all: intel, delta: "-10" }, { all: legitimacy, delta: "-3" } ]
+
+end:
+  when: "round > meta.rounds or world.tension >= 100"
+  scoring: "self.legitimacy + self.army * 0.5 + self.budget * 0.2"
