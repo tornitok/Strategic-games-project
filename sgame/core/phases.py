@@ -10,9 +10,10 @@ from dataclasses import dataclass
 
 from .events import Delta, Event
 from .expr import evaluate
-from .orders import Order
+from .orders import DealOffer, Order
+from .rng import choose, happens, stream
 from .spec import ActionSpec, EffectSpec, ScenarioSpec
-from .state import StateBuilder
+from .state import StateBuilder, Status
 
 
 @dataclass(frozen=True)
@@ -148,3 +149,188 @@ def apply_effect(
         first, second = (names.get(n, n) for n in effect.relation)
         return [builder.add_relation(first, second, amount)]
     return []
+
+
+def phase_deals(
+    spec: ScenarioSpec,
+    builder: StateBuilder,
+    offers: Sequence[DealOffer],
+    responses: Mapping[str, bool],
+) -> list[Event]:
+    """Фаза 3. Ответы на прошлые предложения, истечение статусов, новые предложения."""
+    events: list[Event] = []
+
+    for offer in builder.pending_offers:
+        deal = spec.deal(offer.deal)
+        if deal is None:
+            continue
+        if not responses.get(offer.id, False):
+            events.append(
+                Event(
+                    kind="deal_rejected",
+                    title=f"Отклонено: {deal.title}",
+                    actor=offer.sender,
+                    target=offer.receiver,
+                    audience="actor_and_target",
+                )
+            )
+            continue
+
+        if deal.kind == "resource":
+            amount = offer.amount or 0.0
+            deltas = (
+                builder.add_track(offer.sender, deal.track, -amount),
+                builder.add_track(offer.receiver, deal.track, amount),
+            )
+            events.append(
+                Event(
+                    kind="deal_done",
+                    title=f"Исполнено: {deal.title}",
+                    actor=offer.sender,
+                    target=offer.receiver,
+                    deltas=deltas,
+                    audience="public",
+                )
+            )
+        else:
+            builder.statuses.append(
+                Status(
+                    deal=deal.id,
+                    a=offer.sender,
+                    b=offer.receiver,
+                    until=builder.round + (deal.duration or 1),
+                )
+            )
+            events.append(
+                Event(
+                    kind="deal_done",
+                    title=f"Заключено: {deal.title}",
+                    actor=offer.sender,
+                    target=offer.receiver,
+                    audience="public",
+                )
+            )
+
+    still_active = []
+    for status in builder.statuses:
+        if status.until <= builder.round:
+            deal = spec.deal(status.deal)
+            events.append(
+                Event(
+                    kind="status_expired",
+                    title=f"Истекло: {deal.title if deal else status.deal}",
+                    actor=status.a,
+                    target=status.b,
+                    audience="public",
+                )
+            )
+        else:
+            still_active.append(status)
+    builder.statuses = still_active
+
+    builder.pending_offers = list(offers)
+    for offer in offers:
+        deal = spec.deal(offer.deal)
+        events.append(
+            Event(
+                kind="deal_offered",
+                title=f"Предложено: {deal.title if deal else offer.deal}",
+                actor=offer.sender,
+                target=offer.receiver,
+                detail="ответ ожидается в следующем раунде",
+                audience="actor_and_target",
+            )
+        )
+    return events
+
+
+def phase_counters(spec: ScenarioSpec, accepted: Sequence[Accepted]) -> dict[tuple[str, int], float]:
+    """Фаза 4. Множитель эффекта для каждого приказа, который встретил контрдействие."""
+    by_faction: dict[str, set[str]] = {}
+    for item in accepted:
+        by_faction.setdefault(item.faction, set()).add(item.action.id)
+
+    multipliers: dict[tuple[str, int], float] = {}
+    for item in accepted:
+        if not item.action.countered_by or not item.order.target:
+            continue
+        defences = by_faction.get(item.order.target, set()) & set(item.action.countered_by)
+        if not defences:
+            continue
+        multipliers[(item.faction, item.index)] = min(
+            spec.action(name).counter_multiplier for name in defences
+        )
+    return multipliers
+
+
+def phase_effects(
+    spec: ScenarioSpec,
+    builder: StateBuilder,
+    accepted: Sequence[Accepted],
+    multipliers: Mapping[tuple[str, int], float],
+    seed: int,
+) -> list[Event]:
+    """Фаза 5. Броски и применение эффектов.
+
+    Бросок делается всегда, даже если действие погашено контрдействием:
+    иначе очередь обращений к генератору зависела бы от чужих приказов.
+    """
+    events: list[Event] = []
+
+    for item in accepted:
+        effects = item.action.effects
+        roll_title = None
+        if item.action.risk:
+            rng = stream(seed, builder.round, item.roll_id)
+            index = choose(rng, [outcome.p for outcome in item.action.risk])
+            outcome = item.action.risk[index]
+            effects = outcome.effects
+            roll_title = outcome.title or f"исход {index + 1}"
+
+        multiplier = multipliers.get((item.faction, item.index), 1.0)
+        deltas: list[Delta] = []
+        for effect in effects:
+            deltas.extend(
+                apply_effect(spec, builder, effect, item.faction, item.order.target, multiplier)
+            )
+
+        audience = "public"
+        if item.action.visibility == "secret":
+            audience = "actor"
+            if item.order.target and item.action.reveal_chance:
+                revealed = happens(
+                    stream(seed, builder.round, item.roll_id + ":reveal"),
+                    item.action.reveal_chance,
+                )
+                if revealed:
+                    audience = "actor_and_target"
+
+        detail = item.action.description
+        if multiplier < 1.0:
+            detail = (detail + " " if detail else "") + "Действие встретило противодействие."
+
+        events.append(
+            Event(
+                kind="action",
+                title=item.action.title,
+                actor=item.faction,
+                target=item.order.target,
+                detail=detail.strip(),
+                deltas=tuple(deltas),
+                audience=audience,
+                roll=roll_title,
+            )
+        )
+
+        if multiplier < 1.0:
+            events.append(
+                Event(
+                    kind="counter",
+                    title=f"Противодействие: {item.action.title}",
+                    actor=item.order.target,
+                    target=item.faction,
+                    audience="actor_and_target",
+                )
+            )
+
+    return events
