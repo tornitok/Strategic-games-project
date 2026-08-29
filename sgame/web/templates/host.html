@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>{{ spec.meta.title }}</h1>
-<p class="round">Раунд {{ state.round }} из {{ spec.meta.rounds }}</p>
+<p class="round">{{ t("common.round_of", n=state.round, total=spec.meta.rounds) }}</p>
 
 {% if state.finished %}
-  <p class="big">Игра окончена.</p>
-  <p><a class="button" href="/debrief">Перейти к разбору</a></p>
+  <p class="big">{{ t("host.finished") }}</p>
+  <p><a class="button" href="/debrief">{{ t("links.debrief") }}</a></p>
 {% else %}
   <p class="big">{{ next_team_message }}</p>
 
   <section class="card">
     <table>
-      <tr><th>Сторона</th><th>Команда</th><th>Код</th><th>Статус</th></tr>
+      <tr><th>{{ t("common.side") }}</th><th>{{ t("common.team") }}</th><th>{{ t("common.code") }}</th><th>{{ t("common.status") }}</th></tr>
       {% for slot in teams %}
       <tr>
         <td><a href="/team/{{ slot.faction }}" target="_blank">{{ spec.faction(slot.faction).title }}</a></td>
@@ -19,9 +19,9 @@
         <td class="code">{{ slot.code }}</td>
         <td>
           {% if slot.faction in submitted %}
-          <span class="pill done">сдала</span>
+          <span class="pill done">{{ t("host.submitted") }}</span>
           {% else %}
-          <span class="pill">не сдала</span>
+          <span class="pill">{{ t("host.not_submitted") }}</span>
           {% endif %}
         </td>
       </tr>
@@ -31,20 +31,20 @@
 
   <div class="row">
     <form method="post" action="/round/close">
-      <button type="submit" {% if not all_submitted %}disabled{% endif %}>Закрыть раунд</button>
+      <button type="submit" {% if not all_submitted %}disabled{% endif %}>{{ t("host.close_round") }}</button>
     </form>
     <form method="post" action="/round/close">
       <input type="hidden" name="force" value="1">
-      <button type="submit" class="secondary">Закрыть принудительно</button>
+      <button type="submit" class="secondary">{{ t("host.force_close") }}</button>
     </form>
     <form method="post" action="/round/undo">
-      <button type="submit" class="secondary" {% if not can_undo %}disabled{% endif %}>Откатить раунд</button>
+      <button type="submit" class="secondary" {% if not can_undo %}disabled{% endif %}>{{ t("host.undo_round") }}</button>
     </form>
   </div>
-  <p class="round">Принудительное закрытие засчитывает несдавшим командам пас.</p>
+  <p class="round">{{ t("host.force_note") }}</p>
 {% endif %}
 
-<p class="links"><a href="/intro" target="_blank">Вводная и правила</a> ·
-   <a href="/screen" target="_blank">Экран для проектора</a> ·
-   <a href="/debrief" target="_blank">Разбор</a></p>
+<p class="links"><a href="/intro" target="_blank">{{ t("links.intro") }}</a> ·
+   <a href="/screen" target="_blank">{{ t("links.screen") }}</a> ·
+   <a href="/debrief" target="_blank">{{ t("links.debrief") }}</a></p>
 {% endblock %}

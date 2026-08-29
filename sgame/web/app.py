@@ -5,11 +5,15 @@ import threading
 import webbrowser
 from importlib import resources
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from jinja2 import pass_context
 
 from . import present
+from ..i18n import LANGUAGES, normalise, t as translate
+
+LANG_COOKIE = "sgame_lang"
 
 _TEMPLATE_DIR = resources.files("sgame") / "web" / "templates"
 _STATIC_DIR = resources.files("sgame") / "web" / "static"
@@ -17,6 +21,27 @@ _STATIC_DIR = resources.files("sgame") / "web" / "static"
 templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
 # Числа на экранах печатаются без хвоста «.0»: «Бюджет 120», а не «Бюджет 120.0».
 templates.env.filters["num"] = present.number
+
+
+@pass_context
+def _t(context, key: str, **kwargs) -> str:
+    """Строка на языке текущей страницы. Язык берётся из контекста шаблона."""
+    return translate(key, context.get("lang", "ru"), **kwargs)
+
+
+templates.env.globals["t"] = _t
+
+
+def language_of(request: Request) -> str:
+    return normalise(request.cookies.get(LANG_COOKIE))
+
+
+def page(request: Request, name: str, context: dict):
+    """Ответ шаблона с языком страницы и списком языков для переключателя."""
+    lang = language_of(request)
+    return templates.TemplateResponse(
+        request, name, {**context, "lang": lang, "languages": LANGUAGES}
+    )
 
 
 def create_app() -> FastAPI:

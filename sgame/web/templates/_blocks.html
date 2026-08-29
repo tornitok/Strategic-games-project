@@ -9,7 +9,7 @@
     {% endfor %}
   </ul>
   {% else %}
-  <p class="round">Игра начинается.</p>
+  <p class="round">{{ t("screen.game_begins") }}</p>
   {% endif %}
 {% endmacro %}
 
@@ -17,7 +17,7 @@
   <div class="sides">
     {% for row in rows %}
     <div class="side">
-      <div class="title">{{ row.title }}{% if row.own %} — вы{% endif %}</div>
+      <div class="title">{{ row.title }}{% if row.own %} — {{ t("common.you") }}{% endif %}</div>
       <ul class="tracks">
         {% for track in row.tracks %}
         <li class="track {% if row.own %}own{% endif %}">
@@ -28,7 +28,7 @@
             {{ track.before | num }} → {{ track.after | num }}
           </span>
           {% else %}
-          <span class="delta flat">без изменений</span>
+          <span class="delta flat">{{ t("screen.no_change") }}</span>
           {% endif %}
         </li>
         {% endfor %}

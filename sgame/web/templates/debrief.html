@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block body %}
-<h1>Разбор партии</h1>
+<h1>{{ t("debrief.title") }}</h1>
 <p class="round">{{ spec.meta.title }}</p>
 
-<h2>Итог</h2>
+<h2>{{ t("debrief.result") }}</h2>
 <section class="card">
   <table>
-    <tr><th>Место</th><th>Сторона</th><th>Команда</th><th>Очки</th><th>Из чего</th></tr>
+    <tr><th>{{ t("debrief.place") }}</th><th>{{ t("common.side") }}</th><th>{{ t("common.team") }}</th><th>{{ t("debrief.points") }}</th><th>{{ t("debrief.made_of") }}</th></tr>
     {% for row in results %}
     <tr>
       <td>{{ loop.index }}</td>
@@ -19,13 +19,13 @@
   </table>
 </section>
 
-<h2>Ход игры</h2>
+<h2>{{ t("debrief.course") }}</h2>
 {% for round in timeline %}
 <section class="card">
-  <h3>Раунд {{ round.n }}</h3>
+  <h3>{{ t("common.round_of", n=round.n, total=spec.meta.rounds) }}</h3>
   <div class="news">{{ round.host }}</div>
   {% if round.intents %}
-  <h4>Замыслы команд</h4>
+  <h4>{{ t("debrief.intents") }}</h4>
   <ul class="orders">
     {% for title, action, intent in round.intents %}
     <li><span><strong>{{ title }}</strong> — {{ action }}</span><span class="intent">«{{ intent }}»</span></li>

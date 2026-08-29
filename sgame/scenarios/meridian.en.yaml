@@ -1,0 +1,663 @@
+# Английская копия meridian.yaml. Числа и выражения обязаны совпадать —
+# это проверяет tests/test_scenario_languages.py.
+schema_version: 1
+meta:
+  id: meridian
+  title: Crisis in the Meridian Gulf
+  rounds: 8
+  action_points: 3
+  max_random_events: 2
+  intro: 'The Meridian Gulf is a narrow throat through which a third of the region''s
+
+    sea trade passes. Whoever holds the strait holds the prices — and other
+
+    people''s promises.
+
+
+    For twenty years a freedom-of-navigation agreement worked here. Six months ago
+
+    it expired, and renewing it failed: too much had changed. Astoria and Boreia,
+
+    on opposite shores, now argue over the right to inspect shipping. Caldera
+
+    trades with both and loses money on every delay. Delta plays on other people''s
+
+    quarrels, because it has less strength of its own.
+
+
+    None of the four wants a war — it would ruin them all. But each believes that
+
+    whoever concedes first has lost, and at home a retreat is harder to explain
+
+    than firmness.
+
+
+    You have eight rounds ahead. Decisions are taken simultaneously, the model
+
+    works out the consequences, and you will pick them apart together afterwards.'
+power: self.legitimacy * 0.5 + self.army * 0.6 + self.budget * 0.35
+tracks:
+  budget:
+    title: Treasury
+    meaning: 'Free funds in the treasury, in notional units. One serious decision costs
+
+      10–25 units; a calm economy brings in about 10 per round. Zero means there is
+
+      nothing left to pay with: only the free options remain.'
+    min: 0
+    max: 200
+    visibility: public
+  army:
+    title: Armed forces
+    meaning: 'Fighting strength of army and fleet in notional units. 100 is the most a
+
+      country can field without wrecking its economy. Below 40 serious military
+
+      action is out of the question.'
+    min: 0
+    max: 100
+    visibility: public
+  legitimacy:
+    title: Public support
+    meaning: 'How the country backs its government. Below 30 the government wobbles and
+
+      any retreat becomes harder to explain; above 70 it can afford an unpopular but
+
+      sensible step.'
+    min: 0
+    max: 100
+    visibility: public
+  intel:
+    title: Intelligence
+    meaning: 'Agents, equipment and access to other people''s networks. Spent on covert
+
+      operations and rebuilt by intelligence work. Only its owner sees the figure.'
+    min: 0
+    max: 100
+    visibility: private
+world:
+  tension:
+    title: Tension
+    meaning: 'The overall temperature of the crisis: 0 is calm, 100 is open war, at which
+
+      the game ends early. Left alone, tension drifts slowly back towards its usual
+
+      level.'
+    min: 0
+    max: 100
+    start: 30
+  attention:
+    title: Outside attention
+    meaning: 'How closely outside observers and the press are watching the region. It
+
+      rises with loud moves, scandals and leaks, and subsides on its own.'
+    min: 0
+    max: 100
+    start: 20
+factions:
+- id: astoria
+  title: Astoria
+  start:
+    budget: 120
+    army: 60
+    legitimacy: 55
+    intel: 40
+  briefing: 'You hold the northern shore of the strait and half its shipping. At home you
+
+    are accused of softness. An open war would cost more than any concession, yet
+
+    the strait cannot be given up.'
+  goals:
+  - id: strait
+    title: Strait held without war
+    when: world.tension < 60
+    score: 30
+  - id: strong
+    title: Army still strong at the end
+    when: self.army >= 65
+    score: 15
+- id: borea
+  title: Boreia
+  start:
+    budget: 100
+    army: 75
+    legitimacy: 45
+    intel: 60
+  briefing: 'Your army is stronger than your neighbour''s, your treasury poorer. Domestic
+
+    support rests on the image of a protector of kinsmen across the strait.'
+  goals:
+  - id: pressure
+    title: Astoria weakened
+    when: rel('astoria', 'borea') < -30
+    score: 25
+  - id: solvent
+    title: Treasury not empty
+    when: self.budget >= 80
+    score: 20
+- id: caldera
+  title: Caldera
+  start:
+    budget: 118
+    army: 40
+    legitimacy: 65
+    intel: 50
+  briefing: 'You are a trading power: both shores are your markets. War would collapse
+
+    your revenues — but complete quiet leaves you without your role as a broker.'
+  goals:
+  - id: calm
+    title: The region is calm
+    when: world.tension < 40
+    score: 24
+  - id: rich
+    title: A wealthy treasury
+    when: self.budget >= 165
+    score: 20
+- id: delta
+  title: Delta
+  start:
+    budget: 80
+    army: 50
+    legitimacy: 35
+    intel: 70
+  briefing: 'You are the weakest economy, but your intelligence service is the best in
+
+    the region. Your government rests on the fear of its neighbours rather than on
+
+    the affection of its people.'
+  goals:
+  - id: legit
+    title: Support restored
+    when: self.legitimacy >= 55
+    score: 30
+  - id: chaos
+    title: Neighbours busy with each other
+    when: world.tension > 48
+    score: 15
+relations:
+  default: 0
+  pairs:
+  - a: astoria
+    b: borea
+    value: -25
+  - a: astoria
+    b: caldera
+    value: 15
+  - a: borea
+    b: delta
+    value: 10
+  - a: caldera
+    b: delta
+    value: -10
+actions:
+- id: consult
+  title: A pause for consultations
+  description: Closed meetings, no public steps.
+  news: '{actor} takes a pause for consultations'
+  stance: neutral
+  effects:
+  - self: intel
+    delta: '4'
+  - self: legitimacy
+    delta: '1'
+- id: mobilize
+  title: Mobilisation
+  news: '{actor} moves troops towards the strait'
+  description: Building up forces near the border.
+  cost:
+    budget: 20
+  requires: self.army < 95
+  effects:
+  - self: army
+    delta: '10'
+  - self: legitimacy
+    delta: '-3'
+  - world: tension
+    delta: '5'
+- id: demobilize
+  title: Pulling troops back
+  news: '{actor} demonstratively pulls units back from the border'
+  description: A demonstrative reduction of forces.
+  requires: self.army > 15
+  effects:
+  - self: army
+    delta: '-10'
+  - self: budget
+    delta: '8'
+  - world: tension
+    delta: '-6'
+- id: invest
+  title: Investment in the economy
+  news: '{actor} invests in ports, roads and shipyards'
+  description: Infrastructure and the tax base.
+  cost:
+    budget: 25
+  effects:
+  - self: budget
+    delta: 38 - self.budget * 0.11
+  - self: legitimacy
+    delta: '2'
+- id: propaganda
+  title: Information campaign
+  news: '{actor} launches a campaign across state media'
+  description: Working on public opinion at home.
+  cost:
+    budget: 15
+  effects:
+  - self: legitimacy
+    delta: '6'
+  - world: attention
+    delta: '3'
+- id: intel_work
+  title: Intelligence work
+  news: '{actor} steps up the work of its services'
+  description: Recruitment and technical collection.
+  cost:
+    budget: 12
+  effects:
+  - self: intel
+    delta: '15'
+- id: cyber_op
+  title: Cyber operation
+  stance: hostile
+  news: '{actor} runs a cyber operation. Target — {target}'
+  description: A strike against the opponent's financial infrastructure.
+  target: faction
+  cost:
+    budget: 15
+    intel: 10
+  requires: self.intel >= 10
+  visibility: secret
+  reveal_chance: 0.35
+  countered_by:
+  - cyber_defense
+  risk:
+  - p: 0.5
+    title: success
+    effects:
+    - target: budget
+      delta: -(5 + target.budget * 0.04)
+    - self: budget
+      delta: '6'
+    - relation:
+      - self
+      - target
+      delta: '-8'
+  - p: 0.3
+    title: partial success
+    effects:
+    - target: budget
+      delta: '-6'
+  - p: 0.2
+    title: failure
+    effects:
+    - self: intel
+      delta: '-12'
+- id: cyber_defense
+  title: Network defence
+  news: '{actor} hardens the defence of its financial networks'
+  description: Hardening networks and financial hubs.
+  cost:
+    budget: 10
+  counter_multiplier: 0.25
+  effects:
+  - self: intel
+    delta: '5'
+- id: blockade
+  title: Naval blockade
+  stance: hostile
+  news: '{actor} closes shipping in the strait. Under inspection — {target}'
+  description: Inspecting the opponent's ships in the strait.
+  target: faction
+  cost:
+    budget: 20
+  requires: self.army >= 40
+  risk:
+  - p: 0.6
+    title: the blockade holds
+    effects:
+    - target: budget
+      delta: -(6 + target.budget * 0.05)
+    - self: budget
+      delta: '9'
+    - world: tension
+      delta: '12'
+    - relation:
+      - self
+      - target
+      delta: '-15'
+  - p: 0.4
+    title: a breakthrough
+    effects:
+    - self: legitimacy
+      delta: '-8'
+    - world: tension
+      delta: '8'
+- id: show_force
+  title: Show of force
+  stance: hostile
+  news: '{actor} sends the fleet on exercises off foreign shores. Addressed to — {target}'
+  description: Exercises off someone else's coast.
+  target: faction
+  cost:
+    budget: 12
+  effects:
+  - self: legitimacy
+    delta: '4'
+  - relation:
+    - self
+    - target
+    delta: '-10'
+  - world: tension
+    delta: '7'
+- id: diplomacy
+  title: Diplomatic initiative
+  stance: friendly
+  news: '{actor} sits down at the table. Partner — {target}'
+  description: Talks and mutual guarantees.
+  target: faction
+  cost:
+    budget: 10
+  effects:
+  - relation:
+    - self
+    - target
+    delta: '12'
+  - world: tension
+    delta: '-4'
+- id: sanctions
+  title: Economic sanctions
+  stance: hostile
+  news: '{actor} imposes trade restrictions. Hit — {target}'
+  description: Restricting trade with the opponent.
+  target: faction
+  cost:
+    budget: 15
+  effects:
+  - target: budget
+    delta: -(8 + target.budget * 0.05)
+  - self: budget
+    delta: '4'
+  - relation:
+    - self
+    - target
+    delta: '-12'
+  - world: attention
+    delta: '5'
+- id: aid
+  title: Aid to a neighbour
+  stance: friendly
+  news: '{actor} sends credits and supplies. Recipient — {target}'
+  description: Credits and supplies on favourable terms.
+  target: faction
+  cost:
+    budget: 25
+  effects:
+  - target: budget
+    delta: '20'
+  - relation:
+    - self
+    - target
+    delta: '18'
+  - self: legitimacy
+    delta: '-2'
+- id: covert_support
+  title: Covert support for the opposition
+  stance: hostile
+  news: '{actor} works with the opposition abroad. Target — {target}'
+  description: Working with the discontented in someone else's country.
+  target: faction
+  cost:
+    budget: 18
+    intel: 15
+  requires: self.intel >= 15
+  visibility: secret
+  reveal_chance: 0.45
+  risk:
+  - p: 0.45
+    title: success
+    effects:
+    - target: legitimacy
+      delta: '-14'
+  - p: 0.35
+    title: no result
+    effects: []
+  - p: 0.2
+    title: a scandal
+    effects:
+    - self: legitimacy
+      delta: '-10'
+    - world: attention
+      delta: '10'
+- id: disinform
+  title: A plant in the press
+  stance: hostile
+  description: «Evidence» of someone else's guilt, handed to journalists.
+  news: '{actor} plants a story in the press. Target — {target}'
+  target: faction
+  cost:
+    budget: 12
+    intel: 12
+  requires: self.intel >= 12
+  visibility: secret
+  reveal_chance: 0.3
+  plants_rumour: true
+  effects:
+  - self: intel
+    delta: '-5'
+- id: align
+  title: Fall in behind the strong
+  description: Slipping into someone else's wake for a share of the winnings.
+  news: '{actor} slips into another''s wake. Partner — {target}'
+  target: faction
+  stance: friendly
+  cost:
+    legitimacy: 4
+  effects:
+  - self: budget
+    delta: target.budget * 0.06
+  - relation:
+    - self
+    - target
+    delta: '12'
+  - self: legitimacy
+    delta: '-3'
+- id: deescalate
+  title: A step towards de-escalation
+  news: '{actor} publicly rules out escalation'
+  description: A public refusal to escalate.
+  cost:
+    budget: 8
+  effects:
+  - world: tension
+    delta: '-10'
+  - self: legitimacy
+    delta: '-4'
+deals:
+- id: transfer
+  title: Transfer of funds
+  kind: resource
+  track: budget
+- id: pact
+  title: Non-aggression pact
+  kind: status
+  duration: 3
+- id: alliance
+  title: Defensive alliance
+  kind: status
+  duration: 4
+world_dynamics:
+- world: tension
+  delta: '-3'
+- world: attention
+  delta: (35 - world.attention) * 0.15
+- all: budget
+  delta: 6 + self.legitimacy * 0.05
+- all: legitimacy
+  delta: '1'
+- all: budget
+  delta: in_status('pact') * 4 + in_status('alliance') * 6
+events:
+- id: oil_shock
+  when: round == 3
+  title: Energy prices spike
+  news: 'Energy markets in turmoil: prices jumped within a week'
+  text: World prices rose sharply; costs went up for everyone.
+  effects:
+  - all: budget
+    delta: '-12'
+- id: un_pressure
+  when: world.tension > 70
+  once: true
+  title: International pressure
+  news: The Security Council demands immediate de-escalation
+  text: The Security Council demands de-escalation.
+  effects:
+  - all: legitimacy
+    delta: '-6'
+  - world: attention
+    delta: '15'
+- id: refugees
+  when: world.tension > 60
+  once: true
+  title: A wave of refugees
+  news: 'Border camps are overflowing: the flow of refugees is growing'
+  text: The border districts cannot cope.
+  effects:
+  - all: budget
+    delta: '-8'
+  - all: legitimacy
+    delta: '-4'
+- id: summit
+  when: round == 5
+  title: International conference
+  news: A conference on the gulf has opened in a neutral capital
+  text: Mediators bring the sides to one table.
+  effects:
+  - world: tension
+    delta: '-8'
+  - all: legitimacy
+    delta: '3'
+- id: arms_market
+  when: round == 6
+  title: Arms fair
+  news: 'Arms fair: equipment is going at a discount'
+  text: Suppliers are offering equipment at a discount.
+  effects:
+  - all: army
+    delta: '5'
+  - all: budget
+    delta: '-6'
+- id: mediation
+  when: world.tension < 20
+  once: true
+  title: A thaw
+  news: For the first time in years the gulf is quiet
+  text: The region looks calm for the first time in years.
+  effects:
+  - all: budget
+    delta: '15'
+  - all: legitimacy
+    delta: '5'
+- id: leak
+  when: world.attention > 60
+  once: true
+  title: Leaked documents
+  news: The press publishes correspondence between intelligence services
+  text: The press publishes correspondence between intelligence services.
+  effects:
+  - all: intel
+    delta: '-10'
+  - all: legitimacy
+    delta: '-3'
+- id: terminal_fire
+  chance: 0.18
+  once: true
+  title: Fire at the oil terminal
+  news: The gulf's largest oil terminal is burning
+  text: The cause is unclear; deliveries have stopped.
+  effects:
+  - all: budget
+    delta: '-10'
+  - world: attention
+    delta: '8'
+- id: strait_storm
+  chance: 0.2
+  title: A storm closes the strait
+  news: A storm has closed shipping in the strait for a week
+  effects:
+  - all: budget
+    delta: '-6'
+  - world: tension
+    delta: '-4'
+- id: dockers_strike
+  chance: 0.15
+  title: Dockers strike
+  news: 'The ports have stopped: dockers demand higher pay'
+  effects:
+  - all: budget
+    delta: '-8'
+  - all: legitimacy
+    delta: '-3'
+- id: gas_find
+  chance: 0.12
+  once: true
+  title: A gas field is found
+  news: Gas reserves have been found on the shelf
+  effects:
+  - all: budget
+    delta: '12'
+  - world: tension
+    delta: '6'
+- id: corruption
+  chance: 0.15
+  title: Corruption scandal
+  news: Journalists publish a scheme of theft in state procurement
+  effects:
+  - all: legitimacy
+    delta: '-6'
+  - world: attention
+    delta: '5'
+- id: epidemic
+  chance: 0.12
+  when: world.tension > 45
+  once: true
+  title: Disease in the camps
+  news: An outbreak of infection in the border camps
+  effects:
+  - all: budget
+    delta: '-9'
+  - all: legitimacy
+    delta: '-4'
+- id: pirates
+  chance: 0.15
+  title: Attack on a merchant ship
+  news: 'A freighter has been seized: the gulf is talking about pirates again'
+  effects:
+  - all: budget
+    delta: '-5'
+  - world: tension
+    delta: '5'
+- id: freight_crash
+  chance: 0.12
+  title: Freight rates collapse
+  news: Sea freight rates have collapsed within a month
+  effects:
+  - all: budget
+    delta: '-7'
+  - world: attention
+    delta: '-4'
+rumours:
+  chance: 0.45
+  noise_chance: 0.15
+  accuracy: 0.6
+  templates:
+  - Unconfirmed reports point to {subject}
+  - 'A name is being mentioned in the corridors: {subject}'
+  - 'Intelligence sources point in one direction: {subject}'
+  - 'An unnamed diplomat let it slip: «it was {subject}»'
+end:
+  when: round > meta.rounds or world.tension >= 100
+  scoring: 45 + self.legitimacy * 0.5 + (self.army - avg('army')) * 0.6 + (self.budget - avg('budget'))
+    * 0.35

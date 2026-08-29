@@ -29,11 +29,15 @@ def _context(spec: ScenarioSpec, state: GameState, faction: str) -> dict:
     }
 
 
-def score(spec: ScenarioSpec, state: GameState, faction: str) -> tuple[float, list[tuple[str, float]]]:
+def score(
+    spec: ScenarioSpec, state: GameState, faction: str, lang: str = "ru"
+) -> tuple[float, list[tuple[str, float]]]:
     """Итоговый счёт стороны и его расшифровка по слагаемым."""
+    from ..i18n import t
+
     context = _context(spec, state, faction)
     base = float(evaluate(spec.end.scoring, context))
-    breakdown: list[tuple[str, float]] = [("Базовый счёт", round(base, 2))]
+    breakdown: list[tuple[str, float]] = [(t("debrief.base_score", lang), round(base, 2))]
 
     spec_faction = spec.faction(faction)
     total = base

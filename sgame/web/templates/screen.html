@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% import "_blocks.html" as blocks %}
+{% import "_blocks.html" as blocks with context %}
 {% block bodyclass %}projector{% endblock %}
 {% block body %}
 <h1>{{ spec.meta.title }}</h1>
-<p class="round">{% if started %}Итоги раунда {{ shown_round }}{% else %}Раунд {{ shown_round }} из {{ spec.meta.rounds }}{% endif %}</p>
+<p class="round">{% if started %}{{ t("screen.results", n=shown_round) }}{% else %}{{ t("common.round_of", n=shown_round, total=spec.meta.rounds) }}{% endif %}</p>
 
 <section class="card">
-  <h2>Сводка новостей</h2>
+  <h2>{{ t("screen.news") }}</h2>
   {{ blocks.news_feed(items) }}
 </section>
 
 <section class="card">
-  <h2>{% if started %}Как изменилось положение{% else %}Положение сторон{% endif %}</h2>
+  <h2>{% if started %}{{ t("screen.changes") }}{% else %}{{ t("screen.position") }}{% endif %}</h2>
   {% if changes %}
     {{ blocks.change_table(changes) }}
   {% else %}
@@ -30,7 +30,7 @@
     </div>
     {% endfor %}
     <div class="side">
-      <div class="title">Мир</div>
+      <div class="title">{{ t("common.world") }}</div>
       <ul class="tracks">
         {% for name, track in spec.world.items() %}
         <li class="track">

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block body %}
-<h1>Приказы приняты</h1>
+<h1>{{ t("done.accepted") }}</h1>
 {% if next_team %}
-<p class="big">Передайте компьютер команде: {{ next_team }}</p>
+<p class="big">{{ t("done.pass_to", team=next_team) }}</p>
 {% else %}
-<p class="big">Все команды сдали приказы. Верните компьютер ведущему.</p>
+<p class="big">{{ t("done.return") }}</p>
 {% endif %}
-<p class="links"><a href="/intro" target="_blank">Вводная и правила игры</a></p>
+<p class="links"><a href="/intro" target="_blank">{{ t("links.intro_team") }}</a></p>
 {% endblock %}

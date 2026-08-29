@@ -4,48 +4,40 @@
 
 {% if intro %}
 <section class="card">
-  <h2>Вводная</h2>
+  <h2>{{ t("intro.briefing") }}</h2>
   {% for block in intro %}<p>{{ block }}</p>{% endfor %}
 </section>
 {% endif %}
 
 <section class="card">
-  <h2>Как устроена игра</h2>
+  <h2>{{ t("intro.how_it_works") }}</h2>
   <ul class="rules">
-    <li><strong>Раундов:</strong> {{ spec.meta.rounds }}.</li>
-    <li><strong>Очки действий:</strong> {{ spec.meta.action_points }} за раунд на команду —
-        это и есть весь ваш ход. Дорогое действие может стоить не одно очко.</li>
-    <li><strong>Ходят все одновременно.</strong> Порядок, в котором команды садятся за
-        компьютер, на результат не влияет. Приказы всех сторон разрешаются вместе.</li>
-    <li><strong>Одно действие — один раз за раунд.</strong> Повторить то же самое дважды
-        нельзя, если рядом с ним не сказано обратное.</li>
+    <li><strong>{{ t("intro.rounds") }}</strong> {{ spec.meta.rounds }}.</li>
+    <li><strong>{{ t("intro.points") }}</strong>
+        {{ t("intro.points_text", n=spec.meta.action_points) }}</li>
+    <li><strong>{{ t("intro.simultaneous") }}</strong> {{ t("intro.simultaneous_text") }}</li>
+    <li><strong>{{ t("intro.no_repeat") }}</strong> {{ t("intro.no_repeat_text") }}</li>
     {% if has_secrets %}
-    <li><strong>Часть действий тайные.</strong> Их не видно в общей сводке. Противник может
-        не узнать, кто за ними стоит, — а может и узнать.</li>
+    <li><strong>{{ t("intro.secrets") }}</strong> {{ t("intro.secrets_text") }}</li>
     {% endif %}
     {% if has_counters %}
-    <li><strong>Некоторым ударам можно противодействовать.</strong> Если сторона в этом же
-        раунде подготовилась, эффект удара будет сильно ослаблен.</li>
+    <li><strong>{{ t("intro.counters") }}</strong> {{ t("intro.counters_text") }}</li>
     {% endif %}
     {% if has_rumours %}
-    <li><strong>Слухи.</strong> В сводке появляются непроверенные сообщения о том, кто за чем
-        стоит. Они бывают правдой и бывают ложью — и запустить слух может как обстановка,
-        так и другая команда.</li>
+    <li><strong>{{ t("intro.rumours") }}</strong> {{ t("intro.rumours_text") }}</li>
     {% endif %}
     {% if deals %}
-    <li><strong>Дипломатия:</strong> {% for deal in deals %}{{ deal.title }}{% if not loop.last %}, {% endif %}{% endfor %}.
-        Предложение, сделанное в этом раунде, рассматривается адресатом в следующем.</li>
+    <li><strong>{{ t("intro.diplomacy") }}</strong>
+        {% for deal in deals %}{{ deal.title }}{% if not loop.last %}, {% endif %}{% endfor %}.
+        {{ t("intro.diplomacy_text") }}</li>
     {% endif %}
-    <li><strong>Победа.</strong> Итог считается по вашим показателям в сравнении с другими
-        сторонами плюс выполненные цели из вашего брифинга. Цели у всех разные, и чужих
-        вы не знаете.</li>
+    <li><strong>{{ t("intro.victory") }}</strong> {{ t("intro.victory_text") }}</li>
   </ul>
 </section>
 
 <section class="card">
-  <h2>Показатели</h2>
-  <p class="round">Все величины — условные единицы. Смысл имеет не абсолютное число, а то,
-     сколько стоит решение и насколько вы отличаетесь от соседей.</p>
+  <h2>{{ t("intro.tracks") }}</h2>
+  <p class="round">{{ t("intro.tracks_note") }}</p>
   {% for track in tracks %}
   <div class="side">
     <div class="title">{{ track.title }}
@@ -58,18 +50,18 @@
 </section>
 
 <section class="card">
-  <h2>Что можно делать</h2>
+  <h2>{{ t("intro.what_you_can_do") }}</h2>
   <table>
-    <tr><th>Действие</th><th>Цена</th><th>Что произойдёт<div class="round">при начальных условиях</div></th></tr>
+    <tr><th>{{ t("intro.action") }}</th><th>{{ t("intro.price") }}</th><th>{{ t("intro.what_happens") }}<div class="round">{{ t("intro.at_start") }}</div></th></tr>
     {% for card in actions %}
     <tr>
       <td>
         <strong>{{ card.title }}</strong>
-        {% if card.secret %}<span class="pill">тайное</span>{% endif %}
-        {% if card.needs_target %}<span class="pill">по цели</span>{% endif %}
+        {% if card.secret %}<span class="pill">{{ t("team.secret") }}</span>{% endif %}
+        {% if card.needs_target %}<span class="pill">{{ t("team.by_target") }}</span>{% endif %}
         {% if card.description %}<div class="round">{{ card.description }}</div>{% endif %}
       </td>
-      <td>{{ card.cost }}<div class="round">{{ card.points }} очк.</div></td>
+      <td>{{ card.cost }}<div class="round">{{ card.points }} {{ t("common.points_short") }}</div></td>
       <td>
         {% if card.effects %}{{ card.effects | join(", ") }}{% endif %}
         {% for risk in card.risks %}

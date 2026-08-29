@@ -9,7 +9,7 @@ from ...narrate.news import news_items
 from ...narrate.reference import action_card, track_cards
 from ...session.replay import states
 from .. import live, present
-from ..app import templates
+from ..app import page
 
 router = APIRouter()
 
@@ -24,12 +24,13 @@ def projector(request: Request):
     changes: list = []
     if rounds:
         snapshots = states(session.journal)
-        items = news_items(session.spec, live.last_events(), viewer=None, role="public")
+        items = news_items(session.spec, live.last_events(), viewer=None,
+                           role="public", lang=session.lang)
         changes = changes_between(
             session.spec, snapshots[-2], snapshots[-1], viewer=None
         )
 
-    return templates.TemplateResponse(
+    return page(
         request,
         "screen.html",
         {
@@ -49,7 +50,7 @@ def debrief(request: Request):
     state = live.state()
     results = []
     for slot in session.journal.teams:
-        total, breakdown = score(session.spec, state, slot.faction)
+        total, breakdown = score(session.spec, state, slot.faction, session.lang)
         results.append(
             {
                 "title": session.spec.faction(slot.faction).title,
@@ -75,7 +76,7 @@ def debrief(request: Request):
         for record in session.journal.rounds
     ]
 
-    return templates.TemplateResponse(
+    return page(
         request,
         "debrief.html",
         {"spec": session.spec, "results": results, "timeline": timeline},
@@ -87,13 +88,13 @@ def intro(request: Request):
     """Общая вводная: мир плюс памятка правил, собранная из сценария."""
     session = live.require()
     spec = session.spec
-    return templates.TemplateResponse(
+    return page(
         request,
         "intro.html",
         {
             "spec": spec,
             "intro": present.paragraphs(spec.meta.intro),
-            "tracks": track_cards(spec),
+            "tracks": track_cards(spec, session.lang),
             # Формулы считаем при начальных условиях: «зависит от обстановки»
             # в справочнике не помогает принять решение.
             "actions": [
@@ -102,6 +103,7 @@ def intro(request: Request):
                     state=initial_state(spec),
                     actor=spec.factions[0].id,
                     target=spec.factions[1].id if len(spec.factions) > 1 else None,
+                    lang=session.lang,
                 )
                 for action in spec.actions
             ],

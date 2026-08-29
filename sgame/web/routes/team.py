@@ -10,7 +10,7 @@ from ...narrate.reference import action_card
 from ...narrate.view import tracks_for
 from ...session.replay import states
 from .. import live, present
-from ..app import templates
+from ..app import page
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ def _authorised(request: Request, faction: str) -> bool:
 def screen(request: Request, faction: str):
     session = live.require()
     if not _authorised(request, faction):
-        return templates.TemplateResponse(
+        return page(
             request,
             "team_login.html",
             {"faction": faction, "title": session.spec.faction(faction).title, "error": ""},
@@ -37,7 +37,7 @@ def screen(request: Request, faction: str):
 
     state = live.state()
     draft = session.drafts.get(faction, [])
-    return templates.TemplateResponse(
+    return page(
         request,
         "team.html",
         {
@@ -51,13 +51,15 @@ def screen(request: Request, faction: str):
                 action.id: action_card(
                     session.spec, action, state=state, actor=faction,
                     target=next((f.id for f in session.spec.factions if f.id != faction), None),
+                    lang=session.lang,
                 )
                 for action in session.spec.actions
             },
             "draft": draft,
             "points_left": present.points_left(session.spec, draft),
             "others": [f for f in session.spec.factions if f.id != faction],
-            "items": news_items(session.spec, live.last_events(), viewer=faction, role="team")
+            "items": news_items(session.spec, live.last_events(), viewer=faction,
+                                role="team", lang=session.lang)
             if session.journal.rounds
             else [],
             "changes": changes_between(
@@ -76,7 +78,7 @@ def login(request: Request, faction: str, code: str = Form(...)):
     session = live.require()
     slot = session.journal.slot(faction)
     if slot is None or slot.code != code:
-        return templates.TemplateResponse(
+        return page(
             request,
             "team_login.html",
             {
@@ -157,7 +159,7 @@ def submit(request: Request, faction: str):
 def done(request: Request, faction: str):
     session = live.require()
     waiting = [s for s in session.journal.teams if s.faction not in session.submitted]
-    return templates.TemplateResponse(
+    return page(
         request,
         "team_done.html",
         {"next_team": session.spec.faction(waiting[0].faction).title if waiting else None},

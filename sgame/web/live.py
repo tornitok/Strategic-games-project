@@ -16,6 +16,7 @@ from ..core.spec import ScenarioSpec, parse_scenario
 from ..core.state import GameState
 from ..narrate.templates import narrate_host, narrate_public, narrate_team
 from ..session import journal as J
+from ..i18n import t
 from ..session.paths import all_scenarios, sessions_dir
 from ..session.replay import current_state, replay, undo_last
 
@@ -29,6 +30,7 @@ class Live:
     offers: list[DealOffer] = field(default_factory=list)
     responses: dict[str, bool] = field(default_factory=dict)
     submitted: set[str] = field(default_factory=set)
+    lang: str = "ru"  # язык, на котором идёт эта партия
 
 
 _live: Live | None = None
@@ -43,14 +45,14 @@ def reset() -> None:
     _live = None
 
 
-def start(scenario_id: str, seed: int) -> Live:
+def start(scenario_id: str, seed: int, lang: str = "ru") -> Live:
     global _live
-    text = all_scenarios()[scenario_id]
+    text = all_scenarios(lang)[scenario_id]
     spec = parse_scenario(text)
     teams = [
         J.TeamSlot(
             faction=faction.id,
-            team=f"Команда {number}",
+            team=t("common.team_number", lang, n=number),
             code=f"{randbelow(9000) + 1000}",
         )
         for number, faction in enumerate(spec.factions, start=1)
@@ -58,7 +60,8 @@ def start(scenario_id: str, seed: int) -> Live:
     journal = J.new_journal(scenario_id, text, teams, seed)
     path = sessions_dir() / f"{scenario_id}-{datetime.now():%Y%m%d-%H%M%S}.json"
     J.save(path, journal)
-    _live = Live(path=path, journal=journal, spec=spec, drafts={t.faction: [] for t in teams})
+    _live = Live(path=path, journal=journal, spec=spec, lang=lang,
+                 drafts={t.faction: [] for t in teams})
     return _live
 
 
@@ -105,10 +108,10 @@ def close_round(force: bool = False) -> None:
         session.spec, before, orders, session.offers, session.responses, session.journal.seed
     )
     narration = {
-        "public": narrate_public(session.spec, result.events),
-        "host": narrate_host(session.spec, result.events),
+        "public": narrate_public(session.spec, result.events, session.lang),
+        "host": narrate_host(session.spec, result.events, session.lang),
         "private": {
-            slot.faction: narrate_team(session.spec, result.events, slot.faction)
+            slot.faction: narrate_team(session.spec, result.events, slot.faction, session.lang)
             for slot in session.journal.teams
         },
     }

@@ -16,10 +16,12 @@ class Delta:
     amount: float
     clamped: bool = False
 
-    def describe(self) -> str:
+    def describe(self, lang: str = "ru") -> str:
+        from ..i18n import t
+
         sign = "+" if self.amount >= 0 else "−"
         body = f"{self.track} {sign}{abs(self.amount):g}"
-        return f"{body} (предел)" if self.clamped else body
+        return f"{body} ({t('delta.limit', lang)})" if self.clamped else body
 
 
 @dataclass(frozen=True)

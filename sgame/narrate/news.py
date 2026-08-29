@@ -13,7 +13,10 @@ from ..core.events import Event
 from ..core.spec import ScenarioSpec
 from .view import Role, events_for, visible_to
 
-COVERT_HINT = "По дипломатическим каналам началось движение тайных посольств"
+def covert_hint(lang: str = "ru") -> str:
+    from ..i18n import t
+
+    return t("news.covert_hint", lang)
 
 
 @dataclass(frozen=True)
@@ -50,7 +53,7 @@ def _headline(spec: ScenarioSpec, event: Event) -> str:
     return event.title
 
 
-def _detail(spec: ScenarioSpec, event: Event, role: Role) -> str:
+def _detail(spec: ScenarioSpec, event: Event, role: Role, lang: str = "ru") -> str:
     from .templates import deltas_text
 
     if event.kind == "rumour":
@@ -58,15 +61,17 @@ def _detail(spec: ScenarioSpec, event: Event, role: Role) -> str:
         # ведущий — иначе на разборе нечего будет обсуждать.
         if role != "host":
             return ""
-        parts = ["правда" if event.truth else "ложь"]
+        from ..i18n import t
+
+        parts = [t("news.rumour_true" if event.truth else "news.rumour_false", lang)]
         if event.source:
-            parts.append(f"запустила {_title_of(spec, event.source)}")
+            parts.append(t("news.rumour_planted", lang, side=_title_of(spec, event.source)))
         return ", ".join(parts)
 
     parts = []
     if event.roll:
         parts.append(event.roll)
-    body = deltas_text(spec, event)
+    body = deltas_text(spec, event, lang)
     if body:
         parts.append(body)
     return " · ".join(parts)
@@ -77,6 +82,7 @@ def news_items(
     events: Sequence[Event],
     viewer: str | None,
     role: Role,
+    lang: str = "ru",
 ) -> list[NewsItem]:
     """Видимые зрителю новости раунда.
 
@@ -87,7 +93,11 @@ def news_items(
     """
     visible = events_for(events, viewer, role)
     items = [
-        NewsItem(headline=_headline(spec, event), detail=_detail(spec, event, role), kind=event.kind)
+        NewsItem(
+            headline=_headline(spec, event),
+            detail=_detail(spec, event, role, lang),
+            kind=event.kind,
+        )
         for event in visible
         if event.kind in {"action", "scenario_event", "deal_done", "status_expired",
                           "world", "end", "rumour"}
@@ -99,5 +109,5 @@ def news_items(
         event.kind == "action" and not visible_to(event, viewer, role) for event in events
     )
     if hidden_secret and not spoke_of_secrets:
-        items.append(NewsItem(headline=COVERT_HINT, kind="hint"))
+        items.append(NewsItem(headline=covert_hint(lang), kind="hint"))
     return items

@@ -282,3 +282,7 @@ body.projector table { font-size: 1.1rem; }
 body.projector .feed-item .headline { font-size: 1.2rem; }
 body.projector .feed-item .detail { font-size: 1rem; }
 .track .delta.flat { opacity: 1; }
+
+.langbar { font-size: .8rem; color: var(--muted); margin: 0 0 1.25rem; }
+.langbar a { margin-left: .4rem; text-decoration: none; }
+.langbar a.current { font-weight: 600; text-decoration: underline; }

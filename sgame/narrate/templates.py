@@ -16,7 +16,7 @@ def _title_of(spec: ScenarioSpec, faction_id: str | None) -> str:
     return faction.title if faction else "—"
 
 
-def deltas_text(spec: ScenarioSpec, event: Event) -> str:
+def deltas_text(spec: ScenarioSpec, event: Event, lang: str = "ru") -> str:
     """Изменения одной строкой, сгруппированные по сторонам.
 
     Без имён и группировки сводка мировой динамики превращается в «Бюджет
@@ -27,9 +27,9 @@ def deltas_text(spec: ScenarioSpec, event: Event) -> str:
     others: dict[str, list[str]] = {}
     for delta in event.deltas:
         if delta.scope == "faction" and delta.who != event.actor:
-            others.setdefault(delta.who, []).append(delta.describe())
+            others.setdefault(delta.who, []).append(delta.describe(lang))
         else:
-            own.append(delta.describe())
+            own.append(delta.describe(lang))
 
     if not others:
         return ", ".join(own)
@@ -38,28 +38,30 @@ def deltas_text(spec: ScenarioSpec, event: Event) -> str:
     return "; ".join(([", ".join(own)] if own else []) + groups)
 
 
-def _render(items) -> str:
+def _render(items, lang: str = "ru") -> str:
+    from ..i18n import t
+
     if not items:
-        return "За этот раунд ничего заметного не произошло."
+        return t("news.nothing", lang)
     lines = []
     for item in items:
         lines.append(f"• {item.headline}" + (f" — {item.detail}" if item.detail else ""))
     return "\n".join(lines)
 
 
-def narrate_public(spec: ScenarioSpec, events: Sequence[Event]) -> str:
+def narrate_public(spec: ScenarioSpec, events: Sequence[Event], lang: str = "ru") -> str:
     from .news import news_items
 
-    return _render(news_items(spec, events, viewer=None, role="public"))
+    return _render(news_items(spec, events, viewer=None, role="public", lang=lang), lang)
 
 
-def narrate_team(spec: ScenarioSpec, events: Sequence[Event], faction: str) -> str:
+def narrate_team(spec: ScenarioSpec, events: Sequence[Event], faction: str, lang: str = "ru") -> str:
     from .news import news_items
 
-    return _render(news_items(spec, events, viewer=faction, role="team"))
+    return _render(news_items(spec, events, viewer=faction, role="team", lang=lang), lang)
 
 
-def narrate_host(spec: ScenarioSpec, events: Sequence[Event]) -> str:
+def narrate_host(spec: ScenarioSpec, events: Sequence[Event], lang: str = "ru") -> str:
     from .news import news_items
 
-    return _render(news_items(spec, events, viewer=None, role="host"))
+    return _render(news_items(spec, events, viewer=None, role="host", lang=lang), lang)

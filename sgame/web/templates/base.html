@@ -3,10 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Стратегическая игра{% endblock %}</title>
+  <title>{% block title %}{{ t("app.title") }}{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
-  <main>{% block body %}{% endblock %}</main>
+  <main>
+    <nav class="langbar">{{ t("app.language") }}:
+      {% for code in languages %}<a href="/language/{{ code }}"
+        {% if code == lang %}class="current"{% endif %}>{{ code | upper }}</a>{% endfor %}
+    </nav>
+    {% block body %}{% endblock %}
+  </main>
 </body>
 </html>

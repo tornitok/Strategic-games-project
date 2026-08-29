@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block body %}
 <h1>{{ title }}</h1>
-<p class="round">Введите код команды — его показывает ведущий на пульте.</p>
+<p class="round">{{ t("team.enter_code") }}</p>
 {% if error %}<p class="big">{{ error }}</p>{% endif %}
 <section class="card">
   <form method="post" action="/team/{{ faction }}/login">
-    <label>Код команды
+    <label>{{ t("team.code_label") }}
       <input name="code" inputmode="numeric" autocomplete="off" autofocus>
     </label>
-    <button type="submit">Войти</button>
+    <button type="submit">{{ t("team.enter") }}</button>
   </form>
 </section>
 {% endblock %}
