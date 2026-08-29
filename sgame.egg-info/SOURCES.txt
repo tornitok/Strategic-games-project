@@ -1,0 +1,13 @@
+pyproject.toml
+sgame/__init__.py
+sgame.egg-info/PKG-INFO
+sgame.egg-info/SOURCES.txt
+sgame.egg-info/dependency_links.txt
+sgame.egg-info/entry_points.txt
+sgame.egg-info/requires.txt
+sgame.egg-info/top_level.txt
+sgame/core/__init__.py
+sgame/narrate/__init__.py
+sgame/session/__init__.py
+sgame/web/__init__.py
+sgame/web/routes/__init__.py
