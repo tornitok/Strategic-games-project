@@ -65,6 +65,30 @@ def start(scenario_id: str, seed: int, lang: str = "ru") -> Live:
     return _live
 
 
+def display_spec(lang: str) -> ScenarioSpec:
+    """Сценарий на языке читателя — только для показа текстов.
+
+    Правила и расчёт всегда идут по копии, с которой партия начиналась.
+    Копии структурно одинаковы (это проверяет тест сверки), поэтому подменять
+    можно безопасно; если чужая копия всё же разошлась по идентификаторам,
+    возвращаем исходную — лучше чужой язык, чем пустые названия.
+    """
+    session = require()
+    if lang == session.lang:
+        return session.spec
+    text = all_scenarios(lang).get(session.journal.scenario_id)
+    if not text:
+        return session.spec
+    try:
+        other = parse_scenario(text)
+    except Exception:
+        return session.spec
+    same_shape = [f.id for f in other.factions] == [f.id for f in session.spec.factions] and [
+        a.id for a in other.actions
+    ] == [a.id for a in session.spec.actions]
+    return other if same_shape else session.spec
+
+
 def require() -> Live:
     if _live is None:
         raise LookupError("партия не начата")

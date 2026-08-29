@@ -32,8 +32,9 @@ def console(request: Request):
         slot for slot in session.journal.teams if slot.faction not in session.submitted
     ]
     lang = language_of(request)
+    spec = live.display_spec(lang)
     message = (
-        t("host.pass_computer", lang, team=session.spec.faction(waiting[0].faction).title)
+        t("host.pass_computer", lang, team=spec.faction(waiting[0].faction).title)
         if waiting
         else t("host.all_submitted", lang)
     )
@@ -41,7 +42,7 @@ def console(request: Request):
         request,
         "host.html",
         {
-            "spec": session.spec,
+            "spec": spec,
             "state": state,
             "teams": session.journal.teams,
             "submitted": session.submitted,

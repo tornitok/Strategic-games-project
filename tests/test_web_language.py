@@ -88,15 +88,41 @@ def test_engine_texts_follow_the_session_language():
     assert "invests in ports" in page
 
 
-def test_running_session_keeps_its_language_for_the_whole_page():
-    """Кнопки на одном языке, а брифинг на другом — выглядит как поломка."""
+def test_switching_mid_game_switches_the_whole_page():
+    """Копии сценария структурно одинаковы, поэтому переключать можно и на ходу.
+
+    Раньше язык партии перекрывал выбор читателя, и переключатель выглядел
+    сломанным: нажимаешь — ничего не меняется.
+    """
     client = client_with("en")
     start(client)
-    client.get("/language/ru")  # читатель переключился посреди партии
+    assert "Hand the computer" in client.get("/").text
+
+    client.get("/language/ru")
+    page = client.get("/").text
+    assert "Передайте компьютер" in page
+    assert "Кризис в Меридианском заливе" in page
+    assert "Hand the computer" not in page
+
+
+def test_switching_back_returns_english():
+    client = client_with("ru")
+    start(client)
+    client.get("/language/en")
     page = client.get("/").text
     assert "Crisis in the Meridian Gulf" in page
     assert "Hand the computer" in page
-    assert "Передайте" not in page
+
+
+def test_team_screen_follows_the_reader_language():
+    client = client_with("ru")
+    start(client)
+    slot = live.current().journal.teams[0]
+    client.post(f"/team/{slot.faction}/login", data={"code": slot.code}, follow_redirects=True)
+    client.get("/language/en")
+    page = client.get(f"/team/{slot.faction}").text
+    assert "Your briefing" in page
+    assert "You hold the northern shore" in page
 
 
 def test_switch_before_the_game_chooses_the_language_of_the_next_one():
@@ -104,3 +130,13 @@ def test_switch_before_the_game_chooses_the_language_of_the_next_one():
     client.get("/language/en")
     client.post("/session/new", data={"scenario": "meridian", "seed": "7"}, follow_redirects=True)
     assert live.current().lang == "en"
+
+
+def test_wrong_code_message_is_translated():
+    """Путь с ошибкой ввода тоже часть интерфейса — его легко забыть."""
+    client = client_with("en")
+    start(client)
+    faction = live.current().journal.teams[0].faction
+    page = client.post(f"/team/{faction}/login", data={"code": "0000"}, follow_redirects=True)
+    assert "Wrong team code" in page.text
+    assert "Неверный" not in page.text

@@ -33,23 +33,15 @@ templates.env.globals["t"] = _t
 
 
 def language_of(request: Request) -> str:
-    """Язык страницы.
+    """Язык страницы — тот, который выбрал читатель.
 
-    Пока партия идёт, главный — её язык: иначе получается страница, где
-    кнопки на одном языке, а брифинг на другом, и это выглядит поломкой.
-    Переключатель выбирает язык приложения и следующей партии.
+    Тексты сценария берутся из копии на этом же языке, поэтому переключение
+    работает и посреди партии, не трогая ни правил, ни расчёта.
     """
-    from . import live
-
-    session = live.current()
-    if session is not None:
-        return session.lang
     return normalise(request.cookies.get(LANG_COOKIE))
 
 
-def chosen_language(request: Request) -> str:
-    """Язык, выбранный читателем, — им создаётся новая партия."""
-    return normalise(request.cookies.get(LANG_COOKIE))
+chosen_language = language_of
 
 
 def page(request: Request, name: str, context: dict):

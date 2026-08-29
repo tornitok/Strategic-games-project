@@ -9,7 +9,7 @@ from ...narrate.news import news_items
 from ...narrate.reference import action_card, track_cards
 from ...session.replay import states
 from .. import live, present
-from ..app import page
+from ..app import language_of, page
 
 router = APIRouter()
 
@@ -17,6 +17,8 @@ router = APIRouter()
 @router.get("/screen")
 def projector(request: Request):
     session = live.require()
+    lang = language_of(request)
+    spec = live.display_spec(lang)
     state = live.state()
     rounds = session.journal.rounds
 
@@ -24,17 +26,17 @@ def projector(request: Request):
     changes: list = []
     if rounds:
         snapshots = states(session.journal)
-        items = news_items(session.spec, live.last_events(), viewer=None,
-                           role="public", lang=session.lang)
+        items = news_items(spec, live.last_events(), viewer=None,
+                           role="public", lang=lang)
         changes = changes_between(
-            session.spec, snapshots[-2], snapshots[-1], viewer=None
+            spec, snapshots[-2], snapshots[-1], viewer=None
         )
 
     return page(
         request,
         "screen.html",
         {
-            "spec": session.spec,
+            "spec": spec,
             "state": state,
             "items": items,
             "changes": changes,
@@ -47,13 +49,15 @@ def projector(request: Request):
 @router.get("/debrief")
 def debrief(request: Request):
     session = live.require()
+    lang = language_of(request)
+    spec = live.display_spec(lang)
     state = live.state()
     results = []
     for slot in session.journal.teams:
-        total, breakdown = score(session.spec, state, slot.faction, session.lang)
+        total, breakdown = score(spec, state, slot.faction, lang)
         results.append(
             {
-                "title": session.spec.faction(slot.faction).title,
+                "title": spec.faction(slot.faction).title,
                 "team": slot.team,
                 "total": total,
                 "breakdown": breakdown,
@@ -67,7 +71,7 @@ def debrief(request: Request):
             "public": record.narration.get("public", ""),
             "host": record.narration.get("host", ""),
             "intents": [
-                (session.spec.faction(faction).title, order.action, order.intent)
+                (spec.faction(faction).title, order.action, order.intent)
                 for faction, orders in sorted(record.orders.items())
                 for order in orders
                 if order.intent
@@ -79,22 +83,22 @@ def debrief(request: Request):
     return page(
         request,
         "debrief.html",
-        {"spec": session.spec, "results": results, "timeline": timeline},
+        {"spec": spec, "results": results, "timeline": timeline},
     )
 
 
 @router.get("/intro")
 def intro(request: Request):
     """Общая вводная: мир плюс памятка правил, собранная из сценария."""
-    session = live.require()
-    spec = session.spec
+    lang = language_of(request)
+    spec = live.display_spec(lang)
     return page(
         request,
         "intro.html",
         {
             "spec": spec,
             "intro": present.paragraphs(spec.meta.intro),
-            "tracks": track_cards(spec, session.lang),
+            "tracks": track_cards(spec, lang),
             # Формулы считаем при начальных условиях: «зависит от обстановки»
             # в справочнике не помогает принять решение.
             "actions": [
@@ -103,7 +107,7 @@ def intro(request: Request):
                     state=initial_state(spec),
                     actor=spec.factions[0].id,
                     target=spec.factions[1].id if len(spec.factions) > 1 else None,
-                    lang=session.lang,
+                    lang=lang,
                 )
                 for action in spec.actions
             ],
