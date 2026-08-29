@@ -1,0 +1,20 @@
+:root { color-scheme: light; font-family: -apple-system, system-ui, sans-serif; }
+body { margin: 0; background: #f6f5f2; color: #1b1b1b; }
+main { max-width: 60rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+h1 { font-size: 1.6rem; }
+.big { font-size: 1.5rem; font-weight: 600; background: #fff; padding: 1rem; border-radius: .5rem; }
+.round { color: #666; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; background: #fff; }
+th, td { text-align: left; padding: .5rem .75rem; border-bottom: 1px solid #e3e0da; }
+.code { font-family: ui-monospace, monospace; letter-spacing: .1em; }
+button, .button { font: inherit; padding: .6rem 1rem; border: 0; border-radius: .4rem;
+  background: #2f5d50; color: #fff; cursor: pointer; text-decoration: none; display: inline-block; }
+button[disabled] { background: #bdbdbd; cursor: not-allowed; }
+button.secondary { background: #6b6b6b; }
+form { margin: .5rem 0; }
+label { display: block; margin: .75rem 0; }
+.card { background: #fff; border-radius: .5rem; padding: 1rem; margin: .5rem 0; }
+.card.disabled { opacity: .55; }
+.news { white-space: pre-wrap; background: #fff; padding: 1rem; border-radius: .5rem; }
+.cover { position: fixed; inset: 0; background: #1b1b1b; color: #f6f5f2;
+  display: flex; align-items: center; justify-content: center; font-size: 1.5rem; z-index: 10; }

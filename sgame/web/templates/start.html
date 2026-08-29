@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Новая партия</h1>
+<form method="post" action="/session/new">
+  <label>Сценарий
+    <select name="scenario">
+      {% for id, title in scenarios.items() %}
+      <option value="{{ id }}">{{ title }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Ключ партии (seed)
+    <input type="number" name="seed" value="{{ default_seed }}">
+  </label>
+  <button type="submit">Начать</button>
+</form>
+{% endblock %}

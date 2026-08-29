@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ spec.meta.title }}</h1>
+<p class="round">Раунд {{ state.round }} из {{ spec.meta.rounds }}</p>
+
+{% if state.finished %}
+  <p class="big">Игра окончена.</p>
+  <a class="button" href="/debrief">Перейти к разбору</a>
+{% else %}
+  <p class="big">{{ next_team_message }}</p>
+  <table>
+    <tr><th>Сторона</th><th>Команда</th><th>Код</th><th>Статус</th></tr>
+    {% for slot in teams %}
+    <tr>
+      <td>{{ spec.faction(slot.faction).title }}</td>
+      <td>{{ slot.team }}</td>
+      <td class="code">{{ slot.code }}</td>
+      <td>{{ "сдала" if slot.faction in submitted else "не сдала" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <form method="post" action="/round/close">
+    <button type="submit" {% if not all_submitted %}disabled{% endif %}>Закрыть раунд</button>
+  </form>
+  <form method="post" action="/round/close">
+    <input type="hidden" name="force" value="1">
+    <button type="submit" class="secondary">Закрыть принудительно (несдавшие пасуют)</button>
+  </form>
+{% endif %}
+
+<form method="post" action="/round/undo">
+  <button type="submit" class="secondary" {% if not can_undo %}disabled{% endif %}>Откатить раунд</button>
+</form>
+
+<p><a href="/screen" target="_blank">Экран для проектора</a></p>
+{% endblock %}

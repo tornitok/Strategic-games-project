@@ -1,0 +1,139 @@
+"""Активная партия в памяти процесса.
+
+Игра идёт на одной машине, партия одна. Черновики приказов держим на
+сервере: закрытая по ошибке вкладка не должна стоить команде хода.
+"""
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from secrets import randbelow
+
+from ..core.events import Event
+from ..core.orders import DealOffer, Order
+from ..core.resolve import resolve
+from ..core.spec import ScenarioSpec, parse_scenario
+from ..core.state import GameState
+from ..narrate.templates import narrate_host, narrate_public, narrate_team
+from ..session import journal as J
+from ..session.paths import all_scenarios, sessions_dir
+from ..session.replay import current_state, replay, undo_last
+
+
+@dataclass
+class Live:
+    path: Path
+    journal: J.Journal
+    spec: ScenarioSpec
+    drafts: dict[str, list[Order]] = field(default_factory=dict)
+    offers: list[DealOffer] = field(default_factory=list)
+    responses: dict[str, bool] = field(default_factory=dict)
+    submitted: set[str] = field(default_factory=set)
+
+
+_live: Live | None = None
+
+
+def current() -> Live | None:
+    return _live
+
+
+def reset() -> None:
+    global _live
+    _live = None
+
+
+def start(scenario_id: str, seed: int) -> Live:
+    global _live
+    text = all_scenarios()[scenario_id]
+    spec = parse_scenario(text)
+    teams = [
+        J.TeamSlot(
+            faction=faction.id,
+            team=f"Команда {number}",
+            code=f"{randbelow(9000) + 1000}",
+        )
+        for number, faction in enumerate(spec.factions, start=1)
+    ]
+    journal = J.new_journal(scenario_id, text, teams, seed)
+    path = sessions_dir() / f"{scenario_id}-{datetime.now():%Y%m%d-%H%M%S}.json"
+    J.save(path, journal)
+    _live = Live(path=path, journal=journal, spec=spec, drafts={t.faction: [] for t in teams})
+    return _live
+
+
+def require() -> Live:
+    if _live is None:
+        raise LookupError("партия не начата")
+    return _live
+
+
+def state() -> GameState:
+    return current_state(require().journal)
+
+
+def history() -> list[tuple[Event, ...]]:
+    return replay(require().journal)[1]
+
+
+def last_events() -> tuple[Event, ...]:
+    events = history()
+    return events[-1] if events else ()
+
+
+def submit(faction: str) -> None:
+    require().submitted.add(faction)
+
+
+def everyone_submitted() -> bool:
+    session = require()
+    return {t.faction for t in session.journal.teams} <= session.submitted
+
+
+def close_round(force: bool = False) -> None:
+    """Посчитать раунд. При force несдавшие команды пасуют."""
+    session = require()
+    if not force and not everyone_submitted():
+        raise ValueError("не все команды сдали приказы")
+
+    before = current_state(session.journal)
+    orders = {
+        faction: (session.drafts.get(faction, []) if faction in session.submitted else [])
+        for faction in (slot.faction for slot in session.journal.teams)
+    }
+    result = resolve(
+        session.spec, before, orders, session.offers, session.responses, session.journal.seed
+    )
+    narration = {
+        "public": narrate_public(session.spec, result.events),
+        "host": narrate_host(session.spec, result.events),
+        "private": {
+            slot.faction: narrate_team(session.spec, result.events, slot.faction)
+            for slot in session.journal.teams
+        },
+    }
+    session.journal.rounds.append(
+        J.RoundRecord(
+            n=before.round,
+            orders=orders,
+            offers=list(session.offers),
+            responses=dict(session.responses),
+            narration=narration,
+            resolved_at=datetime.now().isoformat(timespec="seconds"),
+        )
+    )
+    J.save(session.path, session.journal)
+    session.drafts = {slot.faction: [] for slot in session.journal.teams}
+    session.offers = []
+    session.responses = {}
+    session.submitted = set()
+
+
+def undo_round() -> None:
+    session = require()
+    undo_last(session.journal)
+    J.save(session.path, session.journal)
+    session.drafts = {slot.faction: [] for slot in session.journal.teams}
+    session.offers = []
+    session.responses = {}
+    session.submitted = set()
