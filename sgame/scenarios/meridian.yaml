@@ -1,0 +1,12 @@
+schema_version: 1
+meta: { id: meridian, title: "Кризис в Меридианском заливе", rounds: 8, action_points: 3 }
+tracks:
+  budget: { title: "Бюджет", min: 0, max: 200 }
+world:
+  tension: { title: "Напряжённость", min: 0, max: 100, start: 30 }
+factions:
+  - { id: astoria, title: "Астория", start: { budget: 120 } }
+  - { id: borea, title: "Борея", start: { budget: 100 } }
+actions:
+  - { id: invest, title: "Вложения", cost: { budget: 20 }, effects: [ { self: budget, delta: "30" } ] }
+end: { when: "round > meta.rounds", scoring: "self.budget" }
