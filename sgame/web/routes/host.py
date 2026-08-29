@@ -8,7 +8,7 @@ from ...i18n import t
 from ...core.spec import parse_scenario
 from ...session.paths import all_scenarios
 from .. import live
-from ..app import LANG_COOKIE, language_of, page
+from ..app import LANG_COOKIE, chosen_language, language_of, page
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ def console(request: Request):
     session = live.current()
     if session is None:
         scenarios = {}
-        for key, text in all_scenarios(language_of(request)).items():
+        for key, text in all_scenarios(chosen_language(request)).items():
             try:
                 scenarios[key] = parse_scenario(text).meta.title
             except ScenarioError:
@@ -65,7 +65,7 @@ def switch_language(lang: str, request: Request):
 
 @router.post("/session/new")
 def new_session(request: Request, scenario: str = Form(...), seed: int = Form(...)):
-    live.start(scenario, seed, language_of(request))
+    live.start(scenario, seed, chosen_language(request))
     return RedirectResponse("/", status_code=303)
 
 

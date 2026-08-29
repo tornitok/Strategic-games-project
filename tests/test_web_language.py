@@ -86,3 +86,21 @@ def test_engine_texts_follow_the_session_language():
     client.post("/round/close", follow_redirects=True)
     page = client.get("/screen").text
     assert "invests in ports" in page
+
+
+def test_running_session_keeps_its_language_for_the_whole_page():
+    """Кнопки на одном языке, а брифинг на другом — выглядит как поломка."""
+    client = client_with("en")
+    start(client)
+    client.get("/language/ru")  # читатель переключился посреди партии
+    page = client.get("/").text
+    assert "Crisis in the Meridian Gulf" in page
+    assert "Hand the computer" in page
+    assert "Передайте" not in page
+
+
+def test_switch_before_the_game_chooses_the_language_of_the_next_one():
+    client = TestClient(create_app())
+    client.get("/language/en")
+    client.post("/session/new", data={"scenario": "meridian", "seed": "7"}, follow_redirects=True)
+    assert live.current().lang == "en"
