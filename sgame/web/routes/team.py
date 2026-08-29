@@ -6,6 +6,7 @@ from fastapi.responses import RedirectResponse
 from ...core.orders import DealOffer, Order
 from ...narrate.changes import changes_between
 from ...narrate.news import news_items
+from ...narrate.reference import action_card
 from ...narrate.view import tracks_for
 from ...session.replay import states
 from .. import live, present
@@ -46,6 +47,13 @@ def screen(request: Request, faction: str):
             "state": state,
             "tracks": tracks_for(session.spec, state, faction),
             "options": present.action_options(session.spec, state, faction, draft),
+            "cards": {
+                action.id: action_card(
+                    session.spec, action, state=state, actor=faction,
+                    target=next((f.id for f in session.spec.factions if f.id != faction), None),
+                )
+                for action in session.spec.actions
+            },
             "draft": draft,
             "points_left": present.points_left(session.spec, draft),
             "others": [f for f in session.spec.factions if f.id != faction],

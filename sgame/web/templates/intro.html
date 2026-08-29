@@ -13,29 +13,72 @@
   <h2>Как устроена игра</h2>
   <ul class="rules">
     <li><strong>Раундов:</strong> {{ spec.meta.rounds }}.</li>
-    <li><strong>Очки действий:</strong> {{ spec.meta.action_points }} за раунд на команду.
-        Действий в каталоге — {{ action_count }}.</li>
+    <li><strong>Очки действий:</strong> {{ spec.meta.action_points }} за раунд на команду —
+        это и есть весь ваш ход. Дорогое действие может стоить не одно очко.</li>
     <li><strong>Ходят все одновременно.</strong> Порядок, в котором команды садятся за
-        компьютер, на результат не влияет.</li>
-    <li><strong>Часть действий тайные.</strong> Противник может не узнать, кто за ними
-        стоит — а может и узнать.</li>
-    {% if deals %}
-    <li><strong>Дипломатия:</strong> {{ deals | join(", ") }}. Предложение, сделанное в этом
-        раунде, рассматривается адресатом в следующем.</li>
+        компьютер, на результат не влияет. Приказы всех сторон разрешаются вместе.</li>
+    <li><strong>Одно действие — один раз за раунд.</strong> Повторить то же самое дважды
+        нельзя, если рядом с ним не сказано обратное.</li>
+    {% if has_secrets %}
+    <li><strong>Часть действий тайные.</strong> Их не видно в общей сводке. Противник может
+        не узнать, кто за ними стоит, — а может и узнать.</li>
     {% endif %}
+    {% if has_counters %}
+    <li><strong>Некоторым ударам можно противодействовать.</strong> Если сторона в этом же
+        раунде подготовилась, эффект удара будет сильно ослаблен.</li>
+    {% endif %}
+    {% if has_rumours %}
+    <li><strong>Слухи.</strong> В сводке появляются непроверенные сообщения о том, кто за чем
+        стоит. Они бывают правдой и бывают ложью — и запустить слух может как обстановка,
+        так и другая команда.</li>
+    {% endif %}
+    {% if deals %}
+    <li><strong>Дипломатия:</strong> {% for deal in deals %}{{ deal.title }}{% if not loop.last %}, {% endif %}{% endfor %}.
+        Предложение, сделанное в этом раунде, рассматривается адресатом в следующем.</li>
+    {% endif %}
+    <li><strong>Победа.</strong> Итог считается по вашим показателям в сравнении с другими
+        сторонами плюс выполненные цели из вашего брифинга. Цели у всех разные, и чужих
+        вы не знаете.</li>
   </ul>
 </section>
 
 <section class="card">
-  <h2>Чем вы располагаете</h2>
+  <h2>Показатели</h2>
+  <p class="round">Все величины — условные единицы. Смысл имеет не абсолютное число, а то,
+     сколько стоит решение и насколько вы отличаетесь от соседей.</p>
+  {% for track in tracks %}
+  <div class="side">
+    <div class="title">{{ track.title }}
+      <span class="pill">{{ track.scale }}</span>
+      <span class="pill">{{ track.visibility }}</span>
+    </div>
+    <p>{{ track.meaning }}</p>
+  </div>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Что можно делать</h2>
   <table>
-    <tr><th>Показатель</th><th>Кто видит</th></tr>
-    {% for title, visibility in tracks %}
-    <tr><td>{{ title }}</td><td>{{ visibility }}</td></tr>
+    <tr><th>Действие</th><th>Цена</th><th>Что произойдёт<div class="round">при начальных условиях</div></th></tr>
+    {% for card in actions %}
+    <tr>
+      <td>
+        <strong>{{ card.title }}</strong>
+        {% if card.secret %}<span class="pill">тайное</span>{% endif %}
+        {% if card.needs_target %}<span class="pill">по цели</span>{% endif %}
+        {% if card.description %}<div class="round">{{ card.description }}</div>{% endif %}
+      </td>
+      <td>{{ card.cost }}<div class="round">{{ card.points }} очк.</div></td>
+      <td>
+        {% if card.effects %}{{ card.effects | join(", ") }}{% endif %}
+        {% for risk in card.risks %}
+        <div class="round">{{ risk.chance }} — {{ risk.title }}: {{ risk.effects | join(", ") }}</div>
+        {% endfor %}
+        {% if not card.effects and not card.risks %}—{% endif %}
+      </td>
+    </tr>
     {% endfor %}
   </table>
-  {% if world_tracks %}
-  <p>Общие для всех: {{ world_tracks | join(", ") }}.</p>
-  {% endif %}
 </section>
 {% endblock %}

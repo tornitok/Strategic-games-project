@@ -29,6 +29,7 @@ class TrackSpec(Base):
     min: float
     max: float
     visibility: Literal["public", "private"] = "public"
+    meaning: str = ""  # что означает единица показателя — для правил игроков
 
 
 class WorldTrackSpec(Base):
@@ -36,6 +37,7 @@ class WorldTrackSpec(Base):
     min: float
     max: float
     start: float
+    meaning: str = ""
 
 
 class GoalSpec(Base):

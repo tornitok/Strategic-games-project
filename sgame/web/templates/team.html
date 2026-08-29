@@ -92,13 +92,12 @@
   <section class="card action {% if not option.available %}disabled{% endif %}">
     <h3>{{ option.action.title }}</h3>
     <p>{{ option.action.description }}</p>
-    <p class="meta">
-      {% if option.action.cost %}Стоимость:
-        {% for name, amount in option.action.cost.items() %}{{ spec.tracks[name].title }} {{ amount | num }}{% if not loop.last %}, {% endif %}{% endfor %}
-      {% else %}Без затрат{% endif %}
-      · {{ option.action.ap }} очк.
-      {% if option.action.visibility == "secret" %} · тайное{% endif %}
-    </p>
+    {% set card = cards[option.action.id] %}
+    <p class="meta">{{ card.cost }} · {{ card.points }} очк.{% if card.secret %} · тайное{% endif %}</p>
+    {% if card.effects %}<p class="meta"><strong>Будет:</strong> {{ card.effects | join(", ") }}</p>{% endif %}
+    {% for risk in card.risks %}
+    <p class="meta">{{ risk.chance }} — {{ risk.title }}: {{ risk.effects | join(", ") }}</p>
+    {% endfor %}
     {% if option.available %}
     <form method="post" action="/team/{{ faction.id }}/order">
       <input type="hidden" name="action" value="{{ option.action.id }}">

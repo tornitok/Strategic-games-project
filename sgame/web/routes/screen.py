@@ -3,8 +3,10 @@
 from fastapi import APIRouter, Request
 
 from ...core.scoring import score
+from ...core.state import initial_state
 from ...narrate.changes import changes_between
 from ...narrate.news import news_items
+from ...narrate.reference import action_card, track_cards
 from ...session.replay import states
 from .. import live, present
 from ..app import templates
@@ -91,12 +93,21 @@ def intro(request: Request):
         {
             "spec": spec,
             "intro": present.paragraphs(spec.meta.intro),
-            "tracks": [
-                (track.title, "виден всем" if track.visibility == "public" else "только вам")
-                for track in spec.tracks.values()
+            "tracks": track_cards(spec),
+            # Формулы считаем при начальных условиях: «зависит от обстановки»
+            # в справочнике не помогает принять решение.
+            "actions": [
+                action_card(
+                    spec, action,
+                    state=initial_state(spec),
+                    actor=spec.factions[0].id,
+                    target=spec.factions[1].id if len(spec.factions) > 1 else None,
+                )
+                for action in spec.actions
             ],
-            "world_tracks": [track.title for track in spec.world.values()],
-            "action_count": len(spec.actions),
-            "deals": [deal.title for deal in spec.deals],
+            "deals": spec.deals,
+            "has_secrets": any(a.visibility == "secret" for a in spec.actions),
+            "has_counters": any(a.countered_by for a in spec.actions),
+            "has_rumours": bool(spec.rumours.templates),
         },
     )
