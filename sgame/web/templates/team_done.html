@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Приказы приняты</h1>
+{% if next_team %}
+<p class="big">Передайте компьютер команде: {{ next_team }}</p>
+{% else %}
+<p class="big">Все команды сдали приказы. Верните компьютер ведущему.</p>
+{% endif %}
+{% endblock %}

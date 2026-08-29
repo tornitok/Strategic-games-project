@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block body %}
+<div id="cover" hidden class="cover"><p>Экран скрыт. Нажмите, чтобы вернуться.</p></div>
+<button id="hide-button" class="secondary" type="button">Скрыть экран</button>
+<script src="/static/hide.js" defer></script>
+
+<h1>{{ faction.title }}</h1>
+<p class="round">Раунд {{ state.round }} из {{ spec.meta.rounds }} ·
+   Очки действий: {{ points_left }} из {{ spec.meta.action_points }}</p>
+
+<section class="card">
+  <h2>Ваш брифинг</h2>
+  <p>{{ faction.briefing }}</p>
+  {% if faction.goals %}
+  <ul>{% for goal in faction.goals %}<li>{{ goal.title }} — {{ goal.score }} очк.</li>{% endfor %}</ul>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Новости</h2>
+  <div class="news">{{ news }}</div>
+</section>
+
+<section class="card">
+  <h2>Обстановка</h2>
+  <table>
+    {% for id, values in tracks.items() %}
+    <tr><th>{{ spec.faction(id).title }}</th>
+      <td>{% for name, value in values.items() %}{{ name }}: {{ value }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+    </tr>
+    {% endfor %}
+    <tr><th>Мир</th><td>{% for name, track in spec.world.items() %}{{ track.title }}: {{ state.world[name] }} {% endfor %}</td></tr>
+  </table>
+</section>
+
+<section class="card">
+  <h2>Ваши приказы</h2>
+  {% if draft %}
+  <ol>
+    {% for order in draft %}
+    <li>{{ spec.action(order.action).title }}
+      {% if order.target %}→ {{ spec.faction(order.target).title }}{% endif %}
+      {% if order.intent %}<em>«{{ order.intent }}»</em>{% endif %}
+      <form method="post" action="/team/{{ faction.id }}/order/remove">
+        <input type="hidden" name="index" value="{{ loop.index0 }}">
+        <button class="secondary" type="submit">Убрать</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}<p>Приказов пока нет.</p>{% endif %}
+  <form method="post" action="/team/{{ faction.id }}/submit">
+    <button type="submit">Сдать приказы</button>
+  </form>
+</section>
+
+<h2>Доступные действия</h2>
+{% for option in options %}
+<section class="card {% if not option.available %}disabled{% endif %}">
+  <h3>{{ option.action.title }}</h3>
+  <p>{{ option.action.description }}</p>
+  <p>Стоимость: {% for name, amount in option.action.cost.items() %}{{ spec.tracks[name].title }} {{ amount }} {% endfor %}
+     · Очки действий: {{ option.action.ap }}</p>
+  {% if option.available %}
+  <form method="post" action="/team/{{ faction.id }}/order">
+    <input type="hidden" name="action" value="{{ option.action.id }}">
+    {% if option.action.target == "faction" %}
+    <label>Цель
+      <select name="target">
+        {% for other in others %}<option value="{{ other.id }}">{{ other.title }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <label>Замысел (для разбора после игры)
+      <input name="intent" maxlength="300" placeholder="Зачем вы это делаете">
+    </label>
+    <button type="submit">Добавить приказ</button>
+  </form>
+  {% else %}
+  <p><strong>Недоступно:</strong> {{ option.reason }}</p>
+  {% endif %}
+</section>
+{% endfor %}
+
+<h2>Дипломатия</h2>
+{% for offer in incoming %}
+<section class="card">
+  <p>Предложение от {{ spec.faction(offer.sender).title }}: {{ spec.deal(offer.deal).title }}
+     {% if offer.amount %}({{ offer.amount }}){% endif %}</p>
+  <form method="post" action="/team/{{ faction.id }}/response">
+    <input type="hidden" name="offer" value="{{ offer.id }}">
+    <button type="submit" name="accept" value="1">Принять</button>
+    <button type="submit" class="secondary">Отклонить</button>
+  </form>
+</section>
+{% endfor %}
+<section class="card">
+  <form method="post" action="/team/{{ faction.id }}/offer">
+    <label>Предложить
+      <select name="deal">{% for deal in deals %}<option value="{{ deal.id }}">{{ deal.title }}</option>{% endfor %}</select>
+    </label>
+    <label>Кому
+      <select name="receiver">{% for other in others %}<option value="{{ other.id }}">{{ other.title }}</option>{% endfor %}</select>
+    </label>
+    <label>Сколько (для передачи ресурса) <input name="amount" inputmode="numeric"></label>
+    <button type="submit">Отправить предложение</button>
+  </form>
+  <p>Ответ придёт в следующем раунде.</p>
+</section>
+{% endblock %}
