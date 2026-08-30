@@ -6,11 +6,12 @@ from fastapi.responses import RedirectResponse
 from ...core.orders import DealOffer, Order
 from ...narrate.changes import changes_between
 from ...narrate.news import news_items
+from ... import __name__ as _pkg  # noqa: F401
 from ...i18n import t
 from ...narrate.reference import action_card
 from ...narrate.view import tracks_for
 from ...session.replay import states
-from .. import live, present
+from .. import config, live, present
 from ..app import language_of, page
 
 router = APIRouter()
@@ -72,6 +73,7 @@ def screen(request: Request, faction: str):
             else [],
             "incoming": [o for o in state.pending_offers if o.receiver == faction],
             "deals": spec.deals,
+            "autohide": not config.NETWORK,
         },
     )
 
@@ -82,7 +84,18 @@ def login(request: Request, faction: str, code: str = Form(...)):
     lang = language_of(request)
     spec = live.display_spec(lang)
     slot = session.journal.slot(faction)
-    if slot is None or slot.code != code:
+    misses = session.wrong_codes.get(faction, 0)
+    if misses >= 3:
+        # В аудиторской сети код — единственная защита; перебор должен упираться
+        # в паузу, иначе десять тысяч вариантов кончатся за минуту.
+        return page(
+            request,
+            "team_login.html",
+            {"faction": faction, "title": spec.faction(faction).title,
+             "error": t("team.too_many_tries", lang)},
+        )
+    if slot is None or slot.code != code.strip().upper():
+        session.wrong_codes[faction] = misses + 1
         return page(
             request,
             "team_login.html",
@@ -92,6 +105,7 @@ def login(request: Request, faction: str, code: str = Form(...)):
                 "error": t("team.wrong_code", lang),
             },
         )
+    session.wrong_codes.pop(faction, None)
     response = RedirectResponse(f"/team/{faction}", status_code=303)
     response.set_cookie(COOKIE, f"{faction}:{slot.code}", httponly=True, samesite="strict")
     return response

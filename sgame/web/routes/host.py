@@ -8,7 +8,8 @@ from ...i18n import t
 from ...core.spec import parse_scenario
 from ...session.paths import all_scenarios
 from .. import live
-from ..app import LANG_COOKIE, chosen_language, language_of, page
+from .. import config
+from ..app import LANG_COOKIE, chosen_language, language_of, local_address, page
 
 router = APIRouter()
 
@@ -49,8 +50,29 @@ def console(request: Request):
             "all_submitted": not waiting,
             "can_undo": bool(session.journal.rounds),
             "next_team_message": message,
+            "network": config.NETWORK,
+            "base_url": f"http://{local_address()}:{request.url.port or 80}",
         },
     )
+
+
+@router.get("/qr/{faction}.svg")
+def team_qr(request: Request, faction: str):
+    """QR со ссылкой на экран команды: набирать адрес на телефоне — это опечатки."""
+    import io
+
+    import segno
+    from fastapi.responses import Response
+
+    from ..app import local_address
+
+    port = request.url.port or 80
+    url = f"http://{local_address()}:{port}/team/{faction}"
+    buffer = io.BytesIO()
+    segno.make(url, error="m").save(
+        buffer, kind="svg", scale=4, dark="#111111", light="#ffffff", xmldecl=True
+    )
+    return Response(buffer.getvalue(), media_type="image/svg+xml")
 
 
 @router.get("/language/{lang}")

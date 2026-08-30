@@ -51,6 +51,15 @@ STRINGS: dict[str, dict[str, str]] = {
     "team.code_label": {"ru": "Код команды", "en": "Team code"},
     "team.enter": {"ru": "Войти", "en": "Enter"},
     "team.wrong_code": {"ru": "Неверный код команды", "en": "Wrong team code"},
+    "team.too_many_tries": {
+        "ru": "Слишком много попыток. Подождите и попросите код у ведущего.",
+        "en": "Too many attempts. Wait and ask the host for the code.",
+    },
+    "host.phones": {"ru": "Команды заходят с телефонов", "en": "Teams join from their phones"},
+    "host.phone_hint": {
+        "ru": "Покажите команде её код и дайте отсканировать её QR.",
+        "en": "Show each team its code and let them scan its QR.",
+    },
     "team.briefing": {"ru": "Ваш брифинг", "en": "Your briefing"},
     "team.goals": {"ru": "Ваши цели", "en": "Your goals"},
     "team.news": {"ru": "Новости", "en": "News"},

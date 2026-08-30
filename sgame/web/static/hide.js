@@ -3,13 +3,17 @@
 (function () {
   const cover = document.getElementById("cover");
   if (!cover) return;
+  // На личном телефоне гасить экран по таймеру незачем: он придуман для
+  // компьютера, который передают из рук в руки.
+  const script = document.currentScript || document.querySelector('script[src*="hide.js"]');
+  const autohide = !script || script.dataset.autohide !== "0";
   let timer = null;
 
   function hide() { cover.hidden = false; }
   function show() { cover.hidden = true; restart(); }
   function restart() {
     clearTimeout(timer);
-    timer = setTimeout(hide, 60000);
+    if (autohide) timer = setTimeout(hide, 60000);
   }
 
   document.getElementById("hide-button").addEventListener("click", hide);

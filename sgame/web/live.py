@@ -7,7 +7,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from secrets import randbelow
+from secrets import choice, randbelow
 
 from ..core.events import Event
 from ..core.orders import DealOffer, Order
@@ -31,6 +31,7 @@ class Live:
     responses: dict[str, bool] = field(default_factory=dict)
     submitted: set[str] = field(default_factory=set)
     lang: str = "ru"  # язык, на котором идёт эта партия
+    wrong_codes: dict[str, int] = field(default_factory=dict)
 
 
 _live: Live | None = None
@@ -45,6 +46,19 @@ def reset() -> None:
     _live = None
 
 
+# Без похожих знаков: код диктуют вслух и набирают на телефоне.
+CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+
+def new_code() -> str:
+    """Код команды. В сети он длиннее: четыре цифры перебираются за секунды."""
+    from . import config
+
+    if config.NETWORK:
+        return "".join(choice(CODE_ALPHABET) for _ in range(6))
+    return f"{randbelow(9000) + 1000}"
+
+
 def start(scenario_id: str, seed: int, lang: str = "ru") -> Live:
     global _live
     text = all_scenarios(lang)[scenario_id]
@@ -53,7 +67,7 @@ def start(scenario_id: str, seed: int, lang: str = "ru") -> Live:
         J.TeamSlot(
             faction=faction.id,
             team=t("common.team_number", lang, n=number),
-            code=f"{randbelow(9000) + 1000}",
+            code=new_code(),
         )
         for number, faction in enumerate(spec.factions, start=1)
     ]

@@ -63,18 +63,41 @@ def create_app() -> FastAPI:
     return app
 
 
+def serve_host(network: bool) -> str:
+    """Какой интерфейс слушать. В сеть выходим только по явному решению."""
+    return "0.0.0.0" if network else "127.0.0.1"
+
+
+def local_address() -> str:
+    """Адрес этой машины в локальной сети — его набирают на телефонах."""
+    probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        probe.connect(("192.0.2.1", 9))  # адрес из документации, пакеты никуда не идут
+        return probe.getsockname()[0]
+    except OSError:
+        return "127.0.0.1"
+    finally:
+        probe.close()
+
+
 def _free_port() -> int:
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         return probe.getsockname()[1]
 
 
-def serve(port: int = 0, open_browser: bool = True) -> None:
+def serve(port: int = 0, open_browser: bool = True, network: bool = False) -> None:
     import uvicorn
 
+    from . import config
+
+    config.NETWORK = network
     chosen = port or _free_port()
     url = f"http://127.0.0.1:{chosen}/"
     if open_browser:
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     print(f"Приложение открыто: {url}")
-    uvicorn.run(create_app(), host="127.0.0.1", port=chosen, log_level="warning")
+    if network:
+        print(f"Команды с телефонов: http://{local_address()}:{chosen}/")
+        print("Приложение доступно всем в этой сети.")
+    uvicorn.run(create_app(), host=serve_host(network), port=chosen, log_level="warning")

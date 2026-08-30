@@ -2,7 +2,7 @@
 {% import "_blocks.html" as blocks with context %}
 {% block body %}
 <div id="cover" hidden class="cover"><p>{{ t("team.hidden") }}</p></div>
-<script src="/static/hide.js" defer></script>
+<script src="/static/hide.js" data-autohide="{{ 1 if autohide else 0 }}" defer></script>
 
 <h1>{{ faction.title }}</h1>
 <p class="round">{{ t("common.round_of", n=state.round, total=spec.meta.rounds) }} ·
@@ -81,7 +81,7 @@
     {% endfor %}
   </ul>
   {% else %}<p class="round">{{ t("team.no_orders") }}</p>{% endif %}
-  <form method="post" action="/team/{{ faction.id }}/submit">
+  <form method="post" action="/team/{{ faction.id }}/submit" class="submitbar">
     <button type="submit">{{ t("team.submit") }}</button>
   </form>
 </section>
@@ -89,11 +89,13 @@
 <h2>{{ t("team.available_actions") }}</h2>
 <div class="actions-grid">
 {% for option in options %}
-  <section class="card action {% if not option.available %}disabled{% endif %}">
-    <h3>{{ option.action.title }}</h3>
+  {% set card = cards[option.action.id] %}
+  <details class="card action {% if not option.available %}disabled{% endif %}">
+    <summary>
+      <span class="action-title">{{ option.action.title }}</span>
+      <span class="action-cost">{{ card.cost }} · {{ card.points }} {{ t("common.points_short") }}{% if card.secret %} · {{ t("team.secret") }}{% endif %}</span>
+    </summary>
     <p>{{ option.action.description }}</p>
-    {% set card = cards[option.action.id] %}
-    <p class="meta">{{ card.cost }} · {{ card.points }} {{ t("common.points_short") }}{% if card.secret %} · {{ t("team.secret") }}{% endif %}</p>
     {% if card.effects %}<p class="meta"><strong>{{ t("team.will_happen") }}</strong> {{ card.effects | join(", ") }}</p>{% endif %}
     {% for risk in card.risks %}
     <p class="meta">{{ risk.chance }} — {{ risk.title }}: {{ risk.effects | join(", ") }}</p>
@@ -116,7 +118,7 @@
     {% else %}
     <p class="why">{{ t("team.unavailable") }} {{ option.reason }}</p>
     {% endif %}
-  </section>
+  </details>
 {% endfor %}
 </div>
 

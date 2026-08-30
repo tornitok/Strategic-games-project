@@ -7,16 +7,28 @@
   <p class="big">{{ t("host.finished") }}</p>
   <p><a class="button" href="/debrief">{{ t("links.debrief") }}</a></p>
 {% else %}
+  {% if network %}
+  <p class="big">{{ t("host.phones") }}: {{ base_url }}</p>
+  <p class="round">{{ t("host.phone_hint") }}</p>
+  {% else %}
   <p class="big">{{ next_team_message }}</p>
+  {% endif %}
 
   <section class="card">
     <table>
-      <tr><th>{{ t("common.side") }}</th><th>{{ t("common.team") }}</th><th>{{ t("common.code") }}</th><th>{{ t("common.status") }}</th></tr>
+      <tr><th>{{ t("common.side") }}</th><th>{{ t("common.team") }}</th><th>{{ t("common.code") }}</th>{% if network %}<th>QR</th>{% endif %}<th>{{ t("common.status") }}</th></tr>
       {% for slot in teams %}
       <tr>
         <td><a href="/team/{{ slot.faction }}" target="_blank">{{ spec.faction(slot.faction).title }}</a></td>
         <td>{{ slot.team }}</td>
         <td class="code">{{ slot.code }}</td>
+        {% if network %}
+        <td class="qr">
+          <a href="{{ base_url }}/team/{{ slot.faction }}" target="_blank">
+            <img src="/qr/{{ slot.faction }}.svg" alt="QR" width="88" height="88">
+          </a>
+        </td>
+        {% endif %}
         <td>
           {% if slot.faction in submitted %}
           <span class="pill done">{{ t("host.submitted") }}</span>

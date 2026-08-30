@@ -286,3 +286,58 @@ body.projector .feed-item .detail { font-size: 1rem; }
 .langbar { font-size: .8rem; color: var(--muted); margin: 0 0 1.25rem; }
 .langbar a { margin-left: .4rem; text-decoration: none; }
 .langbar a.current { font-weight: 600; text-decoration: underline; }
+
+/* Телефоны: команды заходят со своих устройств */
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+  main { padding: 1rem .9rem 6rem; }
+  h1 { font-size: 1.45rem; }
+
+  /* Палец — не мышь: цель нажатия не меньше 44 пикселей */
+  button, .button { padding: .8rem 1.1rem; min-height: 44px; }
+  button.ghost { min-height: 36px; padding: .4rem .6rem; }
+  input, select { max-width: none; padding: .7rem .65rem; font-size: 16px; }
+  .langbar a { display: inline-block; padding: .35rem .5rem; }
+
+  .actions-grid { grid-template-columns: 1fr; }
+  .tracks { grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); gap: .45rem; }
+  .track .value { font-size: 1.25rem; }
+  .row { flex-direction: column; align-items: stretch; }
+  .orders li { flex-direction: column; align-items: flex-start; }
+  .orders form { margin: .25rem 0 0; }
+  table { font-size: .9rem; }
+  td, th { padding: .5rem .4rem .5rem 0; }
+
+  /* Кнопка сдачи не должна теряться под длинным списком действий:
+     на телефоне она закреплена у нижнего края экрана. */
+  .submitbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: .7rem .9rem calc(.7rem + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -8px 24px -16px rgb(0 0 0 / 45%);
+    z-index: 5;
+  }
+  .submitbar button { width: 100%; }
+}
+
+/* Свёрнутые действия: на телефоне четырнадцать раскрытых карточек — это
+   десять экранов прокрутки до нужного решения. */
+details.action > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+details.action > summary::-webkit-details-marker { display: none; }
+details.action > summary::after { content: "＋"; position: absolute; right: 1.25rem; color: var(--muted); }
+details.action[open] > summary::after { content: "−"; }
+details.action { position: relative; }
+.action-title { font-weight: 600; }
+.action-cost { font-size: .85rem; color: var(--muted); }
+details.action[open] > summary { margin-bottom: .6rem; }

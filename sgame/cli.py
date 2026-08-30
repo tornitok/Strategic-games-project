@@ -101,6 +101,8 @@ def main(argv: list[str] | None = None) -> int:
     run_cmd = sub.add_parser("run", help="запустить приложение")
     run_cmd.add_argument("--port", type=int, default=0)
     run_cmd.add_argument("--no-browser", action="store_true")
+    run_cmd.add_argument("--network", action="store_true",
+                         help="открыть доступ командам с телефонов в этой сети")
 
     sim_cmd = sub.add_parser("simulate", help="прогнать сценарий ботами")
     sim_cmd.add_argument("scenario")
@@ -124,7 +126,7 @@ def main(argv: list[str] | None = None) -> int:
 
     from .web.app import serve
 
-    serve(port=args.port, open_browser=not args.no_browser)
+    serve(port=args.port, open_browser=not args.no_browser, network=args.network)
     return 0
 
 
