@@ -20,12 +20,18 @@ class ActionOption:
 
 
 def action_options(
-    spec: ScenarioSpec, state: GameState, faction: str, draft: list[Order]
+    spec: ScenarioSpec, state: GameState, faction: str, draft: list[Order],
+    role: str | None = None,
 ) -> list[ActionOption]:
+    """Список приказов для экрана. Должность видит только то, что вправе вносить."""
     others = [f.id for f in spec.factions if f.id != faction]
+    spec_faction = spec.faction(faction)
+    role_spec = spec_faction.role(role) if spec_faction and role else None
     options: list[ActionOption] = []
 
     for action in spec.actions:
+        if role_spec is not None and not role_spec.can_propose(action.id):
+            continue
         probe = Order(
             action=action.id,
             target=others[0] if action.target == "faction" and others else None,

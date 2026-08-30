@@ -9,7 +9,7 @@ from ...core.spec import parse_scenario
 from ...session.paths import all_scenarios
 from .. import live
 from .. import config
-from ..app import LANG_COOKIE, chosen_language, language_of, local_address, page
+from ..app import LANG_COOKIE, chosen_language, language_of, page, public_base_url
 
 router = APIRouter()
 
@@ -51,7 +51,7 @@ def console(request: Request):
             "can_undo": bool(session.journal.rounds),
             "next_team_message": message,
             "network": config.NETWORK,
-            "base_url": f"http://{local_address()}:{request.url.port or 80}",
+            "base_url": public_base_url(request.url.port or 80),
         },
     )
 
@@ -64,10 +64,9 @@ def team_qr(request: Request, faction: str):
     import segno
     from fastapi.responses import Response
 
-    from ..app import local_address
+    from ..app import public_base_url
 
-    port = request.url.port or 80
-    url = f"http://{local_address()}:{port}/team/{faction}"
+    url = f"{public_base_url(request.url.port or 80)}/team/{faction}"
     buffer = io.BytesIO()
     segno.make(url, error="m").save(
         buffer, kind="svg", scale=4, dark="#111111", light="#ffffff", xmldecl=True

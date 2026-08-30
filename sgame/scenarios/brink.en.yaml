@@ -287,8 +287,6 @@ actions:
   news: '{actor} takes a pause for consultations'
   stance: neutral
   effects:
-  - self: intel
-    delta: '5'
   - world: escalation
     delta: '-2'
 - id: ultimatum
@@ -579,7 +577,7 @@ actions:
     economy: 8
   effects:
   - self: legitimacy
-    delta: '6'
+    delta: "clamp((70 - self.legitimacy) * 0.3, 0, 6)"
   - world: attention
     delta: '3'
   complications:

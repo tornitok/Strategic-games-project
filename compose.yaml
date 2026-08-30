@@ -1,0 +1,19 @@
+name: sgame
+
+services:
+  sgame:
+    build: .
+    image: sgame:latest
+    ports:
+      - "8000:8000"
+    environment:
+      # Адрес, который увидят студенты: он попадает в ссылки и QR-коды.
+      # Без него приложение назовёт внутренний адрес контейнера, и телефоны
+      # по такой ссылке никуда не попадут.
+      SGAME_PUBLIC_URL: "http://localhost:8000"
+    volumes:
+      - sgame-data:/data
+    restart: unless-stopped
+
+volumes:
+  sgame-data:

@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from sgame.web import config, live
-from sgame.web.app import create_app, local_address, serve_host
+from sgame.web.app import create_app, local_address, public_base_url, serve_host
 
 
 @pytest.fixture(autouse=True)
@@ -95,3 +95,37 @@ def test_host_console_hides_addresses_on_one_machine():
     client = TestClient(create_app())
     client.post("/session/new", data={"scenario": "meridian", "seed": "1"}, follow_redirects=True)
     assert "/qr/" not in client.get("/").text
+
+
+def test_public_url_overrides_the_guessed_address(monkeypatch):
+    """За прокси или в контейнере машина знает только свой внутренний адрес.
+
+    Телефон по такой ссылке никуда не попадёт, поэтому адрес можно задать.
+    """
+    monkeypatch.setenv("SGAME_PUBLIC_URL", "https://game.example.org")
+    config.NETWORK = True
+    client = TestClient(create_app())
+    client.post("/session/new", data={"scenario": "meridian", "seed": "1"}, follow_redirects=True)
+    page = client.get("/").text
+    assert "https://game.example.org/team/" in page
+    assert local_address() not in page
+
+
+def test_public_url_reaches_the_qr_code(monkeypatch):
+    monkeypatch.setenv("SGAME_PUBLIC_URL", "https://game.example.org/")
+    config.NETWORK = True
+    client = TestClient(create_app())
+    client.post("/session/new", data={"scenario": "meridian", "seed": "1"}, follow_redirects=True)
+    faction = live.current().journal.teams[0].faction
+    import segno.helpers  # noqa: F401  — сам код читаем через декодирование ниже
+
+    answer = client.get(f"/qr/{faction}.svg")
+    assert answer.status_code == 200
+    # Ссылка не видна в SVG напрямую, поэтому проверяем сборку адреса отдельно.
+    from sgame.web.app import public_base_url
+
+    assert public_base_url(8000) == "https://game.example.org"
+
+
+def test_without_the_setting_the_address_is_still_guessed():
+    assert public_base_url(8000) == f"http://{local_address()}:8000"

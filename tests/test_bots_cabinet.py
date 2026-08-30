@@ -26,6 +26,14 @@ factions:
       - { id: head, title: "Глава", weight: 2, briefing: "т",
           goals: [ { id: g, title: "Тишина", when: "world.tension <= 30", score: 30 } ] }
           # при старте 38 разрядка (−10) доводит до 28 и цель выполняется
+  - id: c
+    title: "В"
+    start: { budget: 220, army: 40 }
+    briefing: "т"
+    goals: [ { id: t, title: "Командная", when: "self.budget > 0", score: 10 } ]
+    roles:
+      - { id: head, title: "Глава", weight: 1, briefing: "т",
+          goals: [ { id: g, title: "Казна", when: "self.budget > 0", score: 5 } ] }
   - id: b
     title: "Б"
     start: { budget: 100, army: 40 }
@@ -41,6 +49,8 @@ actions:
       effects: [ { self: budget, delta: "25" } ] }
   - { id: calm, title: "Разрядка", news: "{actor} снижает накал",
       effects: [ { world: tension, delta: "-10" } ] }
+  - { id: press, title: "Давление", news: "{actor} давит на {target}", target: faction,
+      stance: hostile, effects: [ { target: budget, delta: "-20" }, { self: army, delta: "4" } ] }
 end: { when: "round > meta.rounds", scoring: "self.budget" }
 """
 
@@ -101,3 +111,86 @@ def test_a_role_supports_what_feeds_its_own_figure():
     state = initial_state(SPEC)
     earn = SPEC.action("earn")
     assert role_gain(SPEC, state, "a", "purse", earn, None) > 0
+
+
+# Военному оставлены полномочия только на разрядку — то, чего он сам никогда
+# бы не выбрал. Если он всё равно вносит вооружение, полномочия не работают.
+POWERS = TEXT.replace(
+    '- { id: hawk, title: "Военный", weight: 1, briefing: "т",',
+    '- { id: hawk, title: "Военный", weight: 1, briefing: "т", actions: [ calm ],',
+)
+
+# Две должности с одной и той же целью выберут один и тот же приказ.
+DUPES = TEXT.replace(
+    '- { id: head, title: "Глава", weight: 2, briefing: "т",',
+    '- { id: purse2, title: "Казначей", weight: 1, briefing: "т",\n'
+    '          goals: [ { id: g, title: "Казна", when: "self.budget >= 120", score: 30 } ] }\n'
+    '      - { id: head, title: "Глава", weight: 2, briefing: "т",',
+    1,
+)
+
+
+def test_a_role_proposes_only_what_it_is_entitled_to():
+    """Иначе должности отличаются только целями, а вносить могут что угодно."""
+    spec = parse_scenario(POWERS)
+    proposals, _ = cabinet_round(spec, initial_state(spec), "a", seed=1, round_no=1)
+    assert [p.action for p in proposals if p.author == "hawk"] in ([], ["calm"])
+
+
+def test_the_cabinet_does_not_vote_on_the_same_order_twice():
+    """Движок исполнит такой приказ один раз, второй голос был бы потрачен зря."""
+    spec = parse_scenario(DUPES)
+    proposals, orders = cabinet_round(spec, initial_state(spec), "a", seed=1, round_no=1)
+    seen = [(p.action, p.target) for p in proposals]
+    assert len(seen) == len(set(seen))
+    made = [(o.action, o.target) for o in orders]
+    assert len(made) == len(set(made))
+
+
+def test_a_hostile_order_goes_to_the_strongest_rival():
+    """Цель «первый в списке» означала, что все ультиматумы летят в одну сторону.
+
+    «В» сильнее «Б» и стоит в списке позже — значит выбор именно её и есть выбор.
+    """
+    spec = parse_scenario(
+        TEXT.replace(
+            '- { id: hawk, title: "Военный", weight: 1, briefing: "т",',
+            '- { id: hawk, title: "Военный", weight: 1, briefing: "т", actions: [ press ],',
+        )
+    )
+    proposals, _ = cabinet_round(spec, initial_state(spec), "a", seed=1, round_no=1)
+    press = [p for p in proposals if p.action == "press"]
+    assert press and all(p.target == "c" for p in press)
+
+
+# Второй способ пополнить казну, чуть менее выгодный, чем первый.
+CHOICES = TEXT.replace(
+    '  - { id: calm, title: "Разрядка", news: "{actor} снижает накал",',
+    '  - { id: loan, title: "Заём", news: "{actor} занимает",\n'
+    '      effects: [ { self: budget, delta: "20" } ] }\n'
+    '  - { id: calm, title: "Разрядка", news: "{actor} снижает накал",',
+    1,
+)
+
+
+def test_a_role_does_not_repeat_the_same_order_every_round():
+    """Строгий argmax давал одну и ту же партию раз за разом.
+
+    Живой игрок не обращается к нации шесть раундов подряд.
+    """
+    spec = parse_scenario(CHOICES)
+    state = initial_state(spec)
+    chosen = set()
+    for round_no in range(1, 9):
+        proposals, _ = cabinet_round(spec, state, "a", seed=7, round_no=round_no)
+        chosen |= {p.action for p in proposals if p.author == "purse"}
+    assert {"earn", "loan"} <= chosen
+
+
+def test_a_role_still_refuses_what_hurts_it():
+    """Разнообразие не должно превращаться в случайные приказы себе в убыток."""
+    spec = parse_scenario(CHOICES)
+    state = initial_state(spec)
+    for round_no in range(1, 9):
+        proposals, _ = cabinet_round(spec, state, "a", seed=7, round_no=round_no)
+        assert "arm" not in {p.action for p in proposals if p.author == "purse"}

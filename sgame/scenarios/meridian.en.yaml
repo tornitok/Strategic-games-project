@@ -197,10 +197,8 @@ actions:
   news: '{actor} takes a pause for consultations'
   stance: neutral
   effects:
-  - self: intel
-    delta: '4'
-  - self: legitimacy
-    delta: '1'
+  - world: tension
+    delta: '-2'
 - id: mobilize
   title: Mobilisation
   news: '{actor} moves troops towards the strait'

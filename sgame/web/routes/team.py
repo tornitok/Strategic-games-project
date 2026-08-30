@@ -249,13 +249,16 @@ def _role_context(request: Request, faction: str, role_id: str) -> dict:
         "briefing": present.paragraphs(faction_spec.briefing),
         "role_briefing": present.paragraphs(role.briefing if role else ""),
         "tracks": tracks_for(spec, state, faction),
-        "options": present.action_options(spec, state, faction, live.accepted_orders(faction)),
+        "options": present.action_options(
+            spec, state, faction, live.accepted_orders(faction), role=role_id
+        ),
         "cards": {
             action.id: action_card(
                 spec, action, state=state, actor=faction,
                 target=others[0].id if others else None, lang=lang,
             )
             for action in spec.actions
+            if role is None or role.can_propose(action.id)
         },
         "others": others,
         "proposals": proposals,

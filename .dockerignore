@@ -1,0 +1,23 @@
+# В образ едет только пакет: сборки, кэши и рабочие файлы там не нужны.
+.git
+.gitignore
+.venv
+venv
+build
+dist
+*.egg-info
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+tests
+docs
+packaging
+launcher.py
+Dockerfile
+.dockerignore
+compose.yaml
+*.spec
+.DS_Store

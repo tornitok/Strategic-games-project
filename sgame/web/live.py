@@ -136,14 +136,29 @@ def waiting_for(faction: str) -> list[str]:
     return [r.id for r in spec_faction.roles if r.id not in done]
 
 
-def propose(faction: str, role: str, action: str, target: str | None, intent: str) -> Proposal:
-    """Роль предлагает приказ команде. Голосуют по нему все роли стороны."""
+def propose(
+    faction: str, role: str, action: str, target: str | None, intent: str
+) -> Proposal | None:
+    """Роль предлагает приказ команде. Голосуют по нему все роли стороны.
+
+    Возвращает None, если должность не вправе такое вносить, и уже стоящее
+    на столе предложение, если кто-то предлагает ровно то же самое: движок
+    всё равно исполнит такой приказ один раз, а голос был бы потрачен зря.
+    """
     session = require()
+    spec_faction = session.spec.faction(faction)
+    role_spec = spec_faction.role(role) if spec_faction else None
+    if role_spec is not None and not role_spec.can_propose(action):
+        return None
+    target = target or None
+    for standing in session.proposals.get(faction, []):
+        if standing.action == action and standing.target == target:
+            return standing
     session.proposal_counter += 1
     proposal = Proposal(
         id=f"{faction}:{session.proposal_counter}",
         action=action,
-        target=target or None,
+        target=target,
         author=role,
         intent=intent,
     )

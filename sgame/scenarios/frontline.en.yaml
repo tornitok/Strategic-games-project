@@ -271,8 +271,6 @@ actions:
   news: '{actor} takes a pause'
   stance: neutral
   effects:
-  - self: intel
-    delta: '4'
   - world: refugees
     delta: '-2'
 - id: push_north
@@ -527,7 +525,7 @@ actions:
     budget: 8
   effects:
   - self: legitimacy
-    delta: '9'
+    delta: "clamp((70 - self.legitimacy) * 0.45, 0, 9)"
   - world: attention
     delta: '3'
   complications:

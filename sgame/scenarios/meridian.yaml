@@ -140,8 +140,7 @@ actions:
     news: "{actor} берёт паузу на консультации"
     stance: neutral
     effects:
-      - { self: intel, delta: "4" }
-      - { self: legitimacy, delta: "1" }
+      - { world: tension, delta: "-2" }
   - id: mobilize
     title: "Мобилизация"
     news: "{actor} стягивает войска к проливу"

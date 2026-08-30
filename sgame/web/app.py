@@ -1,5 +1,6 @@
 """Сборка и запуск локального приложения."""
 
+import os
 import socket
 import threading
 import webbrowser
@@ -80,6 +81,19 @@ def local_address() -> str:
         probe.close()
 
 
+def public_base_url(port: int) -> str:
+    """Адрес, который набирают на телефонах и который зашит в QR.
+
+    Своё место в сети машина определяет сама, но за обратным прокси или в
+    контейнере она знает только внутренний адрес: телефон по такой ссылке
+    никуда не попадёт. Тогда адрес задают через SGAME_PUBLIC_URL.
+    """
+    override = os.environ.get("SGAME_PUBLIC_URL", "").strip()
+    if override:
+        return override.rstrip("/")
+    return f"http://{local_address()}:{port}"
+
+
 def _free_port() -> int:
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
@@ -98,6 +112,6 @@ def serve(port: int = 0, open_browser: bool = True, network: bool = False) -> No
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     print(f"Приложение открыто: {url}")
     if network:
-        print(f"Команды с телефонов: http://{local_address()}:{chosen}/")
+        print(f"Команды с телефонов: {public_base_url(chosen)}/")
         print("Приложение доступно всем в этой сети.")
     uvicorn.run(create_app(), host=serve_host(network), port=chosen, log_level="warning")

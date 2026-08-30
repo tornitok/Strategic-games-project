@@ -22,6 +22,7 @@ factions:
       - { id: president, title: "Президент", weight: 2, briefing: "Личное президента.",
           goals: [ { id: stay, title: "Удержаться", when: "self.budget >= 90", score: 25 } ] }
       - { id: defence, title: "Министр обороны", weight: 1, briefing: "Личное обороны.",
+          actions: [ arm ],
           goals: [ { id: army, title: "Армия", when: "self.army >= 60", score: 20 } ] }
       - { id: finance, title: "Министр финансов", weight: 1, briefing: "Личное финансов.",
           goals: [ { id: rich, title: "Казна", when: "self.budget >= 130", score: 15 } ] }
@@ -38,6 +39,7 @@ factions:
 actions:
   - { id: build, title: "Стройка", news: "{actor} строит", effects: [ { self: budget, delta: "12" } ] }
   - { id: arm, title: "Вооружение", news: "{actor} вооружается", effects: [ { self: army, delta: "15" } ] }
+  - { id: talk, title: "Переговоры", news: "{actor} говорит", effects: [ { world: tension, delta: "-5" } ] }
 end: { when: "round > meta.rounds", scoring: "self.budget" }
 """
 
@@ -122,8 +124,8 @@ def test_a_split_cabinet_passes_nothing():
 
 def test_action_points_limit_what_gets_through():
     session = started()
-    for _ in range(3):
-        live.propose("a", "president", action="build", target=None, intent="")
+    for what in ("build", "arm", "talk"):
+        live.propose("a", "president", action=what, target=None, intent="")
     for number in (1, 2, 3):
         live.vote("a", "president", f"a:{number}", True)
         live.vote("a", "defence", f"a:{number}", True)
@@ -142,3 +144,27 @@ def test_votes_reset_between_rounds():
     live.submit("b")
     live.close_round(force=True)
     assert session.proposals["a"] == []
+
+
+def test_a_role_cannot_propose_outside_its_powers():
+    """Список на экране уже отфильтрован, но подделанную форму тоже надо отбить."""
+    session = started()
+    live.propose("a", "defence", action="build", target=None, intent="")
+    assert session.proposals.get("a", []) == []
+
+
+def test_the_same_order_is_not_put_on_the_table_twice():
+    """Иначе кабинет голосует за приказ, который движок отклонит как повтор."""
+    session = started()
+    first = live.propose("a", "president", action="build", target=None, intent="")
+    again = live.propose("a", "finance", action="build", target=None, intent="")
+    assert len(session.proposals["a"]) == 1
+    assert again is first
+    assert session.proposals["a"][0].author == "president"
+
+
+def test_the_same_action_on_a_different_target_is_a_separate_proposal():
+    session = started()
+    live.propose("a", "president", action="build", target=None, intent="")
+    live.propose("a", "president", action="build", target="b", intent="")
+    assert len(session.proposals["a"]) == 2

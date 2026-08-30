@@ -29,11 +29,15 @@ a = Analysis(
     ],
 )
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, exclude_binaries=True, name="СтратегическаяИгра", console=False)
-coll = COLLECT(exe, a.binaries, a.datas, name="СтратегическаяИгра")
+exe = EXE(pyz, a.scripts, exclude_binaries=True, name="StrategicGame", console=False)
+coll = COLLECT(exe, a.binaries, a.datas, name="StrategicGame")
 app = BUNDLE(
     coll,
-    name="Стратегическая игра.app",
+    name="StrategicGame.app",
     bundle_identifier="ru.local.strategicgame",
-    info_plist={"CFBundleName": "Стратегическая игра", "LSBackgroundOnly": False},
+    info_plist={
+        "CFBundleName": "Стратегическая игра",
+        "CFBundleDisplayName": "Стратегическая игра",
+        "LSBackgroundOnly": False,
+    },
 )

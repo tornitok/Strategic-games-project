@@ -335,7 +335,7 @@ def role_gain(
     own = 0.0
     for name in _role_tracks(spec, faction, role_id):
         own += builder.track(faction, name) - before_tracks.get(name, 0.0)
-    return personal * 2 + own * 0.6 + common * 0.4
+    return personal * 2 + own * 0.25 + common * 0.75
 
 
 def _role_tracks(spec: ScenarioSpec, faction: str, role_id: str) -> set[str]:
@@ -381,23 +381,43 @@ def cabinet_round(
 
     spec_faction = spec.faction(faction)
     roles = spec_faction.roles
-    others = [f.id for f in spec.factions if f.id != faction]
+    rivals = _ranked_rivals(spec, state, faction)
+    leader = rivals[0] if rivals else None
+    weakest = rivals[-1] if rivals else None
     proposals: list[Proposal] = []
+    on_the_table: set[tuple[str, str | None]] = set()
 
     for number, role in enumerate(roles, start=1):
+        rng = stream(seed, round_no, f"cabinet:{faction}:{role.id}")
         options = []
-        for action in spec.actions:
-            target = others[0] if action.target == "faction" and others else None
-            if action.target == "faction" and not target:
+        for action in _shuffled(spec.actions, rng):
+            if not role.can_propose(action.id):
+                continue
+            # Давят на сильнейшего, руку протягивают слабейшему: бить всегда
+            # в первого по списку — не выбор, а особенность перебора.
+            target = None
+            if action.target == "faction":
+                target = leader if action.stance == "hostile" else weakest
+                if not target:
+                    continue
+            if (action.id, target) in on_the_table:
                 continue
             if not _is_available(spec, state, faction, [], Order(action=action.id, target=target)):
                 continue
             options.append((action, target, role_gain(spec, state, faction, role.id, action, target)))
         if not options:
             continue
-        action, target, gain = max(options, key=lambda item: item[2])
-        if gain <= 0:
+        best = max(gain for _, _, gain in options)
+        # Безвредный ход вносят тоже: кабинет, которому нечего выиграть,
+        # берёт паузу на консультации, а не молчит весь раунд.
+        if best < 0:
             continue
+        # Не строгий максимум: должность выбирает из того, что ей заметно
+        # полезно. Иначе кабинет вносит одно и то же во всех раундах подряд —
+        # живой министр так себя не ведёт.
+        worthy = [item for item in options if item[2] >= best * 0.5]
+        action, target, _ = worthy[int(rng.random() * len(worthy))]
+        on_the_table.add((action.id, target))
         proposals.append(
             Proposal(
                 id=f"{faction}:{round_no}:{number}",
@@ -411,8 +431,10 @@ def cabinet_round(
     for proposal in proposals:
         action = spec.action(proposal.action)
         for role in roles:
+            # Ровно ноль — это «мне всё равно», а не «против»: иначе автор
+            # голосует против собственного предложения.
             proposal.votes[role.id] = (
-                role_gain(spec, state, faction, role.id, action, proposal.target) > 0
+                role_gain(spec, state, faction, role.id, action, proposal.target) >= 0
             )
 
     orders: list[Order] = []

@@ -152,3 +152,17 @@ def test_debrief_shows_the_voting_record(client):
     page = client.get("/debrief").text
     assert "Вооружение" in page
     assert "Министр обороны" in page
+
+
+def test_role_screen_offers_only_its_own_powers(client):
+    """Министр обороны вправе вносить только «Вооружение» — «Стройка» не его дело."""
+    enter(client, "a", "defence")
+    page = client.get("/team/a/defence").text
+    assert "Вооружение" in page
+    assert "Стройка" not in page
+
+
+def test_a_role_without_powers_still_sees_everything(client):
+    enter(client, "a", "president")
+    page = client.get("/team/a/president").text
+    assert "Вооружение" in page and "Стройка" in page

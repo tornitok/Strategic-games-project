@@ -188,7 +188,6 @@ actions:
     news: "{actor} берёт паузу на консультации"
     stance: neutral
     effects:
-      - { self: intel, delta: "5" }
       - { world: escalation, delta: "-2" }
   - id: ultimatum
     title: "Ультиматум"
@@ -386,7 +385,7 @@ actions:
     news: "{actor} обращается к нации"
     cost: { economy: 8 }
     effects:
-      - { self: legitimacy, delta: "6" }
+      - { self: legitimacy, delta: "clamp((70 - self.legitimacy) * 0.3, 0, 6)" }
       - { world: attention, delta: "3" }
     complications:
       - chance: 0.04

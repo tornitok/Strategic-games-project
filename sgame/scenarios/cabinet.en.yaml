@@ -157,6 +157,7 @@ factions:
   roles:
   - id: head
     title: President
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate ]
     weight: 2
     briefing: 'You answer for everything and risk everything. Your task is to come out of the crisis without
       losing either the country or your chair: resignation after a failure is routine here.'
@@ -167,6 +168,7 @@ factions:
       score: 25
   - id: defence
     title: Defence minister
+    actions: [ consult, mobilize, alert, standdown, hardening, intel_work, cyber_strike, disinform, proxy ]
     weight: 1
     briefing: You answer for the country's ability to defend itself. Diplomacy is fine while there is
       force behind it; an army cut down is your personal failure.
@@ -177,6 +179,7 @@ factions:
       score: 20
   - id: treasury
     title: Finance minister
+    actions: [ consult, sanctions, support_trade, gesture, talks ]
     weight: 1
     briefing: You count the bills. Every mobilisation is paid out of your pocket, and a ruined treasury
       will be asked of you, not of the generals.
@@ -226,6 +229,7 @@ factions:
   roles:
   - id: head
     title: Head of state
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate, sanctions, support_trade ]
     weight: 2
     briefing: You are held up by an image of strength. A public concession costs you power faster than
       any sanctions — but a war would ruin you.
@@ -236,6 +240,7 @@ factions:
       score: 25
   - id: defence
     title: Chief of the general staff
+    actions: [ consult, mobilize, alert, standdown, hardening ]
     weight: 1
     briefing: You are convinced the window is closing. Your concern is that the army is ready, however
       this ends.
@@ -246,6 +251,7 @@ factions:
       score: 20
   - id: spy
     title: Head of intelligence
+    actions: [ consult, intel_work, cyber_strike, disinform, proxy, hardening ]
     weight: 1
     briefing: Your service is the best in the world and you intend to prove it. A failed operation lands
       on you personally.
@@ -293,6 +299,7 @@ factions:
   roles:
   - id: head
     title: First minister
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate, mobilize, alert ]
     weight: 2
     briefing: You keep the country out of someone else's quarrel. Your success is being spoken of as a
       broker, not as a party.
@@ -303,6 +310,7 @@ factions:
       score: 25
   - id: trade
     title: Trade minister
+    actions: [ consult, support_trade, sanctions, gesture, talks, mediate, disinform ]
     weight: 1
     briefing: Your prosperity is built on open seas. Every day of closed routes is your loss.
     goals:
@@ -312,6 +320,7 @@ factions:
       score: 20
   - id: treasury
     title: Finance minister
+    actions: [ consult, sanctions, support_trade, hardening, intel_work, cyber_strike, proxy ]
     weight: 1
     briefing: Mediation costs money, and you are the one paying. A ruined treasury devalues any reputation.
     goals:
@@ -358,6 +367,7 @@ factions:
   roles:
   - id: head
     title: Chancellor
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate, mobilize, alert ]
     weight: 2
     briefing: 'You are the smallest of the four and you survive by being needed. A quiet peace does not
       suit you: in it you are forgotten.'
@@ -368,6 +378,7 @@ factions:
       score: 25
   - id: spy
     title: Head of intelligence
+    actions: [ consult, intel_work, cyber_strike, disinform, proxy, hardening ]
     weight: 1
     briefing: What you know about the neighbours is the country's only real capital. It cannot be eaten.
     goals:
@@ -377,6 +388,7 @@ factions:
       score: 20
   - id: treasury
     title: Finance minister
+    actions: [ consult, sanctions, support_trade, gesture, talks ]
     weight: 1
     briefing: 'You understand what the cabinet does not: the country will not withstand a long strain.'
     goals:
@@ -412,8 +424,6 @@ actions:
   news: '{actor} takes a pause for consultations'
   stance: neutral
   effects:
-  - self: intel
-    delta: '5'
   - world: escalation
     delta: '-2'
 - id: ultimatum
@@ -704,7 +714,7 @@ actions:
     economy: 8
   effects:
   - self: legitimacy
-    delta: '6'
+    delta: "clamp((70 - self.legitimacy) * 0.3, 0, 6)"
   - world: attention
     delta: '3'
   complications:

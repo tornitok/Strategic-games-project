@@ -173,6 +173,7 @@ factions:
   roles:
   - id: head
     title: Президент
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate ]
     weight: 2
     briefing: 'Вы отвечаете за всё и рискуете всем. Ваша задача — выйти из кризиса, не потеряв ни страну,
       ни кресло: отставка после провала здесь обычное дело.'
@@ -183,6 +184,7 @@ factions:
       score: 25
   - id: defence
     title: Министр обороны
+    actions: [ consult, mobilize, alert, standdown, hardening, intel_work, cyber_strike, disinform, proxy ]
     weight: 1
     briefing: Вы отвечаете за то, чтобы страна могла себя защитить. Дипломатия хороша, пока за ней стоит
       сила; сокращённая армия — ваш личный провал.
@@ -193,6 +195,7 @@ factions:
       score: 20
   - id: treasury
     title: Министр финансов
+    actions: [ consult, sanctions, support_trade, gesture, talks ]
     weight: 1
     briefing: Вы считаете счета. Любая мобилизация оплачивается из вашего кармана, и разорённая казна
       спросится с вас, а не с генералов.
@@ -244,6 +247,7 @@ factions:
   roles:
   - id: head
     title: Глава государства
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate, sanctions, support_trade ]
     weight: 2
     briefing: Вас держит образ силы. Публичная уступка стоит вам власти быстрее любых санкций — но и война
       вас разорит.
@@ -254,6 +258,7 @@ factions:
       score: 25
   - id: defence
     title: Начальник генштаба
+    actions: [ consult, mobilize, alert, standdown, hardening ]
     weight: 1
     briefing: Вы убеждены, что окно возможностей закрывается. Ваша забота — чтобы армия была готова, чем
       бы дело ни кончилось.
@@ -264,6 +269,7 @@ factions:
       score: 20
   - id: spy
     title: Глава разведки
+    actions: [ consult, intel_work, cyber_strike, disinform, proxy, hardening ]
     weight: 1
     briefing: Ваша служба — лучшая в мире, и вы намерены это доказать. Провал операции ударит по вам лично.
     goals:
@@ -312,6 +318,7 @@ factions:
   roles:
   - id: head
     title: Первый министр
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate, mobilize, alert ]
     weight: 2
     briefing: Вы держите страну в стороне от чужой ссоры. Ваш успех — если о вас будут говорить как о
       посреднике, а не как о стороне.
@@ -322,6 +329,7 @@ factions:
       score: 25
   - id: trade
     title: Министр торговли
+    actions: [ consult, support_trade, sanctions, gesture, talks, mediate, disinform ]
     weight: 1
     briefing: Ваше благополучие построено на открытых морях. Каждый день закрытых путей — ваши убытки.
     goals:
@@ -331,6 +339,7 @@ factions:
       score: 20
   - id: treasury
     title: Министр финансов
+    actions: [ consult, sanctions, support_trade, hardening, intel_work, cyber_strike, proxy ]
     weight: 1
     briefing: Посредничество стоит денег, и платите за него вы. Разорённая казна обесценит любую репутацию.
     goals:
@@ -379,6 +388,7 @@ factions:
   roles:
   - id: head
     title: Канцлер
+    actions: [ consult, address, ultimatum, align, talks, standdown, gesture, mediate, mobilize, alert ]
     weight: 2
     briefing: 'Вы младший из четырёх и держитесь тем, что нужны всем. Спокойный мир вам не выгоден: в
       нём о вас забудут.'
@@ -389,6 +399,7 @@ factions:
       score: 25
   - id: spy
     title: Глава разведки
+    actions: [ consult, intel_work, cyber_strike, disinform, proxy, hardening ]
     weight: 1
     briefing: Ваше знание о соседях — единственный настоящий капитал страны. Его нельзя проесть.
     goals:
@@ -398,6 +409,7 @@ factions:
       score: 20
   - id: treasury
     title: Министр финансов
+    actions: [ consult, sanctions, support_trade, gesture, talks ]
     weight: 1
     briefing: 'Вы понимаете то, чего не понимают в кабинете: страна не выдержит долгого напряжения.'
     goals:
@@ -433,8 +445,6 @@ actions:
   news: '{actor} берёт паузу на консультации'
   stance: neutral
   effects:
-  - self: intel
-    delta: '5'
   - world: escalation
     delta: '-2'
 - id: ultimatum
@@ -725,7 +735,7 @@ actions:
     economy: 8
   effects:
   - self: legitimacy
-    delta: '6'
+    delta: "clamp((70 - self.legitimacy) * 0.3, 0, 6)"
   - world: attention
     delta: '3'
   complications:
