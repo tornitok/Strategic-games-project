@@ -85,6 +85,10 @@ def _detail(spec: ScenarioSpec, event: Event, role: Role, lang: str = "ru") -> s
     body = deltas_text(spec, event, lang)
     if body:
         parts.append(body)
+    # Текстовое пояснение события — расклад голосов, описание последствий —
+    # тоже часть новости, а не только числа.
+    if event.detail:
+        parts.append(event.detail)
     return " · ".join(parts)
 
 
@@ -111,7 +115,7 @@ def news_items(
         )
         for event in visible
         if event.kind in {"action", "scenario_event", "deal_done", "status_expired",
-                          "world", "end", "rumour", "complication"}
+                          "world", "end", "rumour", "complication", "cabinet"}
     ]
 
     # Слух уже говорит о тайной активности — общий намёк рядом с ним лишний.

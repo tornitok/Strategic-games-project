@@ -35,6 +35,7 @@ class Live:
     wrong_codes: dict[str, int] = field(default_factory=dict)
     proposals: dict[str, list[Proposal]] = field(default_factory=dict)
     proposal_counter: int = 0
+    ready: dict[str, set[str]] = field(default_factory=dict)
 
 
 _live: Live | None = None
@@ -111,6 +112,28 @@ def display_spec(lang: str) -> ScenarioSpec:
 def has_roles(faction: str) -> bool:
     spec_faction = require().spec.faction(faction)
     return bool(spec_faction and spec_faction.roles)
+
+
+def mark_ready(faction: str, role: str) -> None:
+    """Роль отмечает готовность. Ход уходит, когда готовы все.
+
+    Одна роль не может оборвать обсуждение за остальных.
+    """
+    session = require()
+    session.ready.setdefault(faction, set()).add(role)
+    spec_faction = session.spec.faction(faction)
+    if spec_faction and session.ready[faction] >= {r.id for r in spec_faction.roles}:
+        session.submitted.add(faction)
+
+
+def waiting_for(faction: str) -> list[str]:
+    """Кто ещё не отметил готовность — это показывается всей команде."""
+    session = require()
+    spec_faction = session.spec.faction(faction)
+    if not spec_faction:
+        return []
+    done = session.ready.get(faction, set())
+    return [r.id for r in spec_faction.roles if r.id not in done]
 
 
 def propose(faction: str, role: str, action: str, target: str | None, intent: str) -> Proposal:
@@ -197,6 +220,62 @@ def everyone_submitted() -> bool:
     return {t.faction for t in session.journal.teams} <= session.submitted
 
 
+def _cabinet_events(session: Live, lang: str) -> list[Event]:
+    """Что происходило внутри команд — на двух уровнях.
+
+    Своей команде расклад целиком, остальным только факт: раскол в чужом
+    кабинете — повод давить именно сейчас, но кто именно возражал, снаружи не
+    видно.
+    """
+    events: list[Event] = []
+    for faction, proposals in session.proposals.items():
+        spec_faction = session.spec.faction(faction)
+        if not spec_faction or not spec_faction.roles or not proposals:
+            continue
+
+        def role_title(role_id: str) -> str:
+            role = spec_faction.role(role_id)
+            return role.title if role else role_id
+
+        counted = [(p, tally(spec_faction.roles, p)) for p in proposals]
+        for proposal, result in counted:
+            action = session.spec.action(proposal.action)
+            key = "news.cabinet_passed" if result.passed else "news.cabinet_failed"
+            yes = [role_title(r) for r, v in proposal.votes.items() if v]
+            no = [role_title(r) for r, v in proposal.votes.items() if not v]
+            nobody = t("news.cabinet_nobody", lang)
+            events.append(
+                Event(
+                    kind="cabinet",
+                    title=t(
+                        key, lang,
+                        what=action.title if action else proposal.action,
+                        author=role_title(proposal.author),
+                        given=result.given, needed=result.needed,
+                    ),
+                    actor=faction,
+                    detail=t("news.cabinet_votes", lang,
+                             yes=", ".join(yes) or nobody, no=", ".join(no) or nobody),
+                    audience="actor",
+                )
+            )
+
+        passed = [(p, r) for p, r in counted if r.passed]
+        if not passed:
+            events.append(
+                Event(kind="cabinet",
+                      title=t("news.cabinet_deadlock", lang, side=spec_faction.title),
+                      audience="public")
+            )
+        elif any(result.given == result.needed for _, result in passed):
+            events.append(
+                Event(kind="cabinet",
+                      title=t("news.cabinet_narrow", lang, side=spec_faction.title),
+                      audience="public")
+            )
+    return events
+
+
 def close_round(force: bool = False) -> None:
     """Посчитать раунд. При force несдавшие команды пасуют."""
     session = require()
@@ -220,11 +299,14 @@ def close_round(force: bool = False) -> None:
     result = resolve(
         session.spec, before, orders, session.offers, session.responses, session.journal.seed
     )
+    # Внутренняя политика — часть сводки, но не часть модели: она не меняет
+    # состояние, только рассказ о нём.
+    told = list(result.events) + _cabinet_events(session, session.lang)
     narration = {
-        "public": narrate_public(session.spec, result.events, session.lang),
-        "host": narrate_host(session.spec, result.events, session.lang),
+        "public": narrate_public(session.spec, told, session.lang),
+        "host": narrate_host(session.spec, told, session.lang),
         "private": {
-            slot.faction: narrate_team(session.spec, result.events, slot.faction, session.lang)
+            slot.faction: narrate_team(session.spec, told, slot.faction, session.lang)
             for slot in session.journal.teams
         },
     }
@@ -242,6 +324,7 @@ def close_round(force: bool = False) -> None:
     J.save(session.path, session.journal)
     session.drafts = {slot.faction: [] for slot in session.journal.teams}
     session.proposals = {slot.faction: [] for slot in session.journal.teams}
+    session.ready = {}
     session.offers = []
     session.responses = {}
     session.submitted = set()
@@ -253,6 +336,7 @@ def undo_round() -> None:
     J.save(session.path, session.journal)
     session.drafts = {slot.faction: [] for slot in session.journal.teams}
     session.proposals = {slot.faction: [] for slot in session.journal.teams}
+    session.ready = {}
     session.offers = []
     session.responses = {}
     session.submitted = set()

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ role.title }}</h1>
+<p class="round">{{ faction.title }} · {{ t("roles.enter_code") }}</p>
+{% if error %}<p class="big">{{ error }}</p>{% endif %}
+<section class="card">
+  <form method="post" action="/team/{{ faction.id }}/{{ role.id }}/login">
+    <label>{{ t("team.code_label") }}
+      <input name="code" autocomplete="off" autofocus>
+    </label>
+    <button type="submit">{{ t("team.enter") }}</button>
+  </form>
+</section>
+{% endblock %}

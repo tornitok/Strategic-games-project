@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% import "_blocks.html" as blocks with context %}
+{% block body %}
+<div id="cover" hidden class="cover"><p>{{ t("team.hidden") }}</p></div>
+<script src="/static/hide.js" data-autohide="{{ 1 if autohide else 0 }}" defer></script>
+
+<h1>{{ role.title }}</h1>
+<p class="round">{{ faction.title }} ·
+   {{ t("common.round_of", n=state.round, total=spec.meta.rounds) }} ·
+   {{ t("team.points_left", left=points_left, total=spec.meta.action_points) }}</p>
+
+<section class="card status">
+  <h2>{{ t("roles.what_now") }}</h2>
+  {% if i_am_ready %}
+    <p class="big">{{ t("roles.you_are_ready") }}</p>
+  {% else %}
+    <p class="big">{{ t("roles.your_turn") }}</p>
+  {% endif %}
+  {% if waiting_roles %}
+    <p>{{ t("roles.waiting_for") }} {{ waiting_roles | join(", ") }}.</p>
+  {% else %}
+    <p>{{ t("roles.all_ready") }}</p>
+  {% endif %}
+  {% if not i_am_ready %}
+  <form method="post" action="/team/{{ faction.id }}/{{ role.id }}/ready">
+    <button type="submit">{{ t("roles.mark_ready") }}</button>
+  </form>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>{{ t("roles.on_the_table") }}</h2>
+  {% if proposals %}
+  <ul class="orders">
+    {% for p in proposals %}
+    <li class="proposal">
+      <div>
+        <span><strong>{{ p.title }}</strong>{% if p.target %} → {{ p.target }}{% endif %}</span>
+        <span class="intent">{{ t("roles.proposed_by") }} {{ p.author }}{% if p.intent %}: «{{ p.intent }}»{% endif %}</span>
+        <span class="intent">
+          {% if p.passed %}{{ t("roles.passed", given=p.given, needed=p.needed) }}
+          {% else %}{{ t("roles.not_yet", given=p.given, needed=p.needed) }}{% endif %}
+          {% if p.waiting %} · {{ t("roles.still_voting", n=p.waiting) }}{% endif %}
+        </span>
+        <span class="intent vote-state">
+          {% if p.my_vote is none %}{{ t("roles.you_have_not_voted") }}
+          {% elif p.my_vote %}{{ t("roles.you_voted_for") }}
+          {% else %}{{ t("roles.you_voted_against") }}{% endif %}
+        </span>
+      </div>
+      <form method="post" action="/team/{{ faction.id }}/{{ role.id }}/vote" class="row">
+        <input type="hidden" name="proposal" value="{{ p.id }}">
+        <button type="submit" name="support" value="1">{{ t("roles.vote_for") }}</button>
+        <button type="submit" class="secondary">{{ t("roles.vote_against") }}</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="round">{{ t("roles.nothing_proposed") }}</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>{{ t("roles.your_mandate") }}</h2>
+  {% for block in role_briefing %}<p>{{ block }}</p>{% endfor %}
+  {% if role.goals %}
+  <h4>{{ t("team.goals") }}</h4>
+  <table>
+    {% for goal in role.goals %}
+    <tr><td>{{ goal.title }}</td><td style="text-align:right">{{ goal.score | num }} {{ t("common.points_short") }}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  <p class="round">{{ t("roles.private_note") }}</p>
+</section>
+
+<section class="card">
+  <h2>{{ t("team.briefing") }}</h2>
+  {% for block in briefing %}<p>{{ block }}</p>{% endfor %}
+  {% if faction.goals %}
+  <h4>{{ t("roles.team_goals") }}</h4>
+  <table>
+    {% for goal in faction.goals %}
+    <tr><td>{{ goal.title }}</td><td style="text-align:right">{{ goal.score | num }} {{ t("common.points_short") }}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>{{ t("team.news") }}</h2>
+  {{ blocks.news_feed(items) }}
+</section>
+
+<section class="card">
+  <h2>{{ t("team.situation") }}</h2>
+  <div class="sides">
+    {% for id, values in tracks.items() %}
+    <div class="side">
+      <div class="title">{{ spec.faction(id).title }}{% if id == faction.id %} — {{ t("common.you") }}{% endif %}</div>
+      <ul class="tracks">
+        {% for name, value in values.items() %}
+        <li class="track {% if id == faction.id %}own{% endif %}">
+          <span class="value">{{ value | num }}</span><span class="name">{{ name }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<h2>{{ t("roles.propose_something") }}</h2>
+<div class="actions-grid">
+{% for option in options %}
+  {% set card = cards[option.action.id] %}
+  <details class="card action {% if not option.available %}disabled{% endif %}">
+    <summary>
+      <span class="action-title">{{ option.action.title }}</span>
+      <span class="action-cost">{{ card.cost }} · {{ card.points }} {{ t("common.points_short") }}{% if card.secret %} · {{ t("team.secret") }}{% endif %}</span>
+    </summary>
+    <p>{{ option.action.description }}</p>
+    {% if card.effects %}<p class="meta"><strong>{{ t("team.will_happen") }}</strong> {{ card.effects | join(", ") }}</p>{% endif %}
+    {% for risk in card.risks %}
+    <p class="meta">{{ risk.chance }} — {{ risk.title }}: {{ risk.effects | join(", ") }}</p>
+    {% endfor %}
+    {% for trouble in card.complications %}
+    <p class="meta why">{{ trouble.chance }} — {{ trouble.title }}{% if trouble.effects %}: {{ trouble.effects | join(", ") }}{% endif %}</p>
+    {% endfor %}
+    {% if option.available %}
+    <form method="post" action="/team/{{ faction.id }}/{{ role.id }}/propose">
+      <input type="hidden" name="action" value="{{ option.action.id }}">
+      {% if option.action.target == "faction" %}
+      <label>{{ t("team.target") }}
+        <select name="target">
+          {% for other in others %}<option value="{{ other.id }}">{{ other.title }}</option>{% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      <label>{{ t("roles.why") }}
+        <input name="intent" maxlength="300" placeholder="{{ t('roles.why_hint') }}">
+      </label>
+      <button type="submit">{{ t("roles.propose") }}</button>
+    </form>
+    {% else %}
+    <p class="why">{{ t("team.unavailable") }} {{ option.reason }}</p>
+    {% endif %}
+  </details>
+{% endfor %}
+</div>
+{% endblock %}

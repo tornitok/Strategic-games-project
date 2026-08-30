@@ -9,6 +9,7 @@ from ...narrate.news import news_items
 from ... import __name__ as _pkg  # noqa: F401
 from ...i18n import t
 from ...narrate.reference import action_card
+from ...narrate.news import news_items
 from ...narrate.view import tracks_for
 from ...session.replay import states
 from .. import config, live, present
@@ -17,6 +18,18 @@ from ..app import language_of, page
 router = APIRouter()
 
 COOKIE = "sgame_team"
+ROLE_COOKIE = "sgame_role"
+
+
+def _role_authorised(request: Request, faction: str, role: str) -> bool:
+    session = live.current()
+    if session is None:
+        return False
+    slot = session.journal.slot(faction)
+    if slot is None:
+        return False
+    expected = slot.role_code(role)
+    return bool(expected) and request.cookies.get(ROLE_COOKIE) == f"{faction}:{role}:{expected}"
 
 
 def _authorised(request: Request, faction: str) -> bool:
@@ -32,6 +45,14 @@ def screen(request: Request, faction: str):
     session = live.require()
     lang = language_of(request)
     spec = live.display_spec(lang)
+    if spec.faction(faction) and spec.faction(faction).roles:
+        # У стороны с ролями общего экрана нет: каждый входит под своей
+        # должностью, иначе тайные цели теряют смысл.
+        return page(
+            request,
+            "role_picker.html",
+            {"spec": spec, "faction": spec.faction(faction)},
+        )
     if not _authorised(request, faction):
         return page(
             request,
@@ -184,3 +205,138 @@ def done(request: Request, faction: str):
         "team_done.html",
         {"next_team": spec.faction(waiting[0].faction).title if waiting else None},
     )
+
+
+def _role_context(request: Request, faction: str, role_id: str) -> dict:
+    """Всё, что видит роль: обстановка команды плюс своё личное и голосования."""
+    session = live.require()
+    lang = language_of(request)
+    spec = live.display_spec(lang)
+    state = live.state()
+    faction_spec = spec.faction(faction)
+    role = faction_spec.role(role_id)
+    others = [f for f in spec.factions if f.id != faction]
+
+    proposals = []
+    for proposal in session.proposals.get(faction, []):
+        counted = live.tally_of(faction, proposal.id)
+        action = spec.action(proposal.action)
+        proposals.append(
+            {
+                "id": proposal.id,
+                "title": action.title if action else proposal.action,
+                "target": spec.faction(proposal.target).title if proposal.target else "",
+                "author": faction_spec.role(proposal.author).title
+                if faction_spec.role(proposal.author)
+                else proposal.author,
+                "intent": proposal.intent,
+                "given": counted.given,
+                "needed": counted.needed,
+                "passed": counted.passed,
+                "waiting": counted.waiting,
+                "my_vote": proposal.votes.get(role_id),
+            }
+        )
+
+    waiting_roles = [
+        faction_spec.role(r).title for r in live.waiting_for(faction) if faction_spec.role(r)
+    ]
+    return {
+        "spec": spec,
+        "faction": faction_spec,
+        "role": role,
+        "state": state,
+        "briefing": present.paragraphs(faction_spec.briefing),
+        "role_briefing": present.paragraphs(role.briefing if role else ""),
+        "tracks": tracks_for(spec, state, faction),
+        "options": present.action_options(spec, state, faction, live.accepted_orders(faction)),
+        "cards": {
+            action.id: action_card(
+                spec, action, state=state, actor=faction,
+                target=others[0].id if others else None, lang=lang,
+            )
+            for action in spec.actions
+        },
+        "others": others,
+        "proposals": proposals,
+        "points_left": present.points_left(spec, live.accepted_orders(faction)),
+        "waiting_roles": waiting_roles,
+        "i_am_ready": role_id in session.ready.get(faction, set()),
+        "items": news_items(spec, live.last_events(), viewer=faction, role="team", lang=lang)
+        if session.journal.rounds
+        else [],
+        "autohide": not config.NETWORK,
+    }
+
+
+@router.get("/team/{faction}/{role_id}")
+def role_screen(request: Request, faction: str, role_id: str):
+    session = live.require()
+    spec = live.display_spec(language_of(request))
+    faction_spec = spec.faction(faction)
+    if faction_spec is None or faction_spec.role(role_id) is None:
+        return RedirectResponse(f"/team/{faction}", status_code=303)
+    if not _role_authorised(request, faction, role_id):
+        return page(
+            request,
+            "role_login.html",
+            {"faction": faction_spec, "role": faction_spec.role(role_id), "error": ""},
+        )
+    return page(request, "role.html", _role_context(request, faction, role_id))
+
+
+@router.post("/team/{faction}/{role_id}/login")
+def role_login(request: Request, faction: str, role_id: str, code: str = Form(...)):
+    session = live.require()
+    spec = live.display_spec(language_of(request))
+    faction_spec = spec.faction(faction)
+    slot = session.journal.slot(faction)
+    expected = slot.role_code(role_id) if slot else None
+    if not expected or expected != code.strip().upper():
+        return page(
+            request,
+            "role_login.html",
+            {
+                "faction": faction_spec,
+                "role": faction_spec.role(role_id),
+                "error": t("team.wrong_code", language_of(request)),
+            },
+        )
+    response = RedirectResponse(f"/team/{faction}/{role_id}", status_code=303)
+    response.set_cookie(ROLE_COOKIE, f"{faction}:{role_id}:{expected}",
+                        httponly=True, samesite="strict")
+    return response
+
+
+@router.post("/team/{faction}/{role_id}/propose")
+def role_propose(
+    request: Request,
+    faction: str,
+    role_id: str,
+    action: str = Form(...),
+    target: str = Form(default=""),
+    intent: str = Form(default=""),
+):
+    if _role_authorised(request, faction, role_id):
+        live.propose(faction, role_id, action=action, target=target or None, intent=intent)
+    return RedirectResponse(f"/team/{faction}/{role_id}", status_code=303)
+
+
+@router.post("/team/{faction}/{role_id}/vote")
+def role_vote(
+    request: Request,
+    faction: str,
+    role_id: str,
+    proposal: str = Form(...),
+    support: str = Form(default=""),
+):
+    if _role_authorised(request, faction, role_id):
+        live.vote(faction, role_id, proposal, bool(support))
+    return RedirectResponse(f"/team/{faction}/{role_id}", status_code=303)
+
+
+@router.post("/team/{faction}/{role_id}/ready")
+def role_ready(request: Request, faction: str, role_id: str):
+    if _role_authorised(request, faction, role_id):
+        live.mark_ready(faction, role_id)
+    return RedirectResponse(f"/team/{faction}/{role_id}", status_code=303)

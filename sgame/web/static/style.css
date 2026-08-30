@@ -342,3 +342,11 @@ details.action { position: relative; }
 .action-cost { font-size: .85rem; color: var(--muted); }
 details.action[open] > summary { margin-bottom: .6rem; }
 .round.warn { color: var(--warn); }
+
+/* Роли: состояние должно читаться, а не угадываться */
+.status .big { font-size: 1.05rem; padding: .7rem .9rem; }
+.proposal { align-items: flex-start; gap: .6rem; }
+.proposal > div { display: flex; flex-direction: column; gap: .1rem; }
+.proposal .vote-state { color: var(--accent); }
+a.card.action { text-decoration: none; color: inherit; display: block; }
+a.card.action:hover { border-color: var(--accent); }

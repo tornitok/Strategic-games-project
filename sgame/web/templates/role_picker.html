@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ faction.title }}</h1>
+<p class="round">{{ t("roles.pick") }}</p>
+<div class="actions-grid">
+  {% for role in faction.roles %}
+  <a class="card action" href="/team/{{ faction.id }}/{{ role.id }}">
+    <h3>{{ role.title }}</h3>
+    <p class="meta">{{ t("roles.weight", n=role.weight) }}</p>
+  </a>
+  {% endfor %}
+</div>
+<p class="round">{{ t("roles.pick_hint") }}</p>
+{% endblock %}
