@@ -24,6 +24,18 @@ EARLY_SHARE = 0.6    # партия короче этой доли раундо�
 ENOUGH_GAMES = 20    # ниже этого «ни разу» — повод присмотреться, а не приговор
 
 
+def worth_reporting(chance: float, times_chosen: int, threshold: float = 3.0) -> bool:
+    """Стоит ли жаловаться на осложнение, которое ни разу не случилось.
+
+    Нулевая вероятность — почти всегда опечатка, о ней говорим сразу. В
+    остальных случаях молчание значимо только при достаточном числе бросков:
+    иначе предупреждение срабатывает на шуме, и врача перестают читать.
+    """
+    if chance == 0:
+        return True
+    return times_chosen * chance >= threshold
+
+
 @dataclass(frozen=True)
 class Finding:
     code: str
@@ -77,6 +89,7 @@ def check(spec: ScenarioSpec, games: int = 12) -> list[Finding]:
     chosen_actions: Counter = Counter()
     available_actions: set[str] = set()
     stuck: Counter = Counter()
+    complications_seen: set[str] = set()
     dead_turns = 0
     track_values: dict[str, list[float]] = {}
     observations = 0
@@ -101,6 +114,9 @@ def check(spec: ScenarioSpec, games: int = 12) -> list[Finding]:
             for title, _ in breakdown[1:]:
                 goal_hits[(faction.id, title)] += 1
 
+        for events in result.events:
+            for title in events:
+                complications_seen.add(title)
         for record in result.rounds:
             observations += 1
             for name, track in spec.world.items():
@@ -186,6 +202,30 @@ def check(spec: ScenarioSpec, games: int = 12) -> list[Finding]:
                     "предупреждение",
                     f"трек «{title}» упирается в границу в {count * 100 // observations}% "
                     "раундов — шкала подобрана неверно",
+                )
+            )
+
+    for action in spec.actions:
+        # Если действие вообще не заказывали, осложнение и не могло сработать:
+        # виновата не вероятность, и об этом уже сказано отдельной строкой.
+        if action.id not in chosen_actions:
+            continue
+        for complication in action.complications:
+            if complication.title in complications_seen:
+                continue
+            times = chosen_actions[action.id]
+            if not worth_reporting(complication.chance, times):
+                continue
+            if complication.chance == 0:
+                reason = "вероятность равна нулю"
+            else:
+                reason = f"должно было примерно {times * complication.chance:.0f} раз"
+            findings.append(
+                Finding(
+                    "dead_complication",
+                    "предупреждение",
+                    f"осложнение «{complication.title}» ({action.title}) не случилось ни "
+                    f"разу: {reason}",
                 )
             )
 

@@ -151,7 +151,7 @@ factions:
     goals:
       - { id: peace, title: "Мир сохранён", when: "world.escalation < 72", score: 32 }
       - { id: trade, title: "Торговля не рухнула", when: "world.markets >= 28", score: 22 }
-      - { id: rich, title: "Экономика выросла", when: "self.economy >= 75", score: 10 }
+      - { id: rich, title: "Экономика выросла", when: "self.economy >= 62", score: 10 }
 
   - id: norland
     title: "Норланд"
@@ -202,6 +202,11 @@ actions:
       - { relation: [self, target], delta: "-18" }
       - { self: legitimacy, delta: "3" }
       - { world: markets, delta: "-3" }
+    complications:
+      - chance: 0.05
+        title: "Срок истёк впустую"
+        news: "Ультиматум истёк без ответа: угроза выглядит пустой"
+        effects: [ { self: legitimacy, delta: "-9" } ]
 
   - id: mobilize
     title: "Мобилизация резервов"
@@ -214,6 +219,11 @@ actions:
       - { self: readiness, delta: "15" }
       - { world: escalation, delta: "6" }
       - { self: legitimacy, delta: "-4" }
+    complications:
+      - chance: 0.05
+        title: "Авария при развёртывании"
+        news: "Колонна техники столкнулась на марше: погибшие"
+        effects: [ { self: legitimacy, delta: "-10" }, { self: forces, delta: "-5" } ]
 
   - id: alert
     title: "Стратегическая тревога"
@@ -225,6 +235,11 @@ actions:
       - { self: readiness, delta: "20" }
       - { world: escalation, delta: "13" }
       - { world: markets, delta: "-5" }
+    complications:
+      - chance: 0.05
+        title: "Опасное сближение"
+        news: "Самолёты сошлись на встречных курсах в километре друг от друга"
+        effects: [ { world: escalation, delta: "10" }, { world: markets, delta: "-6" } ]
 
   - id: standdown
     title: "Отвод и разрядка"
@@ -270,6 +285,11 @@ actions:
       - { self: economy, delta: "2" }
       - { relation: [self, target], delta: "-15" }
       - { world: markets, delta: "-4" }
+    complications:
+      - chance: 0.05
+        title: "Санкции ударили по своим"
+        news: "Экспортёры теряют рынок: протест в промышленных регионах"
+        effects: [ { self: economy, delta: "-12" }, { self: legitimacy, delta: "-6" } ]
 
   - id: support_trade
     title: "Поддержка рынков"
@@ -307,6 +327,11 @@ actions:
       - { p: 0.35, title: "частично", effects: [ { target: economy, delta: "-10" } ] }
       - { p: 0.20, title: "провал и след", effects: [ { self: intel, delta: "-15" },
                                                       { world: escalation, delta: "10" } ] }
+    complications:
+      - chance: 0.06
+        title: "Задета гражданская сеть"
+        news: "Отключение обесточило больницы соседней страны"
+        effects: [ { self: legitimacy, delta: "-12" }, { world: attention, delta: "14" } ]
 
   - id: hardening
     title: "Защита сетей"
@@ -349,6 +374,11 @@ actions:
       - { p: 0.35, title: "без результата", effects: [] }
       - { p: 0.25, title: "скандал", effects: [ { self: legitimacy, delta: "-12" },
                                                 { world: attention, delta: "12" } ] }
+    complications:
+      - chance: 0.06
+        title: "Оружие всплыло не там"
+        news: "Поставленное оружие найдено у террористов"
+        effects: [ { self: legitimacy, delta: "-14" }, { world: attention, delta: "16" } ]
 
   - id: address
     title: "Обращение к нации"
@@ -358,6 +388,11 @@ actions:
     effects:
       - { self: legitimacy, delta: "6" }
       - { world: attention, delta: "3" }
+    complications:
+      - chance: 0.04
+        title: "Оговорка в эфире"
+        news: "Оговорка в прямом эфире разошлась по сети"
+        effects: [ { self: legitimacy, delta: "-7" } ]
 
   - id: align
     title: "Присоединиться к курсу"

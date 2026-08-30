@@ -173,7 +173,7 @@ factions:
     score: 20
   - id: solvent
     title: Treasury not empty
-    when: self.budget >= 55
+    when: self.budget >= 42
     score: 15
 - id: tarnia
   title: Tarnia
@@ -313,6 +313,15 @@ actions:
       delta: '-10'
     - world: refugees
       delta: '6'
+  complications:
+  - chance: 0.06
+    title: Friendly fire
+    news: 'Artillery hit its own: losses among the advancing units'
+    effects:
+    - self: army
+      delta: '-7'
+    - self: legitimacy
+      delta: '-8'
 - id: push_south
   title: Offensive northward
   description: An attempt to take the valley back by force.
@@ -351,6 +360,15 @@ actions:
       delta: '-10'
     - world: refugees
       delta: '6'
+  complications:
+  - chance: 0.06
+    title: Friendly fire
+    news: 'Artillery hit its own: losses among the advancing units'
+    effects:
+    - self: army
+      delta: '-7'
+    - self: legitimacy
+      delta: '-8'
 - id: entrench
   title: Strengthening the defence
   description: Trenches, mines, reserves in the second echelon.
@@ -383,6 +401,17 @@ actions:
     - self
     - target
     delta: '-8'
+  complications:
+  - chance: 0.07
+    title: A shell landed in a village
+    news: 'A shell exploded in a residential block: civilians were killed'
+    effects:
+    - world: refugees
+      delta: '12'
+    - self: legitimacy
+      delta: '-10'
+    - world: attention
+      delta: '12'
 - id: mobilize
   title: Calling up reservists
   description: Filling out units by mobilisation.
@@ -396,6 +425,15 @@ actions:
     delta: '12'
   - self: legitimacy
     delta: '-6'
+  complications:
+  - chance: 0.05
+    title: Draft evasion
+    news: Recruitment offices are missing a third of those called up
+    effects:
+    - self: army
+      delta: '-6'
+    - self: legitimacy
+      delta: '-5'
 - id: supply
   title: Military supplies
   description: Weapons and equipment for the side you back.
@@ -418,6 +456,13 @@ actions:
     delta: '12'
   - world: attention
     delta: '5'
+  complications:
+  - chance: 0.05
+    title: The convoy was looted
+    news: A supply convoy was looted on the road
+    effects:
+    - self: budget
+      delta: '-12'
 - id: humanitarian
   title: Humanitarian aid
   description: Camps, food, corridors for civilians.
@@ -430,6 +475,15 @@ actions:
     delta: '-14'
   - self: legitimacy
     delta: '5'
+  complications:
+  - chance: 0.04
+    title: The queue turned into a crush
+    news: 'A crush during an aid distribution: there are injured'
+    effects:
+    - self: legitimacy
+      delta: '-6'
+    - world: attention
+      delta: '8'
 - id: mediate
   title: Mediation
   description: Shuttle diplomacy between the capitals.
@@ -476,6 +530,13 @@ actions:
     delta: '9'
   - world: attention
     delta: '3'
+  complications:
+  - chance: 0.04
+    title: The speech did not convince
+    news: 'The speech met with silence: the ratings did not move'
+    effects:
+    - self: legitimacy
+      delta: '-6'
 - id: intel_work
   title: Intelligence work
   description: Agents, intercepts, aerial reconnaissance.
@@ -518,6 +579,15 @@ actions:
     effects:
     - self: intel
       delta: '-12'
+  complications:
+  - chance: 0.06
+    title: The group was caught in the act
+    news: 'A sabotage group has been detained: the prisoners are talking'
+    effects:
+    - self: intel
+      delta: '-15'
+    - self: legitimacy
+      delta: '-8'
 - id: counterintel
   title: Counter-intelligence
   description: Guarding the rear, checking depots and supply routes.

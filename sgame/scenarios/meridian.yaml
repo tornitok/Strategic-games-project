@@ -149,6 +149,11 @@ actions:
       - { self: army, delta: "10" }
       - { self: legitimacy, delta: "-3" }
       - { world: tension, delta: "5" }
+    complications:
+      - chance: 0.05
+        title: "ЧП на сборном пункте"
+        news: "Гибель призывника на сборном пункте: скандал в прессе"
+        effects: [ { self: legitimacy, delta: "-12" }, { world: attention, delta: "10" } ]
 
   - id: demobilize
     title: "Отвод войск"
@@ -168,6 +173,11 @@ actions:
     effects:
       - { self: budget, delta: "38 - self.budget * 0.11" }
       - { self: legitimacy, delta: "2" }
+    complications:
+      - chance: 0.04
+        title: "Подряд ушёл своим"
+        news: "Стройку подряда отдали фирме родственника министра"
+        effects: [ { self: budget, delta: "-14" }, { self: legitimacy, delta: "-6" } ]
 
   - id: propaganda
     title: "Информационная кампания"
@@ -177,6 +187,11 @@ actions:
     effects:
       - { self: legitimacy, delta: "6" }
       - { world: attention, delta: "3" }
+    complications:
+      - chance: 0.05
+        title: "Кампания дала обратный эффект"
+        news: "Ролик подняли на смех: кампания обернулась против авторов"
+        effects: [ { self: legitimacy, delta: "-9" } ]
 
   - id: intel_work
     title: "Работа разведки"
@@ -203,6 +218,11 @@ actions:
                                              { relation: [self, target], delta: "-8" } ] }
       - { p: 0.3, title: "частичный успех", effects: [ { target: budget, delta: "-6" } ] }
       - { p: 0.2, title: "провал", effects: [ { self: intel, delta: "-12" } ] }
+    complications:
+      - chance: 0.05
+        title: "Задет госпиталь"
+        news: "Атака вывела из строя больничные системы: пострадали люди"
+        effects: [ { self: legitimacy, delta: "-10" }, { world: attention, delta: "12" } ]
 
   - id: cyber_defense
     title: "Киберзащита"
@@ -228,6 +248,11 @@ actions:
                                                         { relation: [self, target], delta: "-15" } ] }
       - { p: 0.4, title: "прорыв", effects: [ { self: legitimacy, delta: "-8" },
                                               { world: tension, delta: "8" } ] }
+    complications:
+      - chance: 0.06
+        title: "Столкновение в проливе"
+        news: "Таран при досмотре: судно затонуло, есть погибшие"
+        effects: [ { world: tension, delta: "12" }, { self: legitimacy, delta: "-8" } ]
 
   - id: show_force
     title: "Демонстрация силы"
@@ -276,6 +301,11 @@ actions:
       - { target: budget, delta: "20" }
       - { relation: [self, target], delta: "18" }
       - { self: legitimacy, delta: "-2" }
+    complications:
+      - chance: 0.04
+        title: "Помощь до людей не дошла"
+        news: "Гуманитарный груз обнаружен на чёрном рынке"
+        effects: [ { self: legitimacy, delta: "-7" }, { world: attention, delta: "6" } ]
 
   - id: covert_support
     title: "Тайная поддержка оппозиции"
@@ -292,6 +322,11 @@ actions:
       - { p: 0.35, title: "без результата", effects: [] }
       - { p: 0.20, title: "скандал", effects: [ { self: legitimacy, delta: "-10" },
                                                 { world: attention, delta: "10" } ] }
+    complications:
+      - chance: 0.05
+        title: "Провал с задержанием"
+        news: "Задержаны иностранные инструкторы: доказательства на столе"
+        effects: [ { self: legitimacy, delta: "-14" }, { world: attention, delta: "15" } ]
 
   - id: disinform
     title: "Вброс через прессу"
@@ -327,6 +362,11 @@ actions:
     effects:
       - { world: tension, delta: "-10" }
       - { self: legitimacy, delta: "-4" }
+    complications:
+      - chance: 0.05
+        title: "Обвинение в слабости"
+        news: "Оппозиция называет шаг капитуляцией"
+        effects: [ { self: legitimacy, delta: "-8" } ]
 
 deals:
   - { id: transfer, title: "Передача средств", kind: resource, track: budget }

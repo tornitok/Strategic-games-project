@@ -36,6 +36,17 @@ def _headline(spec: ScenarioSpec, event: Event) -> str:
     if event.kind == "action":
         action = next((a for a in spec.actions if a.title == event.title), None)
         template = action.news if action else ""
+    elif event.kind == "complication":
+        action = next(
+            (
+                complication
+                for candidate in spec.actions
+                for complication in candidate.complications
+                if complication.title == event.title
+            ),
+            None,
+        )
+        template = action.news if action else ""
     elif event.kind == "scenario_event":
         scenario_event = next((e for e in spec.events if e.title == event.title), None)
         template = scenario_event.news if scenario_event else ""
@@ -100,7 +111,7 @@ def news_items(
         )
         for event in visible
         if event.kind in {"action", "scenario_event", "deal_done", "status_expired",
-                          "world", "end", "rumour"}
+                          "world", "end", "rumour", "complication"}
     ]
 
     # Слух уже говорит о тайной активности — общий намёк рядом с ним лишний.

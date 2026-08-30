@@ -215,6 +215,15 @@ actions:
     delta: '-3'
   - world: tension
     delta: '5'
+  complications:
+  - chance: 0.05
+    title: Incident at the assembly point
+    news: 'A conscript dies at the assembly point: a scandal in the press'
+    effects:
+    - self: legitimacy
+      delta: '-12'
+    - world: attention
+      delta: '10'
 - id: demobilize
   title: Pulling troops back
   news: '{actor} demonstratively pulls units back from the border'
@@ -238,6 +247,15 @@ actions:
     delta: 38 - self.budget * 0.11
   - self: legitimacy
     delta: '2'
+  complications:
+  - chance: 0.04
+    title: The contract went to insiders
+    news: The contract went to a firm owned by a minister's relative
+    effects:
+    - self: budget
+      delta: '-14'
+    - self: legitimacy
+      delta: '-6'
 - id: propaganda
   title: Information campaign
   news: '{actor} launches a campaign across state media'
@@ -249,6 +267,13 @@ actions:
     delta: '6'
   - world: attention
     delta: '3'
+  complications:
+  - chance: 0.05
+    title: The campaign backfired
+    news: 'The clip was laughed at: the campaign turned against its authors'
+    effects:
+    - self: legitimacy
+      delta: '-9'
 - id: intel_work
   title: Intelligence work
   news: '{actor} steps up the work of its services'
@@ -294,6 +319,15 @@ actions:
     effects:
     - self: intel
       delta: '-12'
+  complications:
+  - chance: 0.05
+    title: A hospital was hit
+    news: 'The attack knocked out hospital systems: people were harmed'
+    effects:
+    - self: legitimacy
+      delta: '-10'
+    - world: attention
+      delta: '12'
 - id: cyber_defense
   title: Network defence
   news: '{actor} hardens the defence of its financial networks'
@@ -334,6 +368,15 @@ actions:
       delta: '-8'
     - world: tension
       delta: '8'
+  complications:
+  - chance: 0.06
+    title: Collision in the strait
+    news: 'A ramming during inspection: the ship sank, there are dead'
+    effects:
+    - world: tension
+      delta: '12'
+    - self: legitimacy
+      delta: '-8'
 - id: show_force
   title: Show of force
   stance: hostile
@@ -402,6 +445,15 @@ actions:
     delta: '18'
   - self: legitimacy
     delta: '-2'
+  complications:
+  - chance: 0.04
+    title: The aid never reached people
+    news: Humanitarian cargo turns up on the black market
+    effects:
+    - self: legitimacy
+      delta: '-7'
+    - world: attention
+      delta: '6'
 - id: covert_support
   title: Covert support for the opposition
   stance: hostile
@@ -430,6 +482,15 @@ actions:
       delta: '-10'
     - world: attention
       delta: '10'
+  complications:
+  - chance: 0.05
+    title: Caught in the act
+    news: 'Foreign instructors detained: the evidence is on the table'
+    effects:
+    - self: legitimacy
+      delta: '-14'
+    - world: attention
+      delta: '15'
 - id: disinform
   title: A plant in the press
   stance: hostile
@@ -474,6 +535,13 @@ actions:
     delta: '-10'
   - self: legitimacy
     delta: '-4'
+  complications:
+  - chance: 0.05
+    title: Accused of weakness
+    news: The opposition calls the step a capitulation
+    effects:
+    - self: legitimacy
+      delta: '-8'
 deals:
 - id: transfer
   title: Transfer of funds

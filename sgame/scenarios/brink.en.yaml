@@ -221,7 +221,7 @@ factions:
     score: 22
   - id: rich
     title: Economy grew
-    when: self.economy >= 75
+    when: self.economy >= 62
     score: 10
 - id: norland
   title: Norland
@@ -310,6 +310,13 @@ actions:
     delta: '3'
   - world: markets
     delta: '-3'
+  complications:
+  - chance: 0.05
+    title: The deadline passed for nothing
+    news: 'The ultimatum expired unanswered: the threat looks empty'
+    effects:
+    - self: legitimacy
+      delta: '-9'
 - id: mobilize
   title: Calling up reserves
   description: Calling up reservists and deploying units.
@@ -326,6 +333,15 @@ actions:
     delta: '6'
   - self: legitimacy
     delta: '-4'
+  complications:
+  - chance: 0.05
+    title: An accident during deployment
+    news: 'A vehicle column collided on the march: casualties'
+    effects:
+    - self: legitimacy
+      delta: '-10'
+    - self: forces
+      delta: '-5'
 - id: alert
   title: Strategic alert
   description: Raising the alert level of strategic forces.
@@ -340,6 +356,15 @@ actions:
     delta: '13'
   - world: markets
     delta: '-5'
+  complications:
+  - chance: 0.05
+    title: A dangerous near miss
+    news: Aircraft closed head-on within a kilometre of each other
+    effects:
+    - world: escalation
+      delta: '10'
+    - world: markets
+      delta: '-6'
 - id: standdown
   title: Standing down
   description: A demonstrative reduction of readiness.
@@ -401,6 +426,15 @@ actions:
     delta: '-15'
   - world: markets
     delta: '-4'
+  complications:
+  - chance: 0.05
+    title: The sanctions hit your own side
+    news: 'Exporters are losing the market: protests in industrial regions'
+    effects:
+    - self: economy
+      delta: '-12'
+    - self: legitimacy
+      delta: '-6'
 - id: support_trade
   title: Supporting the markets
   description: Coordinated measures and supply guarantees.
@@ -459,6 +493,15 @@ actions:
       delta: '-15'
     - world: escalation
       delta: '10'
+  complications:
+  - chance: 0.06
+    title: A civilian network was hit
+    news: The outage cut power to hospitals in a neighbouring country
+    effects:
+    - self: legitimacy
+      delta: '-12'
+    - world: attention
+      delta: '14'
 - id: hardening
   title: Network defence
   description: Hardening critical infrastructure.
@@ -519,6 +562,15 @@ actions:
       delta: '-12'
     - world: attention
       delta: '12'
+  complications:
+  - chance: 0.06
+    title: The weapons surfaced in the wrong hands
+    news: Supplied weapons have been found with terrorists
+    effects:
+    - self: legitimacy
+      delta: '-14'
+    - world: attention
+      delta: '16'
 - id: address
   title: Address to the nation
   description: A speech explaining the government's course.
@@ -530,6 +582,13 @@ actions:
     delta: '6'
   - world: attention
     delta: '3'
+  complications:
+  - chance: 0.04
+    title: A slip on air
+    news: A slip of the tongue on live television spread across the networks
+    effects:
+    - self: legitimacy
+      delta: '-7'
 - id: align
   title: Falling in behind the course
   description: Public backing for the strongest in exchange for access to its markets.

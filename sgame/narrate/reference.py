@@ -125,6 +125,17 @@ def action_card(
         }
         for outcome in action.risk
     ]
+    complications = [
+        {
+            "title": complication.title,
+            "chance": f"{complication.chance * 100:g}%" if exact else chance_word(complication.chance, lang),
+            "effects": [
+                describe_effect(spec, effect, state, actor, target, lang)
+                for effect in complication.effects
+            ],
+        }
+        for complication in action.complications
+    ]
     return {
         "id": action.id,
         "title": action.title,
@@ -138,4 +149,5 @@ def action_card(
             describe_effect(spec, effect, state, actor, target, lang) for effect in action.effects
         ],
         "risks": risks,
+        "complications": complications,
     }

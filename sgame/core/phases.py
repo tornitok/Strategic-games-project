@@ -330,6 +330,29 @@ def phase_effects(
             )
         )
 
+        # Осложнения — поверх обычного результата, а не вместо него.
+        for number, complication in enumerate(item.action.complications):
+            rng = stream(seed, builder.round, f"{item.roll_id}:complication:{number}")
+            if not happens(rng, complication.chance):
+                continue
+            extra: list[Delta] = []
+            for effect in complication.effects:
+                extra.extend(
+                    apply_effect(spec, builder, effect, item.faction, item.order.target)
+                )
+            events.append(
+                Event(
+                    kind="complication",
+                    title=complication.title,
+                    actor=item.faction,
+                    detail=complication.text,
+                    deltas=tuple(extra),
+                    # У тайного действия осложнение остаётся тайным: иначе оно
+                    # прямо указывает на автора.
+                    audience=audience,
+                )
+            )
+
         if multiplier < 1.0:
             events.append(
                 Event(

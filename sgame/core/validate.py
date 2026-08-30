@@ -116,6 +116,12 @@ def validate_scenario(spec: ScenarioSpec, lines: dict[str, int]) -> list[Problem
                 )
             for j, outcome in enumerate(action.risk):
                 check_effects(outcome.effects, ("actions", i, "risk", j, "effects"), where)
+        for j, complication in enumerate(action.complications):
+            check_effects(
+                complication.effects,
+                ("actions", i, "complications", j, "effects"),
+                f"{where}: осложнение {complication.title!r}",
+            )
 
     for i, deal in enumerate(spec.deals):
         line = at("deals", i)

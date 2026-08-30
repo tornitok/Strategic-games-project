@@ -223,12 +223,14 @@ class Simulation:
     state: GameState
     scores: dict[str, float]
     rounds: list[dict] = field(default_factory=list)
+    events: list[list[str]] = field(default_factory=list)
 
 
 def simulate(spec: ScenarioSpec, roles: dict[str, str], seed: int) -> Simulation:
     """Прогнать сценарий ботами до конца и вернуть, что получилось."""
     state = initial_state(spec)
     rounds: list[dict] = []
+    complications: list[list[str]] = []
 
     for round_no in range(1, spec.meta.rounds + 1):
         orders = {
@@ -264,6 +266,9 @@ def simulate(spec: ScenarioSpec, roles: dict[str, str], seed: int) -> Simulation
 
         result = resolve(spec, state, orders, offers, responses, seed)
         state = result.state
+        complications.append(
+            [e.title for e in result.events if e.kind == "complication"]
+        )
         rounds.append(
             {
                 "n": round_no,
@@ -280,6 +285,7 @@ def simulate(spec: ScenarioSpec, roles: dict[str, str], seed: int) -> Simulation
             break
 
     return Simulation(
+        events=complications,
         state=state,
         scores={f.id: score(spec, state, f.id)[0] for f in spec.factions},
         rounds=rounds,

@@ -67,6 +67,9 @@
         {% for risk in card.risks %}
         <div class="round">{{ risk.chance }} — {{ risk.title }}: {{ risk.effects | join(", ") }}</div>
         {% endfor %}
+        {% for trouble in card.complications %}
+        <div class="round warn">{{ trouble.chance }} — {{ trouble.title }}{% if trouble.effects %}: {{ trouble.effects | join(", ") }}{% endif %}</div>
+        {% endfor %}
         {% if not card.effects and not card.risks %}—{% endif %}
       </td>
     </tr>

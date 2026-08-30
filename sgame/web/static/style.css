@@ -341,3 +341,4 @@ details.action { position: relative; }
 .action-title { font-weight: 600; }
 .action-cost { font-size: .85rem; color: var(--muted); }
 details.action[open] > summary { margin-bottom: .6rem; }
+.round.warn { color: var(--warn); }

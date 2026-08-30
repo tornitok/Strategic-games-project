@@ -125,7 +125,7 @@ factions:
     goals:
       - { id: take, title: "Ложбина отбита", when: "world.frontline <= 45", score: 40 }
       - { id: support, title: "Общество не отвернулось", when: "self.legitimacy >= 40", score: 20 }
-      - { id: solvent, title: "Казна не пуста", when: "self.budget >= 55", score: 15 }
+      - { id: solvent, title: "Казна не пуста", when: "self.budget >= 42", score: 15 }
 
   - id: tarnia
     title: "Тарния"
@@ -198,6 +198,11 @@ actions:
       - { p: 0.25, title: "атака захлебнулась", effects: [ { self: army, delta: "-8" },
                                                            { self: legitimacy, delta: "-10" },
                                                            { world: refugees, delta: "6" } ] }
+    complications:
+      - chance: 0.06
+        title: "Дружественный огонь"
+        news: "Артиллерия накрыла своих: потери в наступающих частях"
+        effects: [ { self: army, delta: "-7" }, { self: legitimacy, delta: "-8" } ]
 
   - id: push_south
     title: "Наступление на север"
@@ -217,6 +222,11 @@ actions:
       - { p: 0.25, title: "атака захлебнулась", effects: [ { self: army, delta: "-8" },
                                                            { self: legitimacy, delta: "-10" },
                                                            { world: refugees, delta: "6" } ] }
+    complications:
+      - chance: 0.06
+        title: "Дружественный огонь"
+        news: "Артиллерия накрыла своих: потери в наступающих частях"
+        effects: [ { self: army, delta: "-7" }, { self: legitimacy, delta: "-8" } ]
 
   - id: entrench
     title: "Укрепление обороны"
@@ -241,6 +251,11 @@ actions:
       - { world: refugees, delta: "7" }
       - { world: attention, delta: "4" }
       - { relation: [self, target], delta: "-8" }
+    complications:
+      - chance: 0.07
+        title: "Снаряд ушёл в село"
+        news: "Снаряд разорвался в жилом квартале: погибли гражданские"
+        effects: [ { world: refugees, delta: "12" }, { self: legitimacy, delta: "-10" }, { world: attention, delta: "12" } ]
 
   - id: mobilize
     title: "Призыв резервистов"
@@ -252,6 +267,11 @@ actions:
     effects:
       - { self: army, delta: "12" }
       - { self: legitimacy, delta: "-6" }
+    complications:
+      - chance: 0.05
+        title: "Уклонисты"
+        news: "Военкоматы не досчитались трети призванных"
+        effects: [ { self: army, delta: "-6" }, { self: legitimacy, delta: "-5" } ]
 
   - id: supply
     title: "Военные поставки"
@@ -266,6 +286,11 @@ actions:
       - { self: budget, delta: "5" }
       - { relation: [self, target], delta: "12" }
       - { world: attention, delta: "5" }
+    complications:
+      - chance: 0.05
+        title: "Колонна разграблена"
+        news: "Колонна с поставками разграблена по дороге"
+        effects: [ { self: budget, delta: "-12" } ]
 
   - id: humanitarian
     title: "Гуманитарная помощь"
@@ -276,6 +301,11 @@ actions:
     effects:
       - { world: refugees, delta: "-14" }
       - { self: legitimacy, delta: "5" }
+    complications:
+      - chance: 0.04
+        title: "Очередь превратилась в давку"
+        news: "Давка при раздаче помощи: есть пострадавшие"
+        effects: [ { self: legitimacy, delta: "-6" }, { world: attention, delta: "8" } ]
 
   - id: mediate
     title: "Посредничество"
@@ -310,6 +340,11 @@ actions:
     effects:
       - { self: legitimacy, delta: "9" }
       - { world: attention, delta: "3" }
+    complications:
+      - chance: 0.04
+        title: "Речь не убедила"
+        news: "Речь встречена молчанием: рейтинг не вырос"
+        effects: [ { self: legitimacy, delta: "-6" } ]
 
   - id: intel_work
     title: "Работа разведки"
@@ -336,6 +371,11 @@ actions:
                                              { target: budget, delta: "-10" } ] }
       - { p: 0.3, title: "частично", effects: [ { target: budget, delta: "-5" } ] }
       - { p: 0.2, title: "провал и потери", effects: [ { self: intel, delta: "-12" } ] }
+    complications:
+      - chance: 0.06
+        title: "Группа взята с поличным"
+        news: "Диверсионная группа задержана: пленные дают показания"
+        effects: [ { self: intel, delta: "-15" }, { self: legitimacy, delta: "-8" } ]
 
   - id: counterintel
     title: "Контрразведка"

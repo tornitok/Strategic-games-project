@@ -72,6 +72,16 @@ class RiskOutcome(Base):
     effects: list[EffectSpec] = []
 
 
+class ComplicationSpec(Base):
+    """Редкое «что-то пошло не так» поверх обычного результата действия."""
+
+    chance: float = Field(ge=0, le=1)
+    title: str
+    news: str = ""
+    text: str = ""
+    effects: list[EffectSpec] = []
+
+
 class ActionSpec(Base):
     id: str
     title: str
@@ -91,6 +101,7 @@ class ActionSpec(Base):
     counter_multiplier: float = Field(default=0.0, ge=0, le=1)
     effects: list[EffectSpec] = []
     risk: list[RiskOutcome] = []
+    complications: list[ComplicationSpec] = []
 
 
 class DealSpec(Base):

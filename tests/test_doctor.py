@@ -119,3 +119,36 @@ def test_small_sample_downgrades_the_verdict():
     assert few and few[0].severity == "предупреждение"
     assert "прогонов мало" in few[0].message
     assert many and many[0].severity == "ошибка"
+
+
+def test_detects_a_complication_with_zero_chance():
+    """Ноль в вероятности — почти всегда опечатка."""
+    extra = ('  - { id: risky, title: "Рискованное", news: "{actor} рискует", stance: neutral,\n'
+             '      complications: [ { chance: 0.0, title: "Никогда", effects: [] } ], effects: [] }')
+    found = check(scenario(extra_actions=extra), games=6)
+    assert any(f.code == "dead_complication" and "Никогда" in f.message for f in found)
+
+
+def test_rare_complication_is_not_blamed_on_a_small_sample():
+    """Правило проверяем напрямую: через полный прогон это ненадёжно.
+
+    Редкое событие может случиться и при одном проценте, и тогда тест не
+    докажет ничего. Предупреждение, срабатывающее на шуме, приучает не читать
+    врача, поэтому правило важно проверить точно.
+    """
+    from sgame.doctor import worth_reporting
+
+    assert worth_reporting(chance=0.0, times_chosen=0) is True, "ноль — почти всегда опечатка"
+    assert worth_reporting(chance=0.05, times_chosen=10) is False, "полбросока — это шум"
+    assert worth_reporting(chance=0.05, times_chosen=200) is True, "десять ожидаемых — уже сигнал"
+    assert worth_reporting(chance=0.5, times_chosen=6) is True
+
+
+def test_dead_complication_is_not_blamed_when_the_action_is_never_used():
+    """Иначе диагноз указывает на вероятность, а причина в другом — действие не берут."""
+    extra = ('  - { id: dream, title: "Мечта", news: "{actor} мечтает", stance: neutral,\n'
+             '      cost: { budget: 9999 },\n'
+             '      complications: [ { chance: 1.0, title: "Никогда", effects: [] } ], effects: [] }')
+    found = check(scenario(extra_actions=extra), games=6)
+    assert not any(f.code == "dead_complication" for f in found)
+    assert any(f.code == "unusable_action" for f in found)

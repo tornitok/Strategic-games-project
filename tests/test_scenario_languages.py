@@ -36,6 +36,14 @@ def test_same_actions_with_same_numbers(pair):
         assert left.available_to == right.available_to, f"{name}: {left.id}"
         assert [e.delta for e in left.effects] == [e.delta for e in right.effects], f"{name}: {left.id}"
         assert [o.p for o in left.risk] == [o.p for o in right.risk], f"{name}: {left.id}"
+        assert [c.chance for c in left.complications] == [
+            c.chance for c in right.complications
+        ], f"{name}: {left.id}"
+        assert [
+            [e.delta for e in c.effects] for c in left.complications
+        ] == [
+            [e.delta for e in c.effects] for c in right.complications
+        ], f"{name}: {left.id}"
 
 
 def test_same_goals_and_thresholds(pair):
