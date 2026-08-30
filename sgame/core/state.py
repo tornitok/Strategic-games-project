@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .events import Delta
+from .expr import evaluate
 from .orders import DealOffer
 from .spec import ScenarioSpec
 
@@ -49,9 +50,23 @@ class GameState:
     finished: bool = False
 
 
+def starting_value(spec: ScenarioSpec, value: float | str) -> float:
+    """Стартовая величина: число или выражение от длины партии.
+
+    Длина известна до начала партии, поэтому запасы можно задавать так, чтобы
+    их хватало на всю игру, а не на первые три раунда.
+    """
+    if isinstance(value, (int, float)):
+        return float(value)
+    return float(evaluate(value, {"meta": {"rounds": spec.meta.rounds}}))
+
+
 def initial_state(spec: ScenarioSpec) -> GameState:
-    tracks = {f.id: dict(f.start) for f in spec.factions}
-    world = {name: track.start for name, track in spec.world.items()}
+    tracks = {
+        f.id: {name: starting_value(spec, value) for name, value in f.start.items()}
+        for f in spec.factions
+    }
+    world = {name: starting_value(spec, track.start) for name, track in spec.world.items()}
     relations: dict[tuple[str, str], float] = {}
     ids = [f.id for f in spec.factions]
     for i, a in enumerate(ids):

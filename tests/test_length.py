@@ -129,3 +129,47 @@ def test_the_mark_survives_when_the_crisis_cools_down():
         state = resolve(spec, state, {}, [], {}, seed=1).state
     assert state.world["tension"] < 55, "напряжённость успела упасть"
     assert any(title == "Был кризис" for title, _ in score(spec, state, "a")[1])
+
+
+SCALED = """
+schema_version: 1
+meta: {{ id: t, title: "Т", rounds: {rounds}, action_points: 1 }}
+tracks:
+  budget: {{ title: "Бюджет", min: 0, max: 400 }}
+world:
+  tension: {{ title: "Напряжённость", min: 0, max: 100, start: "20 + meta.rounds" }}
+factions:
+  - {{ id: a, title: "А", start: {{ budget: "60 + meta.rounds * 8" }} }}
+  - {{ id: b, title: "Б", start: {{ budget: 100 }} }}
+actions:
+  - {{ id: wait, title: "Ждать", news: "{{actor}} ждёт", effects: [] }}
+end: {{ when: "round > meta.rounds", scoring: "self.budget" }}
+"""
+
+
+def test_starting_reserves_can_be_computed_from_the_length():
+    """Запас должен считаться от числа раундов: оно известно до начала партии."""
+    short = initial_state(parse_scenario(SCALED.format(rounds=6)))
+    long = initial_state(parse_scenario(SCALED.format(rounds=15)))
+    assert short.tracks["a"]["budget"] == 108
+    assert long.tracks["a"]["budget"] == 180
+
+
+def test_plain_numbers_still_work():
+    state = initial_state(parse_scenario(SCALED.format(rounds=6)))
+    assert state.tracks["b"]["budget"] == 100
+
+
+def test_world_tracks_scale_too():
+    assert initial_state(parse_scenario(SCALED.format(rounds=6))).world["tension"] == 26
+    assert initial_state(parse_scenario(SCALED.format(rounds=15))).world["tension"] == 35
+
+
+def test_validator_catches_a_broken_starting_expression():
+    from sgame.core.spec import scenario_lines
+    from sgame.core.validate import validate_scenario
+
+    text = SCALED.format(rounds=6).replace('"60 + meta.rounds * 8"', '"60 + self.budget"')
+    spec = parse_scenario(text)
+    problems = validate_scenario(spec, scenario_lines(text))
+    assert any("self" in p.message for p in problems)

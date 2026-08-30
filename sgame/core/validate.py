@@ -70,13 +70,40 @@ def validate_scenario(spec: ScenarioSpec, lines: dict[str, int]) -> list[Problem
     for i, faction in enumerate(spec.factions):
         line = at("factions", i)
         for name, value in faction.start.items():
+            if isinstance(value, str):
+                # В стартовом выражении доступна только длина партии: сторон и
+                # мира ещё не существует.
+                try:
+                    bare, attrs = used_names(value)
+                except ExprError as exc:
+                    problems.append(Problem(f"сторона {faction.id!r}: старт {name!r}: {exc}", line))
+                    continue
+                for namespace, field in attrs:
+                    if namespace != "meta" or field != "rounds":
+                        problems.append(
+                            Problem(
+                                f"сторона {faction.id!r}: старт {name!r} может ссылаться "
+                                f"только на meta.rounds, а не на {namespace}.{field}",
+                                line,
+                            )
+                        )
+                for bare_name in bare:
+                    if bare_name not in _FUNC_NAMES:
+                        problems.append(
+                            Problem(
+                                f"сторона {faction.id!r}: старт {name!r}: неизвестное имя "
+                                f"{bare_name!r}",
+                                line,
+                            )
+                        )
+                continue
             if name not in tracks:
                 problems.append(
                     Problem(f"сторона {faction.id!r}: неизвестный трек {name!r}", line)
                 )
                 continue
             track = spec.tracks[name]
-            if not track.min <= value <= track.max:
+            if not track.min <= float(value) <= track.max:
                 problems.append(
                     Problem(
                         f"сторона {faction.id!r}: начальное значение {value:g} для {name!r} "

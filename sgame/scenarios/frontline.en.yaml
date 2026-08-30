@@ -110,7 +110,7 @@ factions:
 - id: karria
   title: Karria
   start:
-    budget: 110
+    budget: 78 + meta.rounds * 4
     army: 65
     legitimacy: 55
     intel: 45
@@ -144,7 +144,7 @@ factions:
 - id: osset
   title: Osset
   start:
-    budget: 85
+    budget: 53 + meta.rounds * 4
     army: 70
     legitimacy: 45
     intel: 55
@@ -178,7 +178,7 @@ factions:
 - id: tarnia
   title: Tarnia
   start:
-    budget: 140
+    budget: 108 + meta.rounds * 4
     army: 55
     legitimacy: 60
     intel: 60
@@ -212,7 +212,7 @@ factions:
 - id: league
   title: The Coastal League
   start:
-    budget: 150
+    budget: 118 + meta.rounds * 4
     army: 30
     legitimacy: 70
     intel: 40
@@ -651,7 +651,7 @@ world_dynamics:
 - world: attention
   delta: (35 - world.attention) * 0.15
 - all: budget
-  delta: 9 - world.refugees * 0.06 + (55 - self.budget) * 0.15
+  delta: 9 - world.refugees * 0.06 + ((35 + meta.rounds * 2.5) - self.budget) * 0.15
 - all: legitimacy
   delta: 2 - world.refugees * 0.05
 - all: budget

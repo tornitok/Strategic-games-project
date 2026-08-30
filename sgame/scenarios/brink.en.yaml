@@ -116,7 +116,7 @@ factions:
 - id: arcadia
   title: Arcadia
   start:
-    economy: 150
+    economy: 120 + meta.rounds * 5
     forces: 70
     legitimacy: 60
     intel: 55
@@ -152,7 +152,7 @@ factions:
 - id: vellan
   title: Vellan
   start:
-    economy: 110
+    economy: 80 + meta.rounds * 5
     forces: 85
     legitimacy: 45
     intel: 70
@@ -190,7 +190,7 @@ factions:
 - id: surat
   title: Surat
   start:
-    economy: 112
+    economy: 82 + meta.rounds * 5
     forces: 55
     legitimacy: 70
     intel: 45
@@ -226,7 +226,7 @@ factions:
 - id: norland
   title: Norland
   start:
-    economy: 95
+    economy: 65 + meta.rounds * 5
     forces: 60
     legitimacy: 40
     intel: 80
@@ -644,7 +644,7 @@ world_dynamics:
 - world: markets
   delta: (60 - world.markets) * 0.25
 - all: economy
-  delta: 8 + world.markets * 0.06 + (55 - self.economy) * 0.15
+  delta: 8 + world.markets * 0.06 + ((40 + meta.rounds * 2.5) - self.economy) * 0.15
 - all: readiness
   delta: '-4'
 - all: economy

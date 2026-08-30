@@ -99,7 +99,7 @@ world:
 factions:
   - id: arcadia
     title: "Аркадия"
-    start: { economy: 150, forces: 70, legitimacy: 60, intel: 55, readiness: 40 }
+    start: { economy: "120 + meta.rounds * 5", forces: 70, legitimacy: 60, intel: 55, readiness: 40 }
     briefing: |
       Вы крупнейшая экономика мира и привыкли, что порядок в международных
       делах устанавливаете вы. Ваш самолёт был сбит — так считает ваше
@@ -118,7 +118,7 @@ factions:
 
   - id: vellan
     title: "Веллан"
-    start: { economy: 110, forces: 85, legitimacy: 45, intel: 70, readiness: 60 }
+    start: { economy: "80 + meta.rounds * 5", forces: 85, legitimacy: 45, intel: 70, readiness: 60 }
     briefing: |
       Ваша армия сильнее, а казна беднее. Долгое противостояние вы не
       выдержите — экономика не потянет, и в правительстве это понимают все,
@@ -137,7 +137,7 @@ factions:
 
   - id: surat
     title: "Сурат"
-    start: { economy: 112, forces: 55, legitimacy: 70, intel: 45, readiness: 30 }
+    start: { economy: "82 + meta.rounds * 5", forces: 55, legitimacy: 70, intel: 45, readiness: 30 }
     briefing: |
       Вы держитесь в стороне от чужого спора и зарабатываете на том, что
       через вас идут и товары, и переговоры. Глобальная война разорит вас
@@ -155,7 +155,7 @@ factions:
 
   - id: norland
     title: "Норланд"
-    start: { economy: 95, forces: 60, legitimacy: 40, intel: 80, readiness: 55 }
+    start: { economy: "65 + meta.rounds * 5", forces: 60, legitimacy: 40, intel: 80, readiness: 55 }
     briefing: |
       Вы младший из четырёх и знаете это. Ваш шанс появляется тогда, когда
       большие заняты друг другом: пока они меряются силой, вы получаете
@@ -433,7 +433,7 @@ world_dynamics:
   # Возврат к норме: доход зависит от того, насколько казна опустела.
   # Без этого резервы кончаются за три раунда по построению, и в длинной
   # партии две трети игры проходят на бесплатных действиях.
-  - { all: economy, delta: "8 + world.markets * 0.06 + (55 - self.economy) * 0.15" }
+  - { all: economy, delta: "8 + world.markets * 0.06 + ((40 + meta.rounds * 2.5) - self.economy) * 0.15" }
   - { all: readiness, delta: "-4" }
   # Союз и гарантии дают поток, иначе примыкание к сильному ничего не стоит
   - { all: economy, delta: "in_status('bloc') * 7 + in_status('nonaggression') * 3" }

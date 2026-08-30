@@ -95,7 +95,7 @@ world:
 factions:
   - id: karria
     title: "Каррия"
-    start: { budget: 110, army: 65, legitimacy: 55, intel: 45 }
+    start: { budget: "78 + meta.rounds * 4", army: 65, legitimacy: 55, intel: 45 }
     briefing: |
       Ложбина ваша по договору, и вы её удерживаете. Ваша задача звучит просто —
       не отдать; беда в том, что «не отдать» стоит денег каждый раунд, а
@@ -112,7 +112,7 @@ factions:
 
   - id: osset
     title: "Оссет"
-    start: { budget: 85, army: 70, legitimacy: 45, intel: 55 }
+    start: { budget: "53 + meta.rounds * 4", army: 70, legitimacy: 45, intel: 55 }
     briefing: |
       Договор о Ложбине подписывали не вы, а страна, которой уже нет. Внутри
       вашего общества возвращение долины — вопрос справедливости, и на этом
@@ -129,7 +129,7 @@ factions:
 
   - id: tarnia
     title: "Тарния"
-    start: { budget: 140, army: 55, legitimacy: 60, intel: 60 }
+    start: { budget: "108 + meta.rounds * 4", army: 55, legitimacy: 60, intel: 60 }
     briefing: |
       Вы поддерживаете Оссет: так вы получаете влияние на юге и рычаг против
       Каррии. Но ваша экономика живёт транзитом через этот самый регион, и каждый
@@ -146,7 +146,7 @@ factions:
 
   - id: league
     title: "Приморская лига"
-    start: { budget: 150, army: 30, legitimacy: 70, intel: 40 }
+    start: { budget: "118 + meta.rounds * 4", army: 30, legitimacy: 70, intel: 40 }
     briefing: |
       Вы союз торговых городов побережья. Своей армии почти нет, зато есть деньги,
       репутация и то, что вас слушают обе стороны.
@@ -426,7 +426,7 @@ world_dynamics:
   # Возврат к норме: доход зависит от того, насколько казна опустела.
   # Без этого резервы кончаются за три раунда по построению, и в длинной
   # партии две трети игры проходят на бесплатных действиях.
-  - { all: budget, delta: "9 - world.refugees * 0.06 + (55 - self.budget) * 0.15" }
+  - { all: budget, delta: "9 - world.refugees * 0.06 + ((35 + meta.rounds * 2.5) - self.budget) * 0.15" }
   - { all: legitimacy, delta: "2 - world.refugees * 0.05" }
   - { all: budget, delta: "in_status('patronage') * 6" }
 

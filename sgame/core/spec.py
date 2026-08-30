@@ -36,7 +36,9 @@ class WorldTrackSpec(Base):
     title: str
     min: float
     max: float
-    start: float
+    # Число или выражение от meta.rounds: длина партии известна до её начала,
+    # и стартовые величины можно считать от неё.
+    start: float | str
     meaning: str = ""
 
 
@@ -50,7 +52,7 @@ class GoalSpec(Base):
 class FactionSpec(Base):
     id: str
     title: str
-    start: dict[str, float]
+    start: dict[str, float | str]
     briefing: str = ""
     goals: list[GoalSpec] = []
 
