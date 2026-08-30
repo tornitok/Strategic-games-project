@@ -30,6 +30,28 @@ def _context(spec: ScenarioSpec, state: GameState, faction: str) -> dict:
     }
 
 
+def role_score(
+    spec: ScenarioSpec, state: GameState, faction: str, role_id: str, lang: str = "ru"
+) -> tuple[float, list[tuple[str, float]]]:
+    """Личный счёт роли: только её собственные цели.
+
+    Он не входит в командный: смысл ролей в том, что интересы расходятся, и на
+    разборе видно, кто играл за себя.
+    """
+    spec_faction = spec.faction(faction)
+    role = spec_faction.role(role_id) if spec_faction else None
+    if role is None:
+        return 0.0, []
+    context = _context(spec, state, faction)
+    total = 0.0
+    breakdown: list[tuple[str, float]] = []
+    for goal in role.goals:
+        if evaluate(goal.when, context):
+            total += goal.score
+            breakdown.append((goal.title, goal.score))
+    return round(total, 2), breakdown
+
+
 def score(
     spec: ScenarioSpec, state: GameState, faction: str, lang: str = "ru"
 ) -> tuple[float, list[tuple[str, float]]]:

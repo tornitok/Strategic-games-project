@@ -10,7 +10,15 @@ from typing import Any
 from ..core.orders import DealOffer, Order
 from .paths import all_scenarios, builtin_scenarios  # noqa: F401 — реэкспорт для веба
 
-FORMAT = 1
+FORMAT = 2
+
+
+@dataclass
+class RoleSlot:
+    """Должность внутри команды со своим кодом входа."""
+
+    role: str
+    code: str
 
 
 @dataclass
@@ -18,6 +26,24 @@ class TeamSlot:
     faction: str
     team: str
     code: str
+    roles: list[RoleSlot] = field(default_factory=list)
+
+    def role_code(self, role: str) -> str | None:
+        return next((r.code for r in self.roles if r.role == role), None)
+
+
+@dataclass
+class ProposalRecord:
+    """Предложение роли и то, как за него проголосовали."""
+
+    id: str
+    faction: str
+    action: str
+    target: str | None = None
+    author: str = ""
+    intent: str = ""
+    votes: dict[str, bool] = field(default_factory=dict)
+    passed: bool = False
 
 
 @dataclass
@@ -26,6 +52,7 @@ class RoundRecord:
     orders: dict[str, list[Order]] = field(default_factory=dict)
     offers: list[DealOffer] = field(default_factory=list)
     responses: dict[str, bool] = field(default_factory=dict)
+    proposals: list[ProposalRecord] = field(default_factory=list)
     narration: dict[str, Any] = field(default_factory=dict)
     resolved_at: str = ""
 
@@ -75,6 +102,7 @@ def to_dict(journal: Journal) -> dict:
                 },
                 "offers": [asdict(offer) for offer in record.offers],
                 "responses": record.responses,
+                "proposals": [asdict(p) for p in record.proposals],
                 "narration": record.narration,
                 "resolved_at": record.resolved_at,
             }
@@ -83,9 +111,22 @@ def to_dict(journal: Journal) -> dict:
     }
 
 
+def _migrate(data: dict) -> dict:
+    """Партии, сыгранные до появления ролей, должны открываться и играться."""
+    version = data.get("format")
+    if version == FORMAT:
+        return data
+    if version == 1:
+        data = dict(data)
+        data["format"] = FORMAT
+        data["teams"] = [{**team, "roles": []} for team in data["teams"]]
+        data["rounds"] = [{**record, "proposals": []} for record in data["rounds"]]
+        return data
+    raise ValueError(f"неизвестная версия файла партии: {version!r}")
+
+
 def from_dict(data: dict) -> Journal:
-    if data.get("format") != FORMAT:
-        raise ValueError(f"неизвестная версия файла партии: {data.get('format')!r}")
+    data = _migrate(data)
     return Journal(
         format=data["format"],
         scenario_id=data["scenario_id"],
@@ -93,7 +134,13 @@ def from_dict(data: dict) -> Journal:
         scenario_text=data["scenario_text"],
         seed=data["seed"],
         created_at=data["created_at"],
-        teams=[TeamSlot(**t) for t in data["teams"]],
+        teams=[
+            TeamSlot(
+                faction=t["faction"], team=t["team"], code=t["code"],
+                roles=[RoleSlot(**r) for r in t.get("roles", [])],
+            )
+            for t in data["teams"]
+        ],
         rounds=[
             RoundRecord(
                 n=record["n"],
@@ -103,6 +150,7 @@ def from_dict(data: dict) -> Journal:
                 },
                 offers=[DealOffer(**offer) for offer in record["offers"]],
                 responses=record["responses"],
+                proposals=[ProposalRecord(**p) for p in record.get("proposals", [])],
                 narration=record.get("narration", {}),
                 resolved_at=record.get("resolved_at", ""),
             )

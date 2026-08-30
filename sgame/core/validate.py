@@ -118,6 +118,33 @@ def validate_scenario(spec: ScenarioSpec, lines: dict[str, int]) -> list[Problem
         for j, goal in enumerate(faction.goals):
             check_expression(goal.when, f"цель {goal.id!r}", at("factions", i, "goals", j))
 
+        seen_roles: set[str] = set()
+        for j, role in enumerate(faction.roles):
+            role_line = at("factions", i, "roles", j)
+            if role.id in seen_roles:
+                problems.append(
+                    Problem(f"сторона {faction.id!r}: роль {role.id!r} описана дважды", role_line)
+                )
+            seen_roles.add(role.id)
+            for k, goal in enumerate(role.goals):
+                check_expression(
+                    goal.when,
+                    f"цель роли {role.id!r}",
+                    at("factions", i, "roles", j, "goals", k),
+                )
+
+    # Партия, где одна сторона голосует, а другая нет, запутает всех.
+    with_roles = [f.id for f in spec.factions if f.roles]
+    if with_roles and len(with_roles) != len(spec.factions):
+        without = [f.id for f in spec.factions if not f.roles]
+        problems.append(
+            Problem(
+                "роли должны быть либо у всех сторон, либо ни у одной; без ролей: "
+                + ", ".join(repr(x) for x in without),
+                at("factions"),
+            )
+        )
+
     for i, action in enumerate(spec.actions):
         line = at("actions", i)
         where = f"действие {action.id!r}"

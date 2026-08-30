@@ -49,12 +49,26 @@ class GoalSpec(Base):
     score: float
 
 
+class RoleSpec(Base):
+    """Должность внутри команды: свой брифинг, свои цели, свой вес голоса."""
+
+    id: str
+    title: str
+    briefing: str = ""
+    weight: int = Field(default=1, ge=1)
+    goals: list[GoalSpec] = []
+
+
 class FactionSpec(Base):
     id: str
     title: str
     start: dict[str, float | str]
     briefing: str = ""
     goals: list[GoalSpec] = []
+    roles: list[RoleSpec] = []
+
+    def role(self, role_id: str) -> "RoleSpec | None":
+        return next((r for r in self.roles if r.id == role_id), None)
 
 
 class EffectSpec(Base):
