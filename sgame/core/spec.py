@@ -57,6 +57,11 @@ class RoleSpec(Base):
     briefing: str = ""
     weight: int = Field(default=1, ge=1)
     goals: list[GoalSpec] = []
+    actions: list[str] = []  # что должность вправе вносить; пусто — всё
+
+    def can_propose(self, action_id: str) -> bool:
+        """Пустой список полномочий означает «любое действие»."""
+        return not self.actions or action_id in self.actions
 
 
 class FactionSpec(Base):

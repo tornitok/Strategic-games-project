@@ -126,6 +126,14 @@ def validate_scenario(spec: ScenarioSpec, lines: dict[str, int]) -> list[Problem
                     Problem(f"сторона {faction.id!r}: роль {role.id!r} описана дважды", role_line)
                 )
             seen_roles.add(role.id)
+            for action_id in role.actions:
+                if spec.action(action_id) is None:
+                    problems.append(
+                        Problem(
+                            f"роль {role.id!r}: неизвестное действие {action_id!r}",
+                            role_line,
+                        )
+                    )
             for k, goal in enumerate(role.goals):
                 check_expression(
                     goal.when,

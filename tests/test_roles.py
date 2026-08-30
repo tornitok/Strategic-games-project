@@ -138,3 +138,34 @@ def test_validator_requires_unique_role_ids():
 def test_validator_wants_roles_everywhere_or_nowhere():
     problems = validate_scenario(SPEC, scenario_lines(TEXT))
     assert any("роли" in p.message.lower() for p in problems)
+
+
+POWERS = TEXT.replace(
+    '''  - { id: build, title: "Стройка", news: "{actor} строит", effects: [ { self: budget, delta: "10" } ] }''',
+    '''  - { id: build, title: "Стройка", news: "{actor} строит", effects: [ { self: budget, delta: "10" } ] }
+  - { id: arm, title: "Призыв", news: "{actor} призывает", effects: [ { self: army, delta: "10" } ] }''',
+).replace(
+    '''        goals: [ { id: strong, title: "Армия не ниже 60", when: "self.army >= 60", score: 20 } ]''',
+    '''        goals: [ { id: strong, title: "Армия не ниже 60", when: "self.army >= 60", score: 20 } ]
+        actions: [ arm ]''',
+)
+
+
+def test_a_role_may_be_limited_to_its_own_powers():
+    """Иначе министр финансов вносит мобилизацию, и должности отличаются только целью."""
+    spec = parse_scenario(POWERS)
+    defence = spec.faction("a").role("defence")
+    assert defence.can_propose("arm")
+    assert not defence.can_propose("build")
+
+
+def test_a_role_without_a_list_may_propose_anything():
+    spec = parse_scenario(POWERS)
+    assert spec.faction("a").role("president").can_propose("build")
+    assert spec.faction("a").role("president").can_propose("arm")
+
+
+def test_unknown_action_in_a_role_is_a_scenario_error():
+    broken = POWERS.replace("actions: [ arm ]", "actions: [ arm, nonesuch ]")
+    problems = validate_scenario(parse_scenario(broken), scenario_lines(broken))
+    assert any("nonesuch" in p.message for p in problems)

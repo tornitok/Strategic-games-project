@@ -16,6 +16,7 @@ from .core.rng import stream
 from .core.scoring import score
 from .core.spec import ActionSpec, ScenarioSpec
 from .core.state import GameState, StateBuilder, initial_state
+from .core.voting import Proposal
 
 ROLES = ("opposition", "balancing", "following", "cautious")
 
@@ -290,3 +291,138 @@ def simulate(spec: ScenarioSpec, roles: dict[str, str], seed: int) -> Simulation
         scores={f.id: score(spec, state, f.id)[0] for f in spec.factions},
         rounds=rounds,
     )
+
+
+def role_gain(
+    spec: ScenarioSpec,
+    state: GameState,
+    faction: str,
+    role_id: str,
+    action: ActionSpec,
+    target: str | None,
+) -> float:
+    """Насколько действие выгодно лично этой должности.
+
+    Своё поручение весит больше общего положения стороны: в этом и смысл ролей —
+    интересы расходятся, и голосование становится настоящим выбором.
+    """
+    from .core.scoring import role_score
+
+    builder = StateBuilder(spec, state)
+    before_power = _power(spec, builder, faction)
+    before_personal = _personal(spec, builder, faction, role_id)
+    before_tracks = {
+        name: builder.track(faction, name)
+        for name in _role_tracks(spec, faction, role_id)
+    }
+
+    for name, amount in action.cost.items():
+        builder.add_track(faction, name, -amount)
+    effects = action.effects
+    if action.risk:
+        effects = max(action.risk, key=lambda outcome: outcome.p).effects
+    try:
+        for effect in effects:
+            apply_effect(spec, builder, effect, faction, target)
+    except Exception:
+        return 0.0
+
+    personal = _personal(spec, builder, faction, role_id) - before_personal
+    common = _power(spec, builder, faction) - before_power
+    # Цели пороговые, поэтому мелкое изменение их не переключает и личная
+    # составляющая оказывается нулевой. Но министр замечает, когда действие
+    # проедает именно его показатель, задолго до того, как порог перейдён.
+    own = 0.0
+    for name in _role_tracks(spec, faction, role_id):
+        own += builder.track(faction, name) - before_tracks.get(name, 0.0)
+    return personal * 2 + own * 0.6 + common * 0.4
+
+
+def _role_tracks(spec: ScenarioSpec, faction: str, role_id: str) -> set[str]:
+    """Показатели, о которых должность заботится по своим целям."""
+    from .core.expr import ExprError, used_names
+
+    spec_faction = spec.faction(faction)
+    role = spec_faction.role(role_id) if spec_faction else None
+    if role is None:
+        return set()
+    tracks: set[str] = set()
+    for goal in role.goals:
+        try:
+            _, attrs = used_names(goal.when)
+        except ExprError:
+            continue
+        tracks |= {field for namespace, field in attrs
+                   if namespace == "self" and field in spec.tracks}
+    return tracks
+
+
+def _personal(spec: ScenarioSpec, builder: StateBuilder, faction: str, role_id: str) -> float:
+    spec_faction = spec.faction(faction)
+    role = spec_faction.role(role_id) if spec_faction else None
+    if role is None:
+        return 0.0
+    context = builder.context(actor=faction)
+    total = 0.0
+    for goal in role.goals:
+        try:
+            if evaluate(goal.when, context):
+                total += goal.score
+        except Exception:
+            continue
+    return total
+
+
+def cabinet_round(
+    spec: ScenarioSpec, state: GameState, faction: str, seed: int, round_no: int
+) -> tuple[list[Proposal], list[Order]]:
+    """Раунд кабинета: каждая должность вносит своё, все голосуют, считается расклад."""
+    from .core.voting import tally
+
+    spec_faction = spec.faction(faction)
+    roles = spec_faction.roles
+    others = [f.id for f in spec.factions if f.id != faction]
+    proposals: list[Proposal] = []
+
+    for number, role in enumerate(roles, start=1):
+        options = []
+        for action in spec.actions:
+            target = others[0] if action.target == "faction" and others else None
+            if action.target == "faction" and not target:
+                continue
+            if not _is_available(spec, state, faction, [], Order(action=action.id, target=target)):
+                continue
+            options.append((action, target, role_gain(spec, state, faction, role.id, action, target)))
+        if not options:
+            continue
+        action, target, gain = max(options, key=lambda item: item[2])
+        if gain <= 0:
+            continue
+        proposals.append(
+            Proposal(
+                id=f"{faction}:{round_no}:{number}",
+                action=action.id,
+                target=target,
+                author=role.id,
+                intent=f"поручение: {role.title}",
+            )
+        )
+
+    for proposal in proposals:
+        action = spec.action(proposal.action)
+        for role in roles:
+            proposal.votes[role.id] = (
+                role_gain(spec, state, faction, role.id, action, proposal.target) > 0
+            )
+
+    orders: list[Order] = []
+    points = spec.meta.action_points
+    for proposal in proposals:
+        if not tally(roles, proposal).passed:
+            continue
+        action = spec.action(proposal.action)
+        if action.ap > points:
+            continue
+        points -= action.ap
+        orders.append(Order(action=proposal.action, target=proposal.target, intent=proposal.intent))
+    return proposals, orders
