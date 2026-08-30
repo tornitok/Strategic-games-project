@@ -651,7 +651,7 @@ world_dynamics:
 - world: attention
   delta: (35 - world.attention) * 0.15
 - all: budget
-  delta: 9 - world.refugees * 0.06
+  delta: 9 - world.refugees * 0.06 + (55 - self.budget) * 0.15
 - all: legitimacy
   delta: 2 - world.refugees * 0.05
 - all: budget

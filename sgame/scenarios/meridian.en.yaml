@@ -152,7 +152,7 @@ factions:
     score: 24
   - id: rich
     title: A wealthy treasury
-    when: self.budget >= 165
+    when: self.budget >= avg('budget') * 1.4
     score: 20
 - id: delta
   title: Delta
@@ -561,7 +561,7 @@ world_dynamics:
 - world: attention
   delta: (35 - world.attention) * 0.15
 - all: budget
-  delta: 6 + self.legitimacy * 0.05
+  delta: 6 + self.legitimacy * 0.05 + (60 - self.budget) * 0.15
 - all: legitimacy
   delta: '1'
 - all: budget

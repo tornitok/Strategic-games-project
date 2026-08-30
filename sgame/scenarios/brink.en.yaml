@@ -143,7 +143,7 @@ factions:
     score: 40
   - id: economy
     title: Economy not undermined
-    when: self.economy >= 95
+    when: self.economy >= avg('economy') * 1.25
     score: 20
   - id: standing
     title: Support retained
@@ -644,7 +644,7 @@ world_dynamics:
 - world: markets
   delta: (60 - world.markets) * 0.25
 - all: economy
-  delta: 8 + world.markets * 0.06
+  delta: 8 + world.markets * 0.06 + (55 - self.economy) * 0.15
 - all: readiness
   delta: '-4'
 - all: economy
