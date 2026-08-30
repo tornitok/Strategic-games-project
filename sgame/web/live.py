@@ -11,6 +11,7 @@ from secrets import choice, randbelow
 
 from ..core.events import Event
 from ..core.orders import DealOffer, Order
+from ..core.voting import Proposal, Tally, tally
 from ..core.resolve import resolve
 from ..core.spec import ScenarioSpec, parse_scenario
 from ..core.state import GameState
@@ -32,6 +33,8 @@ class Live:
     submitted: set[str] = field(default_factory=set)
     lang: str = "ru"  # язык, на котором идёт эта партия
     wrong_codes: dict[str, int] = field(default_factory=dict)
+    proposals: dict[str, list[Proposal]] = field(default_factory=dict)
+    proposal_counter: int = 0
 
 
 _live: Live | None = None
@@ -68,6 +71,7 @@ def start(scenario_id: str, seed: int, lang: str = "ru") -> Live:
             faction=faction.id,
             team=t("common.team_number", lang, n=number),
             code=new_code(),
+            roles=[J.RoleSlot(role=role.id, code=new_code()) for role in faction.roles],
         )
         for number, faction in enumerate(spec.factions, start=1)
     ]
@@ -75,7 +79,8 @@ def start(scenario_id: str, seed: int, lang: str = "ru") -> Live:
     path = sessions_dir() / f"{scenario_id}-{datetime.now():%Y%m%d-%H%M%S}.json"
     J.save(path, journal)
     _live = Live(path=path, journal=journal, spec=spec, lang=lang,
-                 drafts={t.faction: [] for t in teams})
+                 drafts={t.faction: [] for t in teams},
+                 proposals={t.faction: [] for t in teams})
     return _live
 
 
@@ -101,6 +106,67 @@ def display_spec(lang: str) -> ScenarioSpec:
         a.id for a in other.actions
     ] == [a.id for a in session.spec.actions]
     return other if same_shape else session.spec
+
+
+def has_roles(faction: str) -> bool:
+    spec_faction = require().spec.faction(faction)
+    return bool(spec_faction and spec_faction.roles)
+
+
+def propose(faction: str, role: str, action: str, target: str | None, intent: str) -> Proposal:
+    """Роль предлагает приказ команде. Голосуют по нему все роли стороны."""
+    session = require()
+    session.proposal_counter += 1
+    proposal = Proposal(
+        id=f"{faction}:{session.proposal_counter}",
+        action=action,
+        target=target or None,
+        author=role,
+        intent=intent,
+    )
+    session.proposals.setdefault(faction, []).append(proposal)
+    return proposal
+
+
+def vote(faction: str, role: str, proposal_id: str, support: bool) -> None:
+    """Голос можно изменить, пока раунд не сдан."""
+    for proposal in require().proposals.get(faction, []):
+        if proposal.id == proposal_id:
+            proposal.votes[role] = support
+            return
+
+
+def proposal_of(faction: str, proposal_id: str) -> Proposal | None:
+    return next(
+        (p for p in require().proposals.get(faction, []) if p.id == proposal_id), None
+    )
+
+
+def tally_of(faction: str, proposal_id: str) -> Tally:
+    session = require()
+    roles = session.spec.faction(faction).roles
+    proposal = proposal_of(faction, proposal_id)
+    return tally(roles, proposal) if proposal else tally(roles, Proposal("", "", None, ""))
+
+
+def accepted_orders(faction: str) -> list[Order]:
+    """Приказы команды: принятые предложения в порядке подачи, в пределах очков."""
+    session = require()
+    spec_faction = session.spec.faction(faction)
+    if not spec_faction or not spec_faction.roles:
+        return session.drafts.get(faction, [])
+
+    orders: list[Order] = []
+    points = session.spec.meta.action_points
+    for proposal in session.proposals.get(faction, []):
+        if not tally(spec_faction.roles, proposal).passed:
+            continue
+        action = session.spec.action(proposal.action)
+        if action is None or action.ap > points:
+            continue
+        points -= action.ap
+        orders.append(Order(action=proposal.action, target=proposal.target, intent=proposal.intent))
+    return orders
 
 
 def require() -> Live:
@@ -139,9 +205,18 @@ def close_round(force: bool = False) -> None:
 
     before = current_state(session.journal)
     orders = {
-        faction: (session.drafts.get(faction, []) if faction in session.submitted else [])
+        faction: (accepted_orders(faction) if faction in session.submitted else [])
         for faction in (slot.faction for slot in session.journal.teams)
     }
+    proposals = [
+        J.ProposalRecord(
+            id=p.id, faction=faction, action=p.action, target=p.target, author=p.author,
+            intent=p.intent, votes=dict(p.votes),
+            passed=tally(session.spec.faction(faction).roles, p).passed,
+        )
+        for faction in session.proposals
+        for p in session.proposals[faction]
+    ]
     result = resolve(
         session.spec, before, orders, session.offers, session.responses, session.journal.seed
     )
@@ -159,12 +234,14 @@ def close_round(force: bool = False) -> None:
             orders=orders,
             offers=list(session.offers),
             responses=dict(session.responses),
+            proposals=proposals,
             narration=narration,
             resolved_at=datetime.now().isoformat(timespec="seconds"),
         )
     )
     J.save(session.path, session.journal)
     session.drafts = {slot.faction: [] for slot in session.journal.teams}
+    session.proposals = {slot.faction: [] for slot in session.journal.teams}
     session.offers = []
     session.responses = {}
     session.submitted = set()
@@ -175,6 +252,7 @@ def undo_round() -> None:
     undo_last(session.journal)
     J.save(session.path, session.journal)
     session.drafts = {slot.faction: [] for slot in session.journal.teams}
+    session.proposals = {slot.faction: [] for slot in session.journal.teams}
     session.offers = []
     session.responses = {}
     session.submitted = set()
