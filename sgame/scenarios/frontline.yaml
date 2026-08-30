@@ -1,512 +1,795 @@
 schema_version: 1
-
 meta:
   id: frontline
-  title: "Ложбина: региональный конфликт"
+  title: 'Ложбина: региональный конфликт'
   rounds: 8
   action_points: 3
   max_random_events: 2
-  intro: |
-    Ложбина — полоса предгорий шириной в сотню километров между Каррией и
+  intro: 'Ложбина — полоса предгорий шириной в сотню километров между Каррией и
+
     Оссетом. Тридцать лет она числилась за Каррией по договору, который Оссет
+
     подписал в год, когда был слишком слаб, чтобы спорить.
 
+
     Полгода назад в Ложбине начались столкновения. Сейчас там стоят регулярные
+
     части обеих сторон, линия соприкосновения проходит по руслу реки, и обе
+
     армии окопались. Погибло несколько сотен человек, из долины ушли тридцать
+
     тысяч жителей.
 
+
     За спиной у сторон стоят соседи. Тарния поддерживает Оссет оружием и
+
     деньгами, но втягиваться в войну не хочет: её собственная экономика держится
+
     на транзите, который эта война и рвёт. Приморская лига торгует со всеми,
+
     теряет на каждом обострении и пытается усадить стороны за стол — не столько
+
     из человеколюбия, сколько потому, что закрытые дороги разоряют её первой.
 
+
     Это не глобальный кризис: мир не рухнет, чем бы дело ни кончилось. Но война
+
     может тянуться годами, а может закончиться за восемь раундов — и от того,
+
     чем именно она закончится, зависит, кто здесь будет жить и на чьих условиях.
 
-power: "self.legitimacy * 0.4 + self.army * 0.7 + self.budget * 0.3"
-
+    '
+power: self.legitimacy * 0.4 + self.army * 0.7 + self.budget * 0.3
 tracks:
   budget:
-    title: "Бюджет"
-    meaning: |
-      Средства, которыми можно оплатить войну или мир, в условных единицах.
+    title: Бюджет
+    meaning: 'Средства, которыми можно оплатить войну или мир, в условных единицах.
+
       Наступление стоит 25–30, поставки союзнику — около 20. Спокойная экономика
+
       приносит примерно 10 за раунд, война её съедает.
+
+      '
     min: 0
     max: 200
     visibility: public
   army:
-    title: "Армия"
-    meaning: |
-      Боеспособные части в условных единицах. Наступление тратит их независимо от
+    title: Армия
+    meaning: 'Боеспособные части в условных единицах. Наступление тратит их независимо от
+
       успеха; оборона бережёт. Ниже 30 наступать нечем.
+
+      '
     min: 0
     max: 100
     visibility: public
   legitimacy:
-    title: "Поддержка"
-    meaning: |
-      Как общество относится к войне и к власти, которая её ведёт. Потери и
+    title: Поддержка
+    meaning: 'Как общество относится к войне и к власти, которая её ведёт. Потери и
+
       беженцы её подтачивают, победы поднимают. Ниже 25 правительству трудно
+
       удержаться, и уступки объяснять уже нечем.
+
+      '
     min: 0
     max: 100
     visibility: public
   intel:
-    title: "Разведка"
-    meaning: |
-      Данные о противнике и возможности работать скрытно. Тратится на тайные
+    title: Разведка
+    meaning: 'Данные о противнике и возможности работать скрытно. Тратится на тайные
+
       операции и вбросы. Видна только владельцу.
+
+      '
     min: 0
     max: 100
     visibility: private
-
 world:
   frontline:
-    title: "Линия фронта"
-    meaning: |
-      Где проходит линия соприкосновения в Ложбине. 100 — долина полностью
+    title: Линия фронта
+    meaning: 'Где проходит линия соприкосновения в Ложбине. 100 — долина полностью
+
       контролируется Каррией, 0 — Оссетом, 50 — фронт стоит по реке, как сейчас.
+
       Двигать её могут только наступления, и каждое стоит людей.
+
+      '
     min: 0
     max: 100
     start: 55
   refugees:
-    title: "Беженцы"
-    meaning: |
-      Масштаб гуманитарного кризиса. Растёт от боёв и обстрелов, спадает при
+    title: Беженцы
+    meaning: 'Масштаб гуманитарного кризиса. Растёт от боёв и обстрелов, спадает при
+
       затишье. Высокие значения бьют по поддержке у всех и притягивают внимание
+
       извне.
+
+      '
     min: 0
     max: 100
     start: 30
   attention:
-    title: "Внимание извне"
-    meaning: |
-      Насколько плотно за конфликтом следят соседи, пресса и международные
+    title: Внимание извне
+    meaning: 'Насколько плотно за конфликтом следят соседи, пресса и международные
+
       структуры. Растёт от громких эпизодов и утечек.
+
+      '
     min: 0
     max: 100
     start: 35
-
 factions:
-  - id: karria
-    title: "Каррия"
-    start: { budget: 110, army: 65, legitimacy: 55, intel: 45 }
-    briefing: |
-      Ложбина ваша по договору, и вы её удерживаете. Ваша задача звучит просто —
-      не отдать; беда в том, что «не отдать» стоит денег каждый раунд, а
-      наступать вам, по сути, некуда: занять чужую территорию значит превратить
-      пограничный спор в полноценную войну.
+- id: karria
+  title: Каррия
+  start:
+    budget: 110
+    army: 65
+    legitimacy: 55
+    intel: 45
+  briefing: 'Ложбина ваша по договору, и вы её удерживаете. Ваша задача звучит просто —
 
-      Общество поддерживает вас, пока идут известия об устоявшей обороне и не
-      идут — о похоронках. Ваша сила в том, что вам достаточно ничего не менять.
-      Ваша слабость в том же: время работает на того, кто готов терпеть дольше.
-    goals:
-      - { id: hold, title: "Ложбина удержана", when: "world.frontline >= 52", score: 40 }
-      - { id: quiet, title: "Без гуманитарной катастрофы", when: "world.refugees < 55", score: 20 }
-      - { id: army, title: "Армия сохранена", when: "self.army >= 45", score: 15 }
+    не отдать; беда в том, что «не отдать» стоит денег каждый раунд, а
 
-  - id: osset
-    title: "Оссет"
-    start: { budget: 85, army: 70, legitimacy: 45, intel: 55 }
-    briefing: |
-      Договор о Ложбине подписывали не вы, а страна, которой уже нет. Внутри
-      вашего общества возвращение долины — вопрос справедливости, и на этом
-      держится нынешнее правительство.
+    наступать вам, по сути, некуда: занять чужую территорию значит превратить
 
-      Ваша армия чуть сильнее соседской, казна беднее. Тарния помогает, но её
-      помощь всегда с условиями и всегда меньше обещанного. Затяжная война вас
-      разорит быстрее, чем Каррию, — значит, если действовать, то решительно и
-      скоро.
-    goals:
-      - { id: take, title: "Ложбина отбита", when: "world.frontline <= 45", score: 40 }
-      - { id: support, title: "Общество не отвернулось", when: "self.legitimacy >= 40", score: 20 }
-      - { id: solvent, title: "Казна не пуста", when: "self.budget >= 42", score: 15 }
+    пограничный спор в полноценную войну.
 
-  - id: tarnia
-    title: "Тарния"
-    start: { budget: 140, army: 55, legitimacy: 60, intel: 60 }
-    briefing: |
-      Вы поддерживаете Оссет: так вы получаете влияние на юге и рычаг против
-      Каррии. Но ваша экономика живёт транзитом через этот самый регион, и каждый
-      месяц войны обходится вам дороже, чем поставленное оружие.
 
-      Идеальный для вас исход — быстрая победа подопечного, после которой дороги
-      снова открыты, а вы стоите за спиной победителя. Худший — затяжная война, в
-      которую вас втянут напрямую. Прямое участие вы позволить себе не можете:
-      дома этого не поймут.
-    goals:
-      - { id: client, title: "Подопечный добился своего", when: "world.frontline <= 48", score: 30 }
-      - { id: transit, title: "Дороги открыты, транзит идёт", when: "world.refugees < 50", score: 25 }
-      - { id: clean, title: "Вы не увязли сами", when: "self.army >= 50", score: 15 }
+    Общество поддерживает вас, пока идут известия об устоявшей обороне и не
 
-  - id: league
-    title: "Приморская лига"
-    start: { budget: 150, army: 30, legitimacy: 70, intel: 40 }
-    briefing: |
-      Вы союз торговых городов побережья. Своей армии почти нет, зато есть деньги,
-      репутация и то, что вас слушают обе стороны.
+    идут — о похоронках. Ваша сила в том, что вам достаточно ничего не менять.
 
-      Война разоряет вас первой: закрытые дороги — это ваши дороги. Вам почти
-      всё равно, где именно пройдёт граница, лишь бы по ней перестали стрелять.
-      Ваш инструмент — деньги и посредничество, ваш риск — прослыть стороной,
-      после чего вас перестанут слушать оба.
-    goals:
-      - { id: peace, title: "Стрельба прекращена", when: "world.refugees < 40", score: 40 }
-      - { id: neutral, title: "Вы остались посредником", when: "rel('karria', 'league') > -15 and rel('osset', 'league') > -15", score: 25 }
-      - { id: rich, title: "Торговля не пострадала", when: "self.budget >= 145", score: 15 }
+    Ваша слабость в том же: время работает на того, кто готов терпеть дольше.
 
+    '
+  goals:
+  - id: hold
+    title: Ложбина удержана
+    when: world.frontline >= 52
+    score: 40
+  - id: quiet
+    title: Без гуманитарной катастрофы
+    when: world.refugees < 55
+    score: 20
+  - id: army
+    title: Армия сохранена
+    when: self.army >= 45
+    score: 15
+- id: osset
+  title: Оссет
+  start:
+    budget: 85
+    army: 70
+    legitimacy: 45
+    intel: 55
+  briefing: 'Договор о Ложбине подписывали не вы, а страна, которой уже нет. Внутри
+
+    вашего общества возвращение долины — вопрос справедливости, и на этом
+
+    держится нынешнее правительство.
+
+
+    Ваша армия чуть сильнее соседской, казна беднее. Тарния помогает, но её
+
+    помощь всегда с условиями и всегда меньше обещанного. Затяжная война вас
+
+    разорит быстрее, чем Каррию, — значит, если действовать, то решительно и
+
+    скоро.
+
+    '
+  goals:
+  - id: take
+    title: Ложбина отбита
+    when: world.frontline <= 45
+    score: 40
+  - id: support
+    title: Общество не отвернулось
+    when: self.legitimacy >= 40
+    score: 20
+  - id: solvent
+    title: Казна не пуста
+    when: self.budget >= 42
+    score: 15
+- id: tarnia
+  title: Тарния
+  start:
+    budget: 140
+    army: 55
+    legitimacy: 60
+    intel: 60
+  briefing: 'Вы поддерживаете Оссет: так вы получаете влияние на юге и рычаг против
+
+    Каррии. Но ваша экономика живёт транзитом через этот самый регион, и каждый
+
+    месяц войны обходится вам дороже, чем поставленное оружие.
+
+
+    Идеальный для вас исход — быстрая победа подопечного, после которой дороги
+
+    снова открыты, а вы стоите за спиной победителя. Худший — затяжная война, в
+
+    которую вас втянут напрямую. Прямое участие вы позволить себе не можете:
+
+    дома этого не поймут.
+
+    '
+  goals:
+  - id: client
+    title: Подопечный добился своего
+    when: world.frontline <= 48
+    score: 30
+  - id: transit
+    title: Дороги открыты, транзит идёт
+    when: world.refugees < 50
+    score: 25
+  - id: clean
+    title: Вы не увязли сами
+    when: self.army >= 50
+    score: 15
+- id: league
+  title: Приморская лига
+  start:
+    budget: 150
+    army: 30
+    legitimacy: 70
+    intel: 40
+  briefing: 'Вы союз торговых городов побережья. Своей армии почти нет, зато есть деньги,
+
+    репутация и то, что вас слушают обе стороны.
+
+
+    Война разоряет вас первой: закрытые дороги — это ваши дороги. Вам почти
+
+    всё равно, где именно пройдёт граница, лишь бы по ней перестали стрелять.
+
+    Ваш инструмент — деньги и посредничество, ваш риск — прослыть стороной,
+
+    после чего вас перестанут слушать оба.
+
+    '
+  goals:
+  - id: peace
+    title: Стрельба прекращена
+    when: world.refugees < 40
+    score: 40
+  - id: neutral
+    title: Вы остались посредником
+    when: rel('karria', 'league') > -15 and rel('osset', 'league') > -15
+    score: 25
+  - id: rich
+    title: Торговля не пострадала
+    when: self.budget >= avg('budget') * 1.5
+    score: 15
 relations:
   default: 0
   pairs:
-    - { a: karria, b: osset, value: -55 }
-    - { a: osset, b: tarnia, value: 40 }
-    - { a: karria, b: tarnia, value: -25 }
-    - { a: karria, b: league, value: 15 }
-    - { a: osset, b: league, value: 5 }
-    - { a: tarnia, b: league, value: -5 }
-
+  - a: karria
+    b: osset
+    value: -55
+  - a: osset
+    b: tarnia
+    value: 40
+  - a: karria
+    b: tarnia
+    value: -25
+  - a: karria
+    b: league
+    value: 15
+  - a: osset
+    b: league
+    value: 5
+  - a: tarnia
+    b: league
+    value: -5
 actions:
-  - id: consult
-    title: "Пауза на консультации"
-    description: "День без решений: совещания, оценка обстановки."
-    news: "{actor} берёт паузу"
-    stance: neutral
+- id: consult
+  title: Пауза на консультации
+  description: 'День без решений: совещания, оценка обстановки.'
+  news: '{actor} берёт паузу'
+  stance: neutral
+  effects:
+  - self: intel
+    delta: '4'
+  - world: refugees
+    delta: '-2'
+- id: push_north
+  title: Наступление на юг
+  description: Попытка отодвинуть линию фронта вглубь Ложбины.
+  news: Каррия начинает наступление в Ложбине
+  stance: hostile
+  target: faction
+  available_to:
+  - karria
+  cost:
+    budget: 28
+    army: 12
+  requires: self.army >= 30 and in_status('ceasefire') == 0
+  risk:
+  - p: 0.4
+    title: прорыв
     effects:
-      - { self: intel, delta: "4" }
-      - { world: refugees, delta: "-2" }
-
-  - id: push_north
-    title: "Наступление на юг"
-    description: "Попытка отодвинуть линию фронта вглубь Ложбины."
-    news: "Каррия начинает наступление в Ложбине"
-    stance: hostile
-    target: faction
-    available_to: [ karria ]
-    cost: { budget: 28, army: 12 }
-    requires: "self.army >= 30 and in_status('ceasefire') == 0"
-    risk:
-      - { p: 0.4, title: "прорыв", effects: [ { world: frontline, delta: "14" },
-                                              { world: refugees, delta: "10" },
-                                              { self: legitimacy, delta: "6" } ] }
-      - { p: 0.35, title: "продвижение малой ценой", effects: [ { world: frontline, delta: "6" },
-                                                                { world: refugees, delta: "5" } ] }
-      - { p: 0.25, title: "атака захлебнулась", effects: [ { self: army, delta: "-8" },
-                                                           { self: legitimacy, delta: "-10" },
-                                                           { world: refugees, delta: "6" } ] }
-    complications:
-      - chance: 0.06
-        title: "Дружественный огонь"
-        news: "Артиллерия накрыла своих: потери в наступающих частях"
-        effects: [ { self: army, delta: "-7" }, { self: legitimacy, delta: "-8" } ]
-
-  - id: push_south
-    title: "Наступление на север"
-    description: "Попытка вернуть долину силой."
-    news: "Оссет начинает наступление в Ложбине"
-    stance: hostile
-    target: faction
-    available_to: [ osset ]
-    cost: { budget: 28, army: 12 }
-    requires: "self.army >= 30 and in_status('ceasefire') == 0"
-    risk:
-      - { p: 0.4, title: "прорыв", effects: [ { world: frontline, delta: "-14" },
-                                              { world: refugees, delta: "10" },
-                                              { self: legitimacy, delta: "6" } ] }
-      - { p: 0.35, title: "продвижение малой ценой", effects: [ { world: frontline, delta: "-6" },
-                                                                { world: refugees, delta: "5" } ] }
-      - { p: 0.25, title: "атака захлебнулась", effects: [ { self: army, delta: "-8" },
-                                                           { self: legitimacy, delta: "-10" },
-                                                           { world: refugees, delta: "6" } ] }
-    complications:
-      - chance: 0.06
-        title: "Дружественный огонь"
-        news: "Артиллерия накрыла своих: потери в наступающих частях"
-        effects: [ { self: army, delta: "-7" }, { self: legitimacy, delta: "-8" } ]
-
-  - id: entrench
-    title: "Укрепление обороны"
-    description: "Окопы, минирование, резервы во втором эшелоне."
-    news: "{actor} укрепляет позиции"
-    stance: neutral
-    cost: { budget: 15 }
+    - world: frontline
+      delta: '14'
+    - world: refugees
+      delta: '10'
+    - self: legitimacy
+      delta: '6'
+  - p: 0.35
+    title: продвижение малой ценой
     effects:
-      - { self: army, delta: "6" }
-      - { world: frontline, delta: "0" }
-
-  - id: shelling
-    title: "Артиллерийский обстрел"
-    description: "Давление огнём без попытки продвинуться."
-    news: "{actor} ведёт обстрел позиций. Под огнём — {target}"
-    stance: hostile
-    target: faction
-    cost: { budget: 12 }
-    requires: "in_status('ceasefire') == 0"
+    - world: frontline
+      delta: '6'
+    - world: refugees
+      delta: '5'
+  - p: 0.25
+    title: атака захлебнулась
     effects:
-      - { target: army, delta: "-5" }
-      - { world: refugees, delta: "7" }
-      - { world: attention, delta: "4" }
-      - { relation: [self, target], delta: "-8" }
-    complications:
-      - chance: 0.07
-        title: "Снаряд ушёл в село"
-        news: "Снаряд разорвался в жилом квартале: погибли гражданские"
-        effects: [ { world: refugees, delta: "12" }, { self: legitimacy, delta: "-10" }, { world: attention, delta: "12" } ]
-
-  - id: mobilize
-    title: "Призыв резервистов"
-    description: "Пополнение частей за счёт мобилизации."
-    news: "{actor} объявляет призыв"
-    stance: neutral
-    cost: { budget: 20 }
-    requires: "self.army < 90"
+    - self: army
+      delta: '-8'
+    - self: legitimacy
+      delta: '-10'
+    - world: refugees
+      delta: '6'
+  complications:
+  - chance: 0.06
+    title: Дружественный огонь
+    news: 'Артиллерия накрыла своих: потери в наступающих частях'
     effects:
-      - { self: army, delta: "12" }
-      - { self: legitimacy, delta: "-6" }
-    complications:
-      - chance: 0.05
-        title: "Уклонисты"
-        news: "Военкоматы не досчитались трети призванных"
-        effects: [ { self: army, delta: "-6" }, { self: legitimacy, delta: "-5" } ]
-
-  - id: supply
-    title: "Военные поставки"
-    description: "Оружие и снаряжение стороне, которую вы поддерживаете."
-    news: "{actor} отправляет военные поставки. Получатель — {target}"
-    stance: friendly
-    target: faction
-    available_to: [ tarnia, league ]
-    cost: { budget: 22 }
+    - self: army
+      delta: '-7'
+    - self: legitimacy
+      delta: '-8'
+- id: push_south
+  title: Наступление на север
+  description: Попытка вернуть долину силой.
+  news: Оссет начинает наступление в Ложбине
+  stance: hostile
+  target: faction
+  available_to:
+  - osset
+  cost:
+    budget: 28
+    army: 12
+  requires: self.army >= 30 and in_status('ceasefire') == 0
+  risk:
+  - p: 0.4
+    title: прорыв
     effects:
-      - { target: army, delta: "10" }
-      - { self: budget, delta: "5" }
-      - { relation: [self, target], delta: "12" }
-      - { world: attention, delta: "5" }
-    complications:
-      - chance: 0.05
-        title: "Колонна разграблена"
-        news: "Колонна с поставками разграблена по дороге"
-        effects: [ { self: budget, delta: "-12" } ]
-
-  - id: humanitarian
-    title: "Гуманитарная помощь"
-    description: "Лагеря, продовольствие, коридоры для гражданских."
-    news: "{actor} разворачивает гуманитарную операцию"
-    stance: friendly
-    cost: { budget: 18 }
+    - world: frontline
+      delta: '-14'
+    - world: refugees
+      delta: '10'
+    - self: legitimacy
+      delta: '6'
+  - p: 0.35
+    title: продвижение малой ценой
     effects:
-      - { world: refugees, delta: "-14" }
-      - { self: legitimacy, delta: "5" }
-    complications:
-      - chance: 0.04
-        title: "Очередь превратилась в давку"
-        news: "Давка при раздаче помощи: есть пострадавшие"
-        effects: [ { self: legitimacy, delta: "-6" }, { world: attention, delta: "8" } ]
-
-  - id: mediate
-    title: "Посредничество"
-    description: "Челночная дипломатия между столицами."
-    news: "{actor} предлагает посредничество"
-    stance: friendly
-    available_to: [ tarnia, league ]
-    cost: { budget: 14 }
+    - world: frontline
+      delta: '-6'
+    - world: refugees
+      delta: '5'
+  - p: 0.25
+    title: атака захлебнулась
     effects:
-      - { world: refugees, delta: "-6" }
-      - { world: attention, delta: "6" }
-      - { self: legitimacy, delta: "3" }
-
-  - id: pressure
-    title: "Экономическое давление"
-    description: "Пошлины, закрытие транзита, заморозка счетов."
-    news: "{actor} закрывает транзит. Под ударом — {target}"
-    stance: hostile
-    target: faction
-    cost: { budget: 14 }
+    - self: army
+      delta: '-8'
+    - self: legitimacy
+      delta: '-10'
+    - world: refugees
+      delta: '6'
+  complications:
+  - chance: 0.06
+    title: Дружественный огонь
+    news: 'Артиллерия накрыла своих: потери в наступающих частях'
     effects:
-      - { target: budget, delta: "-(8 + target.budget * 0.06)" }
-      - { self: budget, delta: "3" }
-      - { relation: [self, target], delta: "-14" }
-
-  - id: address
-    title: "Обращение к обществу"
-    description: "Речь, объясняющая, ради чего всё это."
-    news: "{actor} обращается к обществу"
-    stance: neutral
-    cost: { budget: 8 }
+    - self: army
+      delta: '-7'
+    - self: legitimacy
+      delta: '-8'
+- id: entrench
+  title: Укрепление обороны
+  description: Окопы, минирование, резервы во втором эшелоне.
+  news: '{actor} укрепляет позиции'
+  stance: neutral
+  cost:
+    budget: 15
+  effects:
+  - self: army
+    delta: '6'
+  - world: frontline
+    delta: '0'
+- id: shelling
+  title: Артиллерийский обстрел
+  description: Давление огнём без попытки продвинуться.
+  news: '{actor} ведёт обстрел позиций. Под огнём — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 12
+  requires: in_status('ceasefire') == 0
+  effects:
+  - target: army
+    delta: '-5'
+  - world: refugees
+    delta: '7'
+  - world: attention
+    delta: '4'
+  - relation:
+    - self
+    - target
+    delta: '-8'
+  complications:
+  - chance: 0.07
+    title: Снаряд ушёл в село
+    news: 'Снаряд разорвался в жилом квартале: погибли гражданские'
     effects:
-      - { self: legitimacy, delta: "9" }
-      - { world: attention, delta: "3" }
-    complications:
-      - chance: 0.04
-        title: "Речь не убедила"
-        news: "Речь встречена молчанием: рейтинг не вырос"
-        effects: [ { self: legitimacy, delta: "-6" } ]
-
-  - id: intel_work
-    title: "Работа разведки"
-    description: "Агентура, перехват, воздушная разведка."
-    news: "{actor} усиливает разведку"
-    stance: neutral
-    cost: { budget: 10 }
+    - world: refugees
+      delta: '12'
+    - self: legitimacy
+      delta: '-10'
+    - world: attention
+      delta: '12'
+- id: mobilize
+  title: Призыв резервистов
+  description: Пополнение частей за счёт мобилизации.
+  news: '{actor} объявляет призыв'
+  stance: neutral
+  cost:
+    budget: 20
+  requires: self.army < 90
+  effects:
+  - self: army
+    delta: '12'
+  - self: legitimacy
+    delta: '-6'
+  complications:
+  - chance: 0.05
+    title: Уклонисты
+    news: Военкоматы не досчитались трети призванных
     effects:
-      - { self: intel, delta: "16" }
-
-  - id: sabotage
-    title: "Диверсия в тылу"
-    description: "Удар по складам и мостам чужими руками."
-    news: "{actor} проводит диверсию. Цель — {target}"
-    stance: hostile
-    target: faction
-    cost: { budget: 14, intel: 14 }
-    requires: "self.intel >= 14"
-    visibility: secret
-    reveal_chance: 0.4
-    countered_by: [ counterintel ]
-    risk:
-      - { p: 0.5, title: "успех", effects: [ { target: army, delta: "-8" },
-                                             { target: budget, delta: "-10" } ] }
-      - { p: 0.3, title: "частично", effects: [ { target: budget, delta: "-5" } ] }
-      - { p: 0.2, title: "провал и потери", effects: [ { self: intel, delta: "-12" } ] }
-    complications:
-      - chance: 0.06
-        title: "Группа взята с поличным"
-        news: "Диверсионная группа задержана: пленные дают показания"
-        effects: [ { self: intel, delta: "-15" }, { self: legitimacy, delta: "-8" } ]
-
-  - id: counterintel
-    title: "Контрразведка"
-    description: "Охрана тыла, проверка складов и путей подвоза."
-    news: "{actor} усиливает охрану тыла"
-    stance: neutral
-    cost: { budget: 10 }
-    counter_multiplier: 0.2
+    - self: army
+      delta: '-6'
+    - self: legitimacy
+      delta: '-5'
+- id: supply
+  title: Военные поставки
+  description: Оружие и снаряжение стороне, которую вы поддерживаете.
+  news: '{actor} отправляет военные поставки. Получатель — {target}'
+  stance: friendly
+  target: faction
+  available_to:
+  - tarnia
+  - league
+  cost:
+    budget: 22
+  effects:
+  - target: army
+    delta: '10'
+  - self: budget
+    delta: '5'
+  - relation:
+    - self
+    - target
+    delta: '12'
+  - world: attention
+    delta: '5'
+  complications:
+  - chance: 0.05
+    title: Колонна разграблена
+    news: Колонна с поставками разграблена по дороге
     effects:
-      - { self: intel, delta: "6" }
-
-  - id: disinform
-    title: "Кампания в прессе"
-    description: "Подброшенные свидетельства чужой вины за обстрелы."
-    news: "{actor} запускает кампанию в прессе. Цель — {target}"
-    stance: hostile
-    target: faction
-    cost: { budget: 10, intel: 12 }
-    requires: "self.intel >= 12"
-    visibility: secret
-    reveal_chance: 0.35
-    plants_rumour: true
+    - self: budget
+      delta: '-12'
+- id: humanitarian
+  title: Гуманитарная помощь
+  description: Лагеря, продовольствие, коридоры для гражданских.
+  news: '{actor} разворачивает гуманитарную операцию'
+  stance: friendly
+  cost:
+    budget: 18
+  effects:
+  - world: refugees
+    delta: '-14'
+  - self: legitimacy
+    delta: '5'
+  complications:
+  - chance: 0.04
+    title: Очередь превратилась в давку
+    news: 'Давка при раздаче помощи: есть пострадавшие'
     effects:
-      - { self: intel, delta: "-4" }
-      - { world: attention, delta: "6" }
-
-  - id: align
-    title: "Встать за спиной сильного"
-    description: "Публичная поддержка чужой позиции ради доли в её плодах."
-    news: "{actor} открыто поддерживает позицию: {target}"
-    stance: friendly
-    target: faction
-    cost: { legitimacy: 4 }
+    - self: legitimacy
+      delta: '-6'
+    - world: attention
+      delta: '8'
+- id: mediate
+  title: Посредничество
+  description: Челночная дипломатия между столицами.
+  news: '{actor} предлагает посредничество'
+  stance: friendly
+  available_to:
+  - tarnia
+  - league
+  cost:
+    budget: 14
+  effects:
+  - world: refugees
+    delta: '-6'
+  - world: attention
+    delta: '6'
+  - self: legitimacy
+    delta: '3'
+- id: pressure
+  title: Экономическое давление
+  description: Пошлины, закрытие транзита, заморозка счетов.
+  news: '{actor} закрывает транзит. Под ударом — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 14
+  effects:
+  - target: budget
+    delta: -(8 + target.budget * 0.06)
+  - self: budget
+    delta: '3'
+  - relation:
+    - self
+    - target
+    delta: '-14'
+- id: address
+  title: Обращение к обществу
+  description: Речь, объясняющая, ради чего всё это.
+  news: '{actor} обращается к обществу'
+  stance: neutral
+  cost:
+    budget: 8
+  effects:
+  - self: legitimacy
+    delta: '9'
+  - world: attention
+    delta: '3'
+  complications:
+  - chance: 0.04
+    title: Речь не убедила
+    news: 'Речь встречена молчанием: рейтинг не вырос'
     effects:
-      - { self: budget, delta: "target.budget * 0.07" }
-      - { relation: [self, target], delta: "14" }
-
+    - self: legitimacy
+      delta: '-6'
+- id: intel_work
+  title: Работа разведки
+  description: Агентура, перехват, воздушная разведка.
+  news: '{actor} усиливает разведку'
+  stance: neutral
+  cost:
+    budget: 10
+  effects:
+  - self: intel
+    delta: '16'
+- id: sabotage
+  title: Диверсия в тылу
+  description: Удар по складам и мостам чужими руками.
+  news: '{actor} проводит диверсию. Цель — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 14
+    intel: 14
+  requires: self.intel >= 14
+  visibility: secret
+  reveal_chance: 0.4
+  countered_by:
+  - counterintel
+  risk:
+  - p: 0.5
+    title: успех
+    effects:
+    - target: army
+      delta: '-8'
+    - target: budget
+      delta: '-10'
+  - p: 0.3
+    title: частично
+    effects:
+    - target: budget
+      delta: '-5'
+  - p: 0.2
+    title: провал и потери
+    effects:
+    - self: intel
+      delta: '-12'
+  complications:
+  - chance: 0.06
+    title: Группа взята с поличным
+    news: 'Диверсионная группа задержана: пленные дают показания'
+    effects:
+    - self: intel
+      delta: '-15'
+    - self: legitimacy
+      delta: '-8'
+- id: counterintel
+  title: Контрразведка
+  description: Охрана тыла, проверка складов и путей подвоза.
+  news: '{actor} усиливает охрану тыла'
+  stance: neutral
+  cost:
+    budget: 10
+  counter_multiplier: 0.2
+  effects:
+  - self: intel
+    delta: '6'
+- id: disinform
+  title: Кампания в прессе
+  description: Подброшенные свидетельства чужой вины за обстрелы.
+  news: '{actor} запускает кампанию в прессе. Цель — {target}'
+  stance: hostile
+  target: faction
+  cost:
+    budget: 10
+    intel: 12
+  requires: self.intel >= 12
+  visibility: secret
+  reveal_chance: 0.35
+  plants_rumour: true
+  effects:
+  - self: intel
+    delta: '-4'
+  - world: attention
+    delta: '6'
+- id: align
+  title: Встать за спиной сильного
+  description: Публичная поддержка чужой позиции ради доли в её плодах.
+  news: '{actor} открыто поддерживает позицию: {target}'
+  stance: friendly
+  target: faction
+  cost:
+    legitimacy: 4
+  effects:
+  - self: budget
+    delta: target.budget * 0.07
+  - relation:
+    - self
+    - target
+    delta: '14'
 deals:
-  - { id: ceasefire, title: "Перемирие", kind: status, duration: 2 }
-  - { id: transfer, title: "Финансовая помощь", kind: resource, track: budget }
-  - { id: patronage, title: "Договор о покровительстве", kind: status, duration: 4 }
-
+- id: ceasefire
+  title: Перемирие
+  kind: status
+  duration: 2
+- id: transfer
+  title: Финансовая помощь
+  kind: resource
+  track: budget
+- id: patronage
+  title: Договор о покровительстве
+  kind: status
+  duration: 4
 world_dynamics:
-  - { world: refugees, delta: "(25 - world.refugees) * 0.18" }
-  - { world: attention, delta: "(35 - world.attention) * 0.15" }
-  - { all: budget, delta: "9 - world.refugees * 0.06" }
-  - { all: legitimacy, delta: "2 - world.refugees * 0.05" }
-  - { all: budget, delta: "in_status('patronage') * 6" }
-
+- world: refugees
+  delta: (25 - world.refugees) * 0.18
+- world: attention
+  delta: (35 - world.attention) * 0.15
+- all: budget
+  delta: 9 - world.refugees * 0.06
+- all: legitimacy
+  delta: 2 - world.refugees * 0.05
+- all: budget
+  delta: in_status('patronage') * 6
 events:
-  - id: winter
-    when: "round == 4"
-    title: "Зима в предгорьях"
-    news: "Перевалы засыпало: боевые действия почти встали"
-    text: "Снег сделал то, чего не добилась дипломатия."
-    effects: [ { world: refugees, delta: "8" }, { all: budget, delta: "-8" } ]
-
-  - id: outcry
-    when: "world.refugees > 65"
-    once: true
-    title: "Гуманитарная катастрофа"
-    news: "Лагеря переполнены: соседи требуют немедленно прекратить огонь"
-    effects: [ { all: legitimacy, delta: "-8" }, { world: attention, delta: "18" } ]
-
-  - id: conference
-    when: "round == 6"
-    title: "Конференция по Ложбине"
-    news: "В Приморье открылась конференция по урегулированию"
-    effects: [ { world: refugees, delta: "-10" }, { all: legitimacy, delta: "3" } ]
-
-  - id: stalemate
-    when: "world.frontline > 45 and world.frontline < 55"
-    once: true
-    title: "Позиционный тупик"
-    news: "Фронт не двигается третью неделю: обе армии закапываются глубже"
-    effects: [ { all: army, delta: "4" }, { all: budget, delta: "-6" } ]
-
-  - id: market_strike
-    chance: 0.2
-    title: "Снаряд на рынке"
-    news: "Снаряд попал в рынок: десятки погибших, обе стороны всё отрицают"
-    effects: [ { world: refugees, delta: "12" }, { world: attention, delta: "14" },
-               { all: legitimacy, delta: "-5" } ]
-
-  - id: desertion
-    chance: 0.18
-    title: "Дезертирство"
-    news: "Из частей на передовой уходят люди"
-    effects: [ { all: army, delta: "-6" }, { all: legitimacy, delta: "-3" } ]
-
-  - id: arms_cache
-    chance: 0.15
-    once: true
-    title: "Найден склад"
-    news: "Обнаружен старый армейский склад: технику вернули в строй"
-    effects: [ { all: army, delta: "7" } ]
-
-  - id: journalist
-    chance: 0.15
-    title: "Погиб журналист"
-    news: "На передовой погиб иностранный журналист"
-    effects: [ { world: attention, delta: "16" }, { all: legitimacy, delta: "-4" } ]
-
-  - id: harvest_lost
-    chance: 0.16
-    title: "Сорванная посевная"
-    news: "В долине сорвана посевная: продовольствие дорожает"
-    effects: [ { all: budget, delta: "-9" }, { world: refugees, delta: "6" } ]
-
-  - id: prisoner_swap
-    chance: 0.18
-    title: "Обмен пленными"
-    news: "Стороны обменялись пленными: первый разговор за месяцы"
-    effects: [ { all: legitimacy, delta: "5" }, { world: refugees, delta: "-6" } ]
-
-  - id: mudslide
-    chance: 0.14
-    title: "Сошёл оползень"
-    news: "Оползень перерезал дорогу снабжения"
-    effects: [ { all: budget, delta: "-7" }, { all: army, delta: "-3" } ]
-
+- id: winter
+  title: Зима в предгорьях
+  news: 'Перевалы засыпало: боевые действия почти встали'
+  text: Снег сделал то, чего не добилась дипломатия.
+  effects:
+  - world: refugees
+    delta: '8'
+  - all: budget
+    delta: '-8'
+  phase: 0.5
+- id: outcry
+  when: world.refugees > 65
+  once: true
+  title: Гуманитарная катастрофа
+  news: 'Лагеря переполнены: соседи требуют немедленно прекратить огонь'
+  effects:
+  - all: legitimacy
+    delta: '-8'
+  - world: attention
+    delta: '18'
+- id: conference
+  title: Конференция по Ложбине
+  news: В Приморье открылась конференция по урегулированию
+  effects:
+  - world: refugees
+    delta: '-10'
+  - all: legitimacy
+    delta: '3'
+  phase: 0.75
+- id: stalemate
+  when: world.frontline > 45 and world.frontline < 55
+  once: true
+  title: Позиционный тупик
+  news: 'Фронт не двигается третью неделю: обе армии закапываются глубже'
+  effects:
+  - all: army
+    delta: '4'
+  - all: budget
+    delta: '-6'
+- id: market_strike
+  chance: 0.2
+  title: Снаряд на рынке
+  news: 'Снаряд попал в рынок: десятки погибших, обе стороны всё отрицают'
+  effects:
+  - world: refugees
+    delta: '12'
+  - world: attention
+    delta: '14'
+  - all: legitimacy
+    delta: '-5'
+- id: desertion
+  chance: 0.18
+  title: Дезертирство
+  news: Из частей на передовой уходят люди
+  effects:
+  - all: army
+    delta: '-6'
+  - all: legitimacy
+    delta: '-3'
+- id: arms_cache
+  chance: 0.15
+  once: true
+  title: Найден склад
+  news: 'Обнаружен старый армейский склад: технику вернули в строй'
+  effects:
+  - all: army
+    delta: '7'
+- id: journalist
+  chance: 0.15
+  title: Погиб журналист
+  news: На передовой погиб иностранный журналист
+  effects:
+  - world: attention
+    delta: '16'
+  - all: legitimacy
+    delta: '-4'
+- id: harvest_lost
+  chance: 0.16
+  title: Сорванная посевная
+  news: 'В долине сорвана посевная: продовольствие дорожает'
+  effects:
+  - all: budget
+    delta: '-9'
+  - world: refugees
+    delta: '6'
+- id: prisoner_swap
+  chance: 0.18
+  title: Обмен пленными
+  news: 'Стороны обменялись пленными: первый разговор за месяцы'
+  effects:
+  - all: legitimacy
+    delta: '5'
+  - world: refugees
+    delta: '-6'
+- id: mudslide
+  chance: 0.14
+  title: Сошёл оползень
+  news: Оползень перерезал дорогу снабжения
+  effects:
+  - all: budget
+    delta: '-7'
+  - all: army
+    delta: '-3'
 rumours:
   chance: 0.45
   noise_chance: 0.18
   accuracy: 0.6
   templates:
-    - "По неподтверждённым данным, за этим стоит {subject}"
-    - "В штабах называют имя: {subject}"
-    - "Источник в приграничье указывает на сторону: {subject}"
-    - "Пленные говорят одно и то же: это {subject}"
-
+  - По неподтверждённым данным, за этим стоит {subject}
+  - 'В штабах называют имя: {subject}'
+  - 'Источник в приграничье указывает на сторону: {subject}'
+  - 'Пленные говорят одно и то же: это {subject}'
 end:
-  when: "round > meta.rounds"
-  scoring: "40 + self.legitimacy * 0.5 + (self.army - avg('army')) * 0.5 + (self.budget - avg('budget')) * 0.3"
+  when: round > meta.rounds
+  scoring: 40 + self.legitimacy * 0.5 + (self.army - avg('army')) * 0.5 + (self.budget - avg('budget'))
+    * 0.3

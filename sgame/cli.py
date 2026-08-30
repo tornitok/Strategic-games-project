@@ -67,7 +67,7 @@ def _simulate(scenario: str, seeds: int, roles: list[str] | None) -> int:
     return 0
 
 
-def _doctor(scenario: str, games: int) -> int:
+def _doctor(scenario: str, games: int, lengths: list[int] | None = None) -> int:
     from .core.spec import parse_scenario
     from .doctor import check
     from .session.paths import all_scenarios
@@ -77,18 +77,28 @@ def _doctor(scenario: str, games: int) -> int:
         print(f"нет такого сценария: {scenario}. Есть: {', '.join(sorted(available))}")
         return 1
 
-    spec = parse_scenario(available[scenario])
-    findings = check(spec, games=games)
-    print(f"{spec.meta.title} — {games} прогонов\n")
-    if not findings:
-        print("проблемных мест не найдено")
-        return 0
+    import re
 
-    errors = [f for f in findings if f.severity == "ошибка"]
-    for finding in findings:
-        print(f"  {finding}")
-    print(f"\nвсего: {len(findings)}, из них ошибок: {len(errors)}")
-    return 1 if errors else 0
+    text = available[scenario]
+    spec = parse_scenario(text)
+    checks = lengths or [spec.meta.rounds]
+    total_errors = 0
+
+    for rounds in checks:
+        variant = parse_scenario(
+            re.sub(r"^(\s*)rounds: \d+$", rf"\g<1>rounds: {rounds}", text, count=1, flags=re.M)
+        )
+        findings = check(variant, games=games)
+        errors = [f for f in findings if f.severity == "ошибка"]
+        total_errors += len(errors)
+        print(f"{variant.meta.title} — {rounds} раундов, {games} прогонов")
+        if not findings:
+            print("  проблемных мест не найдено")
+        for finding in findings:
+            print(f"  {finding}")
+        print(f"  всего: {len(findings)}, из них ошибок: {len(errors)}\n")
+
+    return 1 if total_errors else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -112,13 +122,15 @@ def main(argv: list[str] | None = None) -> int:
     doc_cmd = sub.add_parser("doctor", help="найти места, где сценарий может сломаться")
     doc_cmd.add_argument("scenario")
     doc_cmd.add_argument("--games", type=int, default=24)
+    doc_cmd.add_argument("--rounds", help="проверить на нескольких длинах, через запятую: 6,10,15")
 
     args = parser.parse_args(argv)
     if args.command == "validate":
         return _validate(args.path)
 
     if args.command == "doctor":
-        return _doctor(args.scenario, args.games)
+        lengths = [int(x) for x in args.rounds.split(",")] if args.rounds else None
+        return _doctor(args.scenario, args.games, lengths)
 
     if args.command == "simulate":
         roles = args.roles.split(",") if args.roles else None

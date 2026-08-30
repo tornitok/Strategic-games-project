@@ -173,7 +173,7 @@ factions:
     score: 30
   - id: chaos
     title: Neighbours busy with each other
-    when: world.tension > 48
+    when: fired('brink_moment')
     score: 15
 relations:
   default: 0
@@ -568,13 +568,13 @@ world_dynamics:
   delta: in_status('pact') * 4 + in_status('alliance') * 6
 events:
 - id: oil_shock
-  when: round == 3
   title: Energy prices spike
   news: 'Energy markets in turmoil: prices jumped within a week'
   text: World prices rose sharply; costs went up for everyone.
   effects:
   - all: budget
     delta: '-12'
+  phase: 0.35
 - id: un_pressure
   when: world.tension > 70
   once: true
@@ -598,7 +598,6 @@ events:
   - all: legitimacy
     delta: '-4'
 - id: summit
-  when: round == 5
   title: International conference
   news: A conference on the gulf has opened in a neutral capital
   text: Mediators bring the sides to one table.
@@ -607,8 +606,8 @@ events:
     delta: '-8'
   - all: legitimacy
     delta: '3'
+  phase: 0.6
 - id: arms_market
-  when: round == 6
   title: Arms fair
   news: 'Arms fair: equipment is going at a discount'
   text: Suppliers are offering equipment at a discount.
@@ -617,6 +616,7 @@ events:
     delta: '5'
   - all: budget
     delta: '-6'
+  phase: 0.75
 - id: mediation
   when: world.tension < 20
   once: true
@@ -716,6 +716,12 @@ events:
     delta: '-7'
   - world: attention
     delta: '-4'
+- id: brink_moment
+  when: world.tension > 55
+  once: true
+  title: The region on the edge
+  news: 'Diplomats warn: one more step and there will be no one left to stop it'
+  effects: []
 rumours:
   chance: 0.45
   noise_chance: 0.15

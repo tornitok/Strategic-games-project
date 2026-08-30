@@ -115,6 +115,10 @@ class DealSpec(Base):
 class EventSpec(Base):
     id: str
     when: str = ""  # пусто — событие возможно в любом раунде
+    # Доля партии, на которой событие происходит: 0.5 — середина, 0.9 — развязка.
+    # Привязка к номеру раунда ломается при растяжении сценария: вся авторская
+    # дуга остаётся в первой трети.
+    phase: float | None = Field(default=None, ge=0, le=1)
     chance: float = Field(default=1.0, ge=0, le=1)
     title: str
     text: str = ""

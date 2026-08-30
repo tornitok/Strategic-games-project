@@ -651,7 +651,6 @@ world_dynamics:
   delta: in_status('bloc') * 7 + in_status('nonaggression') * 3
 events:
 - id: black_box
-  when: round == 2
   title: The flight recorder is found
   news: The downed aircraft's flight recorder has been raised
   text: Decoding will take weeks, but both sides already read the find in their own favour.
@@ -660,6 +659,7 @@ events:
     delta: '12'
   - world: escalation
     delta: '5'
+  phase: 0.33
 - id: markets_panic
   when: world.markets < 35
   once: true
@@ -671,7 +671,6 @@ events:
   - all: legitimacy
     delta: '-5'
 - id: un_session
-  when: round == 4
   title: Emergency session
   news: An emergency session of the Security Council has been convened
   effects:
@@ -679,6 +678,7 @@ events:
     delta: '-9'
   - world: attention
     delta: '10'
+  phase: 0.65
 - id: nuclear_warning
   when: world.escalation > 85
   once: true

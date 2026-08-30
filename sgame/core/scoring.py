@@ -22,6 +22,7 @@ def _context(spec: ScenarioSpec, state: GameState, faction: str) -> dict:
             any(s.deal == deal and {s.a, s.b} == {a, b} and s.until > state.round
                 for s in state.statuses)
         ),
+        "fired": lambda event_id: float(event_id in state.fired_events),
         "in_status": lambda deal: float(
             any(s.deal == deal and faction in (s.a, s.b) and s.until > state.round
                 for s in state.statuses)

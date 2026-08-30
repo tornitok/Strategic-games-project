@@ -174,6 +174,7 @@ class StateBuilder:
             "status": self.status_between,
             "in_status": lambda deal: self.status_of(deal, actor),
             "avg": self.average,
+            "fired": lambda event_id: float(event_id in self.fired_events),
         }
 
     def build(self, *, round_no: int, finished: bool = False) -> GameState:

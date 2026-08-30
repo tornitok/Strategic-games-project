@@ -241,7 +241,7 @@ factions:
     score: 25
   - id: rich
     title: Trade was not hurt
-    when: self.budget >= 145
+    when: self.budget >= avg('budget') * 1.5
     score: 15
 relations:
   default: 0
@@ -658,7 +658,6 @@ world_dynamics:
   delta: in_status('patronage') * 6
 events:
 - id: winter
-  when: round == 4
   title: Winter in the foothills
   news: 'The passes are snowed in: fighting has almost stopped'
   text: The snow did what diplomacy could not.
@@ -667,6 +666,7 @@ events:
     delta: '8'
   - all: budget
     delta: '-8'
+  phase: 0.5
 - id: outcry
   when: world.refugees > 65
   once: true
@@ -678,7 +678,6 @@ events:
   - world: attention
     delta: '18'
 - id: conference
-  when: round == 6
   title: Conference on the Hollow
   news: A settlement conference has opened on the coast
   effects:
@@ -686,6 +685,7 @@ events:
     delta: '-10'
   - all: legitimacy
     delta: '3'
+  phase: 0.75
 - id: stalemate
   when: world.frontline > 45 and world.frontline < 55
   once: true

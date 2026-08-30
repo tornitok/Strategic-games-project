@@ -394,6 +394,11 @@ def phase_events(spec: ScenarioSpec, builder: StateBuilder, seed: int) -> list[E
     for scenario_event in spec.events:
         if scenario_event.once and scenario_event.id in builder.fired_events:
             continue
+        if scenario_event.phase is not None:
+            # Событие по доле партии срабатывает ровно один раз, в свой раунд.
+            due = max(1, round(spec.meta.rounds * scenario_event.phase))
+            if builder.round != due or scenario_event.id in builder.fired_events:
+                continue
         if scenario_event.when and not evaluate(scenario_event.when, builder.context()):
             continue
 
