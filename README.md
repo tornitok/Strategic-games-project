@@ -97,8 +97,3 @@ docker run -d -p 8000:8000 -v sgame-data:/data \
 - `sgame/web/` — три экрана: пульт ведущего, экран команды, проектор.
 - `sgame/scenarios/meridian.yaml` — эталонная игра «Кризис в Меридианском
   заливе»: 4 стороны, 14 действий, 7 событий.
-
-## Документы
-
-- Дизайн: `docs/superpowers/specs/2026-08-29-strategic-game-engine-design.md`
-- План этапа 1: `docs/superpowers/plans/2026-08-29-strategic-game-engine-stage-1.md`
