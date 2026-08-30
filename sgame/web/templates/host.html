@@ -21,7 +21,14 @@
       <tr>
         <td><a href="/team/{{ slot.faction }}" target="_blank">{{ spec.faction(slot.faction).title }}</a></td>
         <td>{{ slot.team }}</td>
-        <td class="code">{{ slot.code }}</td>
+        <td class="code">
+          {% set faction_spec = spec.faction(slot.faction) %}
+          {% if faction_spec.roles %}
+            {% for role in faction_spec.roles %}
+            <div class="rolecode">{{ role.title }}: <b>{{ slot.role_code(role.id) }}</b></div>
+            {% endfor %}
+          {% else %}{{ slot.code }}{% endif %}
+        </td>
         {% if network %}
         <td class="qr">
           <a href="{{ base_url }}/team/{{ slot.faction }}" target="_blank">

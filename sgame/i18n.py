@@ -217,6 +217,10 @@ STRINGS: dict[str, dict[str, str]] = {
     "debrief.made_of": {"ru": "Из чего", "en": "Made up of"},
     "debrief.course": {"ru": "Ход игры", "en": "How it went"},
     "debrief.intents": {"ru": "Замыслы команд", "en": "What the teams intended"},
+    "debrief.personal": {"ru": "личные цели", "en": "personal goals"},
+    "debrief.votes": {"ru": "Голосования", "en": "Votes"},
+    "debrief.vote_passed": {"ru": "принято", "en": "carried"},
+    "debrief.vote_failed": {"ru": "отклонено", "en": "rejected"},
     "debrief.base_score": {"ru": "Базовый счёт", "en": "Base score"},
 
     "ref.free": {"ru": "без затрат", "en": "no cost"},

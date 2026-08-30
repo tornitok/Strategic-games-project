@@ -1,0 +1,901 @@
+# Вариант «У края» с кабинетами: сторона играется несколькими игроками,
+# приказ рождается голосованием. Числа и действия те же.
+schema_version: 1
+meta:
+  id: cabinet
+  title: 'On the Brink: crisis and cabinets'
+  rounds: 6
+  action_points: 4
+  max_random_events: 2
+  intro: 'Four powers hold the world economy and almost all the strategic arsenals on
+
+    the planet. For thirty years they competed without crossing the line.
+
+
+    Eleven days ago two military aircraft collided over neutral waters. Both sides
+
+    insist they did not fire first. The radio recordings contradict each other, and
+
+    the wreckage lies four kilometres down; raising it will take a month at best.
+
+
+    Since then events have moved faster than diplomacy. Reservists have been called
+
+    up in three countries of the four, the exchanges have been falling for a second
+
+    week, and the military on every side report to their governments that the window
+
+    for pre-emptive action is closing.
+
+
+    There is no victory here that outlives a global war: if escalation reaches its
+
+    limit, everyone loses at once, whatever they had accumulated. Your task is to
+
+    defend your country''s interests and not let it come to that. Six rounds, four
+
+    decisions in each.
+
+
+    In this variant each side is played not by one person but by a cabinet: every post has its own briefing,
+    its own goals and its own vote. A country''s order is born of a vote — and not always the one its
+    head wanted.'
+power: self.legitimacy * 0.5 + self.forces * 0.5 + self.economy * 0.3
+tracks:
+  economy:
+    title: Economy
+    meaning: 'The resources of the state in notional units: what pays for mobilisation and
+
+      for helping an ally alike. One decision costs 8–25 units. Zero means there is
+
+      nothing left to pay with.'
+    min: 0
+    max: 200
+    visibility: public
+  forces:
+    title: Forces
+    meaning: 'Deployed military power in notional units. 100 is everything a country can
+
+      field. It shapes both the final score and whether you are taken seriously.'
+    min: 0
+    max: 100
+    visibility: public
+  legitimacy:
+    title: Public support
+    meaning: 'How firmly the government holds its own society. It falls with concessions
+
+      and scandals, rises with speeches and successes. Below 30 retreating becomes
+
+      dangerous for those in power.'
+    min: 0
+    max: 100
+    visibility: public
+  intel:
+    title: Intelligence
+    meaning: 'What the services can do: agents, technical collection, access to other
+
+      people''s networks. Spent on covert operations. Visible only to its owner.'
+    min: 0
+    max: 100
+    visibility: private
+  readiness:
+    title: Readiness
+    meaning: 'How quickly forces can be used. High readiness gives you military options
+
+      but pushes escalation on its own. Visible only to its owner.'
+    min: 0
+    max: 100
+    visibility: private
+world:
+  escalation:
+    title: Escalation
+    meaning: 'How close things are to a direct clash. 100 means global war: the game ends
+
+      and everything accumulated is wiped out for everyone at once. The figure drifts
+
+      back towards its usual level from both directions: a crisis does not dissolve by
+
+      itself.'
+    min: 0
+    max: 100
+    start: 45
+  markets:
+    title: World markets
+    meaning: 'The state of world trade. The lower it is, the less every side''s economy
+
+      brings in. It falls with sanctions, alerts and ultimatums, and recovers on its
+
+      own.'
+    min: 0
+    max: 100
+    start: 60
+  attention:
+    title: Outside attention
+    meaning: 'How closely the press and outside observers are watching the crisis. It
+
+      rises with loud moves and leaks.'
+    min: 0
+    max: 100
+    start: 55
+factions:
+- id: arcadia
+  title: Arcadia
+  start:
+    economy: 120 + meta.rounds * 5
+    forces: 70
+    legitimacy: 60
+    intel: 55
+    readiness: 40
+  briefing: 'You are the largest economy in the world and you are used to setting the
+
+    order of international affairs. Your aircraft was shot down — that is what your
+
+    society believes, and it demands an answer.
+
+
+    The military report that your advantage still holds, but every round of your
+
+    rival''s mobilisation eats into it. Your trading partners are watching whether
+
+    you have the patience; your voters, whether you have the resolve.
+
+
+    Your real advantage is money, not weapons. A lost war cancels both.'
+  goals:
+  - id: order
+    title: Crisis passed without war
+    when: world.escalation < 80
+    score: 40
+  - id: economy
+    title: Economy not undermined
+    when: self.economy >= avg('economy') * 1.25
+    score: 20
+  - id: standing
+    title: Support retained
+    when: self.legitimacy >= 55
+    score: 15
+  roles:
+  - id: head
+    title: President
+    weight: 2
+    briefing: 'You answer for everything and risk everything. Your task is to come out of the crisis without
+      losing either the country or your chair: resignation after a failure is routine here.'
+    goals:
+    - id: survive
+      title: You stayed in power
+      when: self.legitimacy >= 45
+      score: 25
+  - id: defence
+    title: Defence minister
+    weight: 1
+    briefing: You answer for the country's ability to defend itself. Diplomacy is fine while there is
+      force behind it; an army cut down is your personal failure.
+    goals:
+    - id: forces
+      title: The army was not weakened
+      when: self.forces >= 68
+      score: 20
+  - id: treasury
+    title: Finance minister
+    weight: 1
+    briefing: You count the bills. Every mobilisation is paid out of your pocket, and a ruined treasury
+      will be asked of you, not of the generals.
+    goals:
+    - id: purse
+      title: A treasury stronger than the neighbours'
+      when: self.economy >= avg('economy') * 1.15
+      score: 20
+- id: vellan
+  title: Vellan
+  start:
+    economy: 80 + meta.rounds * 5
+    forces: 85
+    legitimacy: 45
+    intel: 70
+    readiness: 60
+  briefing: 'Your army is stronger and your treasury poorer. You cannot sustain a long
+
+    confrontation — the economy will not carry it, and everyone in the government
+
+    understands that except the generals.
+
+
+    At home you are held up by an image of strength. To back down publicly is to
+
+    lose power faster than to any sanctions. But you have the best intelligence
+
+    service in the world, and you know more about your rivals than they think.
+
+
+    Your win is an agreement you can present at home as a victory. Your loss is a
+
+    crisis that drags on.'
+  goals:
+  - id: deal
+    title: Crisis ended, country not ruined
+    when: world.escalation < 80 and self.economy >= 55
+    score: 40
+  - id: face
+    title: The government held
+    when: self.legitimacy >= 45
+    score: 25
+  - id: strength
+    title: Army not weakened
+    when: self.forces >= 75
+    score: 10
+  roles:
+  - id: head
+    title: Head of state
+    weight: 2
+    briefing: You are held up by an image of strength. A public concession costs you power faster than
+      any sanctions — but a war would ruin you.
+    goals:
+    - id: survive
+      title: You stayed in power
+      when: self.legitimacy >= 40
+      score: 25
+  - id: defence
+    title: Chief of the general staff
+    weight: 1
+    briefing: You are convinced the window is closing. Your concern is that the army is ready, however
+      this ends.
+    goals:
+    - id: ready
+      title: Forces at readiness
+      when: self.readiness >= 40
+      score: 20
+  - id: spy
+    title: Head of intelligence
+    weight: 1
+    briefing: Your service is the best in the world and you intend to prove it. A failed operation lands
+      on you personally.
+    goals:
+    - id: intel
+      title: Intelligence at its peak
+      when: self.intel >= 55
+      score: 20
+- id: surat
+  title: Surat
+  start:
+    economy: 82 + meta.rounds * 5
+    forces: 55
+    legitimacy: 70
+    intel: 45
+    readiness: 30
+  briefing: 'You stay out of someone else''s quarrel and earn from the fact that both
+
+    goods and negotiations pass through you. A global war ruins you first: your
+
+    prosperity is built entirely on open seas.
+
+
+    You have the best reputation as a broker and the weakest army of the four. Your
+
+    strength is that both sides trust you — right up until you start playing for one
+
+    of them.
+
+
+    Your task is to bring escalation down and to avoid being drawn into a bloc.'
+  goals:
+  - id: peace
+    title: Peace preserved
+    when: world.escalation < 72
+    score: 32
+  - id: trade
+    title: Trade did not collapse
+    when: world.markets >= 28
+    score: 22
+  - id: rich
+    title: Economy grew
+    when: self.economy >= 62
+    score: 10
+  roles:
+  - id: head
+    title: First minister
+    weight: 2
+    briefing: You keep the country out of someone else's quarrel. Your success is being spoken of as a
+      broker, not as a party.
+    goals:
+    - id: broker
+      title: Peace preserved
+      when: world.escalation < 72
+      score: 25
+  - id: trade
+    title: Trade minister
+    weight: 1
+    briefing: Your prosperity is built on open seas. Every day of closed routes is your loss.
+    goals:
+    - id: markets
+      title: Trade held up
+      when: world.markets >= 30
+      score: 20
+  - id: treasury
+    title: Finance minister
+    weight: 1
+    briefing: Mediation costs money, and you are the one paying. A ruined treasury devalues any reputation.
+    goals:
+    - id: purse
+      title: The treasury is not empty
+      when: self.economy >= avg('economy')
+      score: 20
+- id: norland
+  title: Norland
+  start:
+    economy: 65 + meta.rounds * 5
+    forces: 60
+    legitimacy: 40
+    intel: 80
+    readiness: 55
+  briefing: 'You are the smallest of the four and you know it. Your chance appears when
+
+    the big ones are busy with each other: while they measure strength, you extract
+
+    concessions you would never win in quiet years.
+
+
+    Your intelligence is the best, your economy the weakest, and support at home
+
+    rests on fear of the neighbours rather than affection for the government.
+
+
+    A full war kills you too. Your ideal outcome is a long, tense crisis in which
+
+    everyone needs you.'
+  goals:
+  - id: leverage
+    title: The crisis neither cooled nor exploded
+    when: world.escalation > 50 and world.escalation < 85
+    score: 35
+  - id: support
+    title: The government grew stronger
+    when: self.legitimacy >= 50
+    score: 25
+  - id: knowledge
+    title: Intelligence at its peak
+    when: self.intel >= 70
+    score: 15
+  roles:
+  - id: head
+    title: Chancellor
+    weight: 2
+    briefing: 'You are the smallest of the four and you survive by being needed. A quiet peace does not
+      suit you: in it you are forgotten.'
+    goals:
+    - id: survive
+      title: You stayed in power
+      when: self.legitimacy >= 45
+      score: 25
+  - id: spy
+    title: Head of intelligence
+    weight: 1
+    briefing: What you know about the neighbours is the country's only real capital. It cannot be eaten.
+    goals:
+    - id: intel
+      title: Intelligence is strong
+      when: self.intel >= 60
+      score: 20
+  - id: treasury
+    title: Finance minister
+    weight: 1
+    briefing: 'You understand what the cabinet does not: the country will not withstand a long strain.'
+    goals:
+    - id: purse
+      title: A treasury stronger than the neighbours'
+      when: self.economy >= avg('economy')
+      score: 20
+relations:
+  default: 0
+  pairs:
+  - a: arcadia
+    b: vellan
+    value: -45
+  - a: arcadia
+    b: surat
+    value: 25
+  - a: vellan
+    b: norland
+    value: 20
+  - a: surat
+    b: norland
+    value: -15
+  - a: arcadia
+    b: norland
+    value: -10
+  - a: vellan
+    b: surat
+    value: 5
+actions:
+- id: consult
+  title: A pause for consultations
+  description: Closed meetings, no public steps.
+  news: '{actor} takes a pause for consultations'
+  stance: neutral
+  effects:
+  - self: intel
+    delta: '5'
+  - world: escalation
+    delta: '-2'
+- id: ultimatum
+  title: Ultimatum
+  stance: hostile
+  description: A public demand with a stated deadline.
+  news: '{actor} issues an ultimatum. Addressed to — {target}'
+  target: faction
+  cost:
+    legitimacy: 3
+  effects:
+  - world: escalation
+    delta: '10'
+  - relation:
+    - self
+    - target
+    delta: '-18'
+  - self: legitimacy
+    delta: '3'
+  - world: markets
+    delta: '-3'
+  complications:
+  - chance: 0.05
+    title: The deadline passed for nothing
+    news: 'The ultimatum expired unanswered: the threat looks empty'
+    effects:
+    - self: legitimacy
+      delta: '-9'
+- id: mobilize
+  title: Calling up reserves
+  description: Calling up reservists and deploying units.
+  news: '{actor} announces a call-up of reservists'
+  cost:
+    economy: 25
+  requires: self.forces < 95
+  effects:
+  - self: forces
+    delta: '12'
+  - self: readiness
+    delta: '15'
+  - world: escalation
+    delta: '6'
+  - self: legitimacy
+    delta: '-4'
+  complications:
+  - chance: 0.05
+    title: An accident during deployment
+    news: 'A vehicle column collided on the march: casualties'
+    effects:
+    - self: legitimacy
+      delta: '-10'
+    - self: forces
+      delta: '-5'
+- id: alert
+  title: Strategic alert
+  description: Raising the alert level of strategic forces.
+  news: '{actor} raises its alert level'
+  cost:
+    economy: 15
+  requires: self.readiness >= 20
+  effects:
+  - self: readiness
+    delta: '20'
+  - world: escalation
+    delta: '13'
+  - world: markets
+    delta: '-5'
+  complications:
+  - chance: 0.05
+    title: A dangerous near miss
+    news: Aircraft closed head-on within a kilometre of each other
+    effects:
+    - world: escalation
+      delta: '10'
+    - world: markets
+      delta: '-6'
+- id: standdown
+  title: Standing down
+  description: A demonstrative reduction of readiness.
+  news: '{actor} pulls units back and lowers readiness'
+  requires: self.readiness > 10
+  effects:
+  - self: readiness
+    delta: '-20'
+  - world: escalation
+    delta: '-12'
+  - self: legitimacy
+    delta: '-7'
+  - world: markets
+    delta: '5'
+- id: talks
+  title: Direct talks
+  stance: friendly
+  description: A line of communication between capitals.
+  news: '{actor} opens a direct channel. Counterpart — {target}'
+  target: faction
+  cost:
+    economy: 10
+  effects:
+  - relation:
+    - self
+    - target
+    delta: '20'
+  - world: escalation
+    delta: '-7'
+- id: mediate
+  title: Mediation
+  description: An attempt to bring the sides to one table.
+  news: '{actor} offers a venue for talks'
+  cost:
+    economy: 18
+  effects:
+  - world: escalation
+    delta: '-9'
+  - self: legitimacy
+    delta: '4'
+  - world: attention
+    delta: '6'
+- id: sanctions
+  title: Economic pressure
+  stance: hostile
+  description: Restrictions on trade and finance.
+  news: '{actor} closes its markets. Hit — {target}'
+  target: faction
+  cost:
+    economy: 12
+  effects:
+  - target: economy
+    delta: -(8 + target.economy * 0.05)
+  - self: economy
+    delta: '2'
+  - relation:
+    - self
+    - target
+    delta: '-15'
+  - world: markets
+    delta: '-4'
+  complications:
+  - chance: 0.05
+    title: The sanctions hit your own side
+    news: 'Exporters are losing the market: protests in industrial regions'
+    effects:
+    - self: economy
+      delta: '-12'
+    - self: legitimacy
+      delta: '-6'
+- id: support_trade
+  title: Supporting the markets
+  description: Coordinated measures and supply guarantees.
+  news: '{actor} guarantees supplies and steadies the markets'
+  cost:
+    economy: 20
+  effects:
+  - world: markets
+    delta: '15'
+  - self: legitimacy
+    delta: '3'
+- id: intel_work
+  title: Intelligence work
+  description: Agents and technical collection.
+  news: '{actor} steps up intelligence work'
+  cost:
+    economy: 12
+  effects:
+  - self: intel
+    delta: '18'
+- id: cyber_strike
+  title: Strike on infrastructure
+  stance: hostile
+  description: A covert attack on command and logistics.
+  news: '{actor} strikes covertly at infrastructure. Target — {target}'
+  target: faction
+  cost:
+    economy: 18
+    intel: 15
+  requires: self.intel >= 15
+  visibility: secret
+  reveal_chance: 0.4
+  countered_by:
+  - hardening
+  risk:
+  - p: 0.45
+    title: success
+    effects:
+    - target: economy
+      delta: -(6 + target.economy * 0.06)
+    - self: economy
+      delta: '6'
+    - target: readiness
+      delta: '-10'
+    - world: escalation
+      delta: '6'
+  - p: 0.35
+    title: partial
+    effects:
+    - target: economy
+      delta: '-10'
+  - p: 0.2
+    title: failure, and a trail left behind
+    effects:
+    - self: intel
+      delta: '-15'
+    - world: escalation
+      delta: '10'
+  complications:
+  - chance: 0.06
+    title: A civilian network was hit
+    news: The outage cut power to hospitals in a neighbouring country
+    effects:
+    - self: legitimacy
+      delta: '-12'
+    - world: attention
+      delta: '14'
+- id: hardening
+  title: Network defence
+  description: Hardening critical infrastructure.
+  news: '{actor} closes the gaps in its critical infrastructure'
+  cost:
+    economy: 14
+  counter_multiplier: 0.2
+  effects:
+  - self: intel
+    delta: '5'
+  - self: readiness
+    delta: '5'
+- id: disinform
+  title: Information operation
+  stance: hostile
+  description: Planted evidence of someone else's guilt.
+  news: '{actor} launches an information operation. Target — {target}'
+  target: faction
+  cost:
+    economy: 12
+    intel: 14
+  requires: self.intel >= 14
+  visibility: secret
+  reveal_chance: 0.35
+  plants_rumour: true
+  effects:
+  - self: intel
+    delta: '-6'
+  - world: attention
+    delta: '5'
+- id: proxy
+  title: Backing an insurgency
+  stance: hostile
+  description: Weapons and money for the enemies of another government.
+  news: '{actor} backs an armed opposition. Target — {target}'
+  target: faction
+  cost:
+    economy: 20
+    intel: 12
+  requires: self.intel >= 12
+  visibility: secret
+  reveal_chance: 0.45
+  risk:
+  - p: 0.4
+    title: success
+    effects:
+    - target: legitimacy
+      delta: '-16'
+    - world: escalation
+      delta: '8'
+  - p: 0.35
+    title: no result
+    effects: []
+  - p: 0.25
+    title: a scandal
+    effects:
+    - self: legitimacy
+      delta: '-12'
+    - world: attention
+      delta: '12'
+  complications:
+  - chance: 0.06
+    title: The weapons surfaced in the wrong hands
+    news: Supplied weapons have been found with terrorists
+    effects:
+    - self: legitimacy
+      delta: '-14'
+    - world: attention
+      delta: '16'
+- id: address
+  title: Address to the nation
+  description: A speech explaining the government's course.
+  news: '{actor} addresses the nation'
+  cost:
+    economy: 8
+  effects:
+  - self: legitimacy
+    delta: '6'
+  - world: attention
+    delta: '3'
+  complications:
+  - chance: 0.04
+    title: A slip on air
+    news: A slip of the tongue on live television spread across the networks
+    effects:
+    - self: legitimacy
+      delta: '-7'
+- id: align
+  title: Falling in behind the course
+  description: Public backing for the strongest in exchange for access to its markets.
+  news: '{actor} publicly backs the course of: {target}'
+  target: faction
+  stance: friendly
+  cost:
+    legitimacy: 5
+  effects:
+  - self: economy
+    delta: target.economy * 0.06
+  - relation:
+    - self
+    - target
+    delta: '12'
+  - self: legitimacy
+    delta: '-2'
+- id: gesture
+  title: A gesture of goodwill
+  stance: friendly
+  description: Releasing detainees, a humanitarian corridor, a ship withdrawn.
+  news: '{actor} makes a step towards. Addressed to — {target}'
+  target: faction
+  cost:
+    economy: 10
+  effects:
+  - relation:
+    - self
+    - target
+    delta: '14'
+  - world: escalation
+    delta: '-5'
+  - self: legitimacy
+    delta: '-3'
+deals:
+- id: transfer
+  title: Financial aid
+  kind: resource
+  track: economy
+- id: nonaggression
+  title: Mutual guarantees
+  kind: status
+  duration: 3
+- id: bloc
+  title: Military bloc
+  kind: status
+  duration: 4
+world_dynamics:
+- world: escalation
+  delta: (45 - world.escalation) * 0.15
+- world: attention
+  delta: (45 - world.attention) * 0.18
+- world: markets
+  delta: (60 - world.markets) * 0.25
+- all: economy
+  delta: 8 + world.markets * 0.06 + ((40 + meta.rounds * 2.5) - self.economy) * 0.15
+- all: readiness
+  delta: '-4'
+- all: economy
+  delta: in_status('bloc') * 7 + in_status('nonaggression') * 3
+events:
+- id: black_box
+  title: The flight recorder is found
+  news: The downed aircraft's flight recorder has been raised
+  text: Decoding will take weeks, but both sides already read the find in their own favour.
+  effects:
+  - world: attention
+    delta: '12'
+  - world: escalation
+    delta: '5'
+  phase: 0.33
+- id: markets_panic
+  when: world.markets < 35
+  once: true
+  title: Panic on the exchanges
+  news: 'Markets crashed: investors are moving into cash'
+  effects:
+  - all: economy
+    delta: '-14'
+  - all: legitimacy
+    delta: '-5'
+- id: un_session
+  title: Emergency session
+  news: An emergency session of the Security Council has been convened
+  effects:
+  - world: escalation
+    delta: '-9'
+  - world: attention
+    delta: '10'
+  phase: 0.65
+- id: nuclear_warning
+  when: world.escalation > 85
+  once: true
+  title: A warning from the military
+  news: 'The military on all sides warn: the time for a decision has run out'
+  text: The capitals stepped back from the edge — but they will not be so lucky twice.
+  effects:
+  - world: escalation
+    delta: '-18'
+  - all: legitimacy
+    delta: '-8'
+  - world: markets
+    delta: '-10'
+- id: hotline
+  when: world.escalation < 30
+  once: true
+  title: The hotline is restored
+  news: A direct line between the capitals is working again
+  effects:
+  - all: economy
+    delta: '12'
+  - world: markets
+    delta: '10'
+- id: border_incident
+  chance: 0.22
+  title: Border incident
+  news: 'Shooting on the border: the sides blame each other'
+  effects:
+  - world: escalation
+    delta: '12'
+  - all: legitimacy
+    delta: '-3'
+- id: defection
+  chance: 0.15
+  once: true
+  title: An officer defects
+  news: A staff officer asks for asylum and promises to reveal the plans
+  effects:
+  - all: intel
+    delta: '8'
+  - world: attention
+    delta: '8'
+- id: energy_cut
+  chance: 0.18
+  title: Energy disruptions
+  news: Energy deliveries have been cut and prices have risen
+  effects:
+  - all: economy
+    delta: '-12'
+  - world: markets
+    delta: '-8'
+- id: protests
+  chance: 0.2
+  when: world.escalation > 55
+  title: Mass protests
+  news: 'City squares are full: people demand that war be prevented'
+  effects:
+  - all: legitimacy
+    delta: '-7'
+  - world: escalation
+    delta: '-5'
+- id: false_alarm
+  chance: 0.12
+  once: true
+  when: world.escalation > 70
+  title: False alarm
+  news: 'Early-warning systems failed: minutes nobody will forget'
+  text: The alarm turned out to be false. Next time the luck may not hold.
+  effects:
+  - world: escalation
+    delta: '10'
+  - world: markets
+    delta: '-8'
+- id: harvest
+  chance: 0.14
+  title: A good harvest
+  news: A record harvest has brought food prices down
+  effects:
+  - all: economy
+    delta: '10'
+  - all: legitimacy
+    delta: '3'
+rumours:
+  chance: 0.5
+  noise_chance: 0.2
+  accuracy: 0.55
+  templates:
+  - Unconfirmed reports point to {subject}
+  - 'Intelligence sources point in one direction: {subject}'
+  - 'A name is being mentioned in the corridors of the session: {subject}'
+  - 'A leak from a classified report names the side: {subject}'
+end:
+  when: round > meta.rounds or world.escalation >= 100
+  scoring: 55 + self.legitimacy * 0.5 + (self.forces - avg('forces')) * 0.5 + (self.economy - avg('economy'))
+    * 0.3 - (70 if world.escalation >= 100 else 0)

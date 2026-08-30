@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Request
 
-from ...core.scoring import score
+from ...core.scoring import role_score, score
 from ...core.state import initial_state
 from ...narrate.changes import changes_between
 from ...narrate.news import news_items
@@ -55,12 +55,23 @@ def debrief(request: Request):
     results = []
     for slot in session.journal.teams:
         total, breakdown = score(spec, state, slot.faction, lang)
+        faction_spec = spec.faction(slot.faction)
         results.append(
             {
-                "title": spec.faction(slot.faction).title,
+                "title": faction_spec.title,
                 "team": slot.team,
                 "total": total,
                 "breakdown": breakdown,
+                "roles": [
+                    {
+                        "title": role.title,
+                        "total": role_score(spec, state, slot.faction, role.id, lang)[0],
+                        "goals": [
+                            g for g, _ in role_score(spec, state, slot.faction, role.id, lang)[1]
+                        ],
+                    }
+                    for role in faction_spec.roles
+                ],
             }
         )
     results.sort(key=lambda row: row["total"], reverse=True)
@@ -70,6 +81,29 @@ def debrief(request: Request):
             "n": record.n,
             "public": record.narration.get("public", ""),
             "host": record.narration.get("host", ""),
+            "votes": [
+                {
+                    "side": spec.faction(p.faction).title,
+                    "what": (spec.action(p.action).title if spec.action(p.action) else p.action),
+                    "author": (
+                        spec.faction(p.faction).role(p.author).title
+                        if spec.faction(p.faction) and spec.faction(p.faction).role(p.author)
+                        else p.author
+                    ),
+                    "passed": p.passed,
+                    "for": [
+                        spec.faction(p.faction).role(r).title
+                        for r, v in p.votes.items()
+                        if v and spec.faction(p.faction).role(r)
+                    ],
+                    "against": [
+                        spec.faction(p.faction).role(r).title
+                        for r, v in p.votes.items()
+                        if not v and spec.faction(p.faction).role(r)
+                    ],
+                }
+                for p in record.proposals
+            ],
             "intents": [
                 (spec.faction(faction).title, order.action, order.intent)
                 for faction, orders in sorted(record.orders.items())

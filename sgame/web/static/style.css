@@ -350,3 +350,6 @@ details.action[open] > summary { margin-bottom: .6rem; }
 .proposal .vote-state { color: var(--accent); }
 a.card.action { text-decoration: none; color: inherit; display: block; }
 a.card.action:hover { border-color: var(--accent); }
+.rolecode { font-family: inherit; font-size: .82rem; letter-spacing: 0; color: var(--muted); }
+.rolecode b { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .12em; color: var(--text); }
+.rolerow td { color: var(--muted); font-size: .9rem; }

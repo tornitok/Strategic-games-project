@@ -15,6 +15,14 @@
       <td class="code">{{ row.total | num }}</td>
       <td class="round">{% for name, value in row.breakdown %}{{ name }}: {{ value | num }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
     </tr>
+    {% for role in row.roles %}
+    <tr class="rolerow">
+      <td></td>
+      <td colspan="2">{{ role.title }}</td>
+      <td class="code">{{ role.total | num }}</td>
+      <td class="round">{{ t("debrief.personal") }}: {{ role.goals | join(", ") or "—" }}</td>
+    </tr>
+    {% endfor %}
     {% endfor %}
   </table>
 </section>
@@ -24,6 +32,18 @@
 <section class="card">
   <h3>{{ t("common.round_of", n=round.n, total=spec.meta.rounds) }}</h3>
   <div class="news">{{ round.host }}</div>
+  {% if round.votes %}
+  <h4>{{ t("debrief.votes") }}</h4>
+  <ul class="orders">
+    {% for v in round.votes %}
+    <li><span><strong>{{ v.side }}</strong> — {{ v.what }},
+      {{ t("roles.proposed_by") }} {{ v.author }}:
+      {% if v.passed %}{{ t("debrief.vote_passed") }}{% else %}{{ t("debrief.vote_failed") }}{% endif %}</span>
+      <span class="intent">{{ t("news.cabinet_votes", yes=v["for"] | join(", ") or "—", no=v.against | join(", ") or "—") }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
   {% if round.intents %}
   <h4>{{ t("debrief.intents") }}</h4>
   <ul class="orders">
